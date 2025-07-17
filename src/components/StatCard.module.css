@@ -1,0 +1,78 @@
+/* src/components/StatCard.module.css */
+.statCard {
+    background-color: #fff;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 0.5rem;
+    overflow: hidden;
+    transition: all 0.2s;
+  }
+  
+  .statCard:hover {
+    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
+    transform: translateY(-4px);
+  }
+  
+  .statCardHighContrast {
+    background-color: #1f2937;
+    border: 2px solid #fff;
+  }
+  
+  .statHeader {
+    padding: 1rem;
+  }
+  
+  .statHeaderBlue {
+    background-color: #1e40af;
+    color: #fff;
+  }
+  
+  .statHeaderYellow {
+    background-color: #ca8a04;
+    color: #fff;
+  }
+  
+  .statHeaderGreen {
+    background-color: #15803d;
+    color: #fff;
+  }
+  
+  .statHeaderHighContrast {
+    background-color: #fff;
+    color: #000;
+  }
+  
+  .statTitle {
+    font-weight: 700;
+  }
+  
+  .statContent {
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .statValue {
+    font-size: 1.875rem;
+    font-weight: 700;
+  }
+  
+  .statIcon {
+    font-size: 1.875rem;
+  }
+  
+  .statIconBlue {
+    color: #3b82f6;
+  }
+  
+  .statIconYellow {
+    color: #f59e0b;
+  }
+  
+  .statIconGreen {
+    color: #10b981;
+  }
+  
+  .statIconHighContrast {
+    color: #fff;
+  }

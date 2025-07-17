@@ -1,0 +1,49 @@
+/* src/pages/AddProduct.module.css */
+.addProduct {
+  padding: 20px;
+  background: #fff;
+}
+
+.addProduct h2 {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.form {
+  max-width: 500px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+}
+
+.formGroup label {
+  font-size: 14px;
+  margin-bottom: 5px;
+}
+
+.formGroup input {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.submit {
+  padding: 10px 20px;
+  background: #388e3c;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+.submit:hover {
+  background: #2e7d32;
+}

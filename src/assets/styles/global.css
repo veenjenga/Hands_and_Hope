@@ -1,0 +1,13 @@
+@font-face {
+    font-family: 'Lexend';
+    src: url('https://fonts.gstatic.com/s/lexend/v17/wlptgwvFAVdoq2_F_aFfcWVu.woff2') format('woff2');
+    font-weight: 300 400 500 600 700;
+    font-style: normal;
+  }
+  
+  body {
+    margin: 0;
+    font-family: 'Lexend', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
