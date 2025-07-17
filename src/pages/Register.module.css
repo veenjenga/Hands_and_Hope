@@ -1,0 +1,111 @@
+.registerContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: #f5f5f5;
+  padding: 2rem;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 600;
+  color: #1a237e;
+  margin-bottom: 2rem;
+}
+
+.voiceControl {
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.voiceButton {
+  background: #1a237e;
+  color: #fff;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.25rem;
+  border: none;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.voiceButton:hover {
+  background: #2c357e;
+}
+
+.voiceActive {
+  background: #e91e63;
+}
+
+.voiceFeedback {
+  margin-top: 0.5rem;
+  font-size: 1rem;
+  color: #666;
+}
+
+.textControls {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.controlButton {
+  background: #1a237e;
+  color: #fff;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.25rem;
+  border: none;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.controlButton:hover {
+  background: #2c357e;
+}
+
+.form {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 400px;
+}
+
+.formGroup {
+  margin-bottom: 1.5rem;
+}
+
+.formGroup label {
+  display: block;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #1a237e;
+  margin-bottom: 0.5rem;
+}
+
+.formGroup input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 0.25rem;
+  font-size: inherit;
+  outline: none;
+}
+
+.submitButton {
+  width: 100%;
+  background: #1a237e;
+  color: #fff;
+  padding: 0.75rem;
+  border-radius: 0.25rem;
+  border: none;
+  font-size: 1.125rem;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.submitButton:hover {
+  background: #2c357e;
+}
