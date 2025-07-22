@@ -37,7 +37,7 @@ function BuyersDashboard({ highContrastMode, fontSize, products, filters }) {
           <div className={styles.heroOverlay}></div>
           <div className={styles.heroContent}>
             <div className={styles.heroText}>
-              <h1 className={styles.heroTitle}>Welcome to EqualTrade</h1>
+              <h1 className={styles.heroTitle}>Welcome to Hands and Hope</h1>
               <p className={styles.heroSubtitle}>
                 Discover amazing products from trusted sellers around the world. Your one-stop destination for quality trade.
               </p>
@@ -83,7 +83,7 @@ function BuyersDashboard({ highContrastMode, fontSize, products, filters }) {
         <footer className={`${styles.footer} ${highContrastMode ? styles.footerHighContrast : ''}`}>
           <div className={styles.footerContent}>
             <div className={styles.footerSection}>
-              <h3 className={styles.footerTitle}>EqualTrade</h3>
+              <h3 className={styles.footerTitle}>Hands and Hope</h3>
               <p className={`${styles.footerText} ${highContrastMode ? styles.textHighContrast : ''}`}>
                 Making global trade accessible and equal for everyone.
               </p>
@@ -108,7 +108,7 @@ function BuyersDashboard({ highContrastMode, fontSize, products, filters }) {
               <h4 className={styles.footerSubtitle}>Contact</h4>
               <ul className={styles.footerList}>
                 <li className={styles.footerContact}>
-                  <i className="fas fa-envelope mr-2"></i>support@equaltrade.com
+                  <i className="fas fa-envelope mr-2"></i>support@handsandhope.com
                 </li>
                 <li className={styles.footerContact}>
                   <i className="fas fa-phone mr-2"></i>+1 (555) 123-4567
@@ -117,7 +117,7 @@ function BuyersDashboard({ highContrastMode, fontSize, products, filters }) {
             </div>
           </div>
           <div className={`${styles.footerBottom} ${highContrastMode ? styles.footerBottomHighContrast : ''}`}>
-            © 2025 EqualTrade. All rights reserved.
+            © 2025 Hands and Hope. All rights reserved.
           </div>
         </footer>
       </div>

@@ -7,7 +7,7 @@ function BuyerHeader({ highContrastMode, searchQuery, onSearchQueryChange }) {
     <header className={`${styles.header} ${highContrastMode ? styles.highContrast : ""}`}>
       <div className={styles.headerContent}>
         <div className={styles.logo}>
-          <h1>EqualTrade</h1>
+          <h1>Hands and Hope</h1>
         </div>
         <div className={styles.searchContainer}>
           <input
