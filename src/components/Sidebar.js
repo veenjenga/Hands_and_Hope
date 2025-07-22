@@ -29,7 +29,7 @@ function Sidebar({ activeNavItem, handleNavItemClick, highContrastMode }) {
       aria-label="Main navigation"
     >
       <div className={styles.sidebarHeader}>
-        <h1 className={styles.sidebarTitle}>Equal Trade</h1>
+        <h1 className={styles.sidebarTitle}>Hands and Hope</h1>
       </div>
       <nav className={styles.sidebarNav}>
         {navItems.map((item) => (

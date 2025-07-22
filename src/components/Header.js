@@ -26,7 +26,7 @@ function Header({ highContrastMode }) {
         <div className={styles.logoContainer}>
           <img
             src="https://public.readdy.ai/ai/img_res/5ff6d397171f27c83a4bc4d037a1e37e.jpg"
-            alt="Equal Trade Logo"
+            alt="Hands and Hope Logo"
             className={styles.logo}
           />
         </div>
