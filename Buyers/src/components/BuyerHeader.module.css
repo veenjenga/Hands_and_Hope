@@ -1,0 +1,126 @@
+.header {
+  position: sticky;
+  top: 0;
+  background: #fff;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 1rem 2rem;
+  z-index: 100;
+}
+
+.highContrast {
+  background: #000;
+  border-bottom: 1px solid #fff;
+}
+
+.headerContent {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.logo {
+  margin-left: 0;
+  flex: 0 0 auto;
+}
+
+.logo h1 {
+  font-size: 1.75rem; /* Slightly larger for prominence */
+  font-weight: 700;
+  color: #1a237e;
+}
+
+.highContrast .logo h1 {
+  color: #fff;
+}
+
+.searchContainer {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 0.25rem;
+  overflow: hidden;
+  max-width: 400px;
+  margin: 0 3rem; /* Increased margin for better spacing */
+}
+
+.highContrast .searchContainer {
+  border: 1px solid #fff;
+}
+
+.searchInput {
+  border: none;
+  padding: 0.75rem 1rem; /* Increased padding */
+  font-size: 1rem;
+  outline: none;
+  width: 100%;
+}
+
+.inputHighContrast {
+  background: #000;
+  color: #fff;
+}
+
+.searchButton {
+  background: #1a237e;
+  color: #fff;
+  border: none;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.buttonHighContrast {
+  background: #fff;
+  color: #000;
+}
+
+.searchButton:hover {
+  background: #2c357e;
+}
+
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 2.5rem; /* Increased gap for better spacing */
+  flex: 0 0 auto;
+}
+
+.registerButton {
+  background: #ffeb3b;
+  color: #1a237e;
+  padding: 0.75rem 1.5rem; /* Increased padding */
+  border-radius: 0.25rem;
+  text-decoration: none;
+  transition: background 0.3s;
+}
+
+.registerButton:hover {
+  background: #fdd835;
+}
+
+.buttonHighContrast {
+  background: #fff;
+  color: #000;
+}
+
+.buttonHighContrast:hover {
+  background: #ccc;
+}
+
+.settingsIcon {
+  color: #1a237e;
+  font-size: 1.75rem; /* Slightly larger */
+  transition: color 0.3s;
+}
+
+.iconHighContrast {
+  color: #fff;
+}
+
+.settingsIcon:hover {
+  color: #2c357e;
+}

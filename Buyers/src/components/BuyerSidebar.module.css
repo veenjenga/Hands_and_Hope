@@ -1,0 +1,241 @@
+.sidebar {
+  width: 220px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  background: #1a237e;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+  padding: 2rem 1rem; /* Adjusted padding after removing logo */
+  overflow-y: auto;
+}
+
+.highContrast {
+  background: #000;
+  border-right: 1px solid #fff;
+}
+
+.nav {
+  flex: 1;
+}
+
+.navSection {
+  padding: 0.5rem 1rem;
+}
+
+.navList {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  list-style: none;
+}
+
+.navLink {
+  text-decoration: none;
+  color: inherit;
+}
+
+.navLinkHighContrast {
+  color: #fff;
+}
+
+.filterSection {
+  padding: 1rem;
+}
+
+.filterGroup {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  padding-bottom: 2rem;
+  margin-bottom: 2rem;
+}
+
+.filterGroup:last-child {
+  border-bottom: none;
+}
+
+.filterHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  margin-bottom: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.filterHeader:hover {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.filterHeader h3 {
+  font-weight: 500;
+  font-size: 1.125rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.homeHeader {
+  font-size: 1.25rem;
+}
+
+.homeHeader i {
+  font-size: 1.125rem;
+}
+
+.filterHeader i {
+  font-size: 0.875rem;
+}
+
+.filterContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+
+.filterOption {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.filterOption:hover {
+  transform: translateX(5px);
+}
+
+.filterOption:hover span {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.checkboxContainer {
+  position: relative;
+  display: inline-block;
+}
+
+.checkbox {
+  display: none;
+}
+
+.customCheckbox {
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-radius: 0.25rem;
+  transition: all 0.3s;
+}
+
+.checkbox:checked + .customCheckbox {
+  background: #fff;
+  border-color: #fff;
+}
+
+.checkIcon {
+  color: #1a237e;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  font-size: 0.75rem;
+}
+
+.checkbox:checked ~ .checkIcon {
+  opacity: 1;
+}
+
+.filterOption span {
+  margin-left: 0.75rem;
+  font-size: 1rem;
+}
+
+/* Price Range Slider Styles */
+.priceRangeContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.priceRangeValues {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.sliderContainer {
+  position: relative;
+}
+
+.priceSlider {
+  width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 5px;
+  outline: none;
+  margin: 0.5rem 0;
+}
+
+.priceSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  background: #fff;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid #1a237e;
+}
+
+.priceSlider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: #fff;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid #1a237e;
+}
+
+/* Color Button Styles */
+.colorGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.colorButton {
+  position: relative;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 9999px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.colorButton:hover {
+  transform: scale(1.1);
+}
+
+.colorButtonSelected {
+  border: 2px solid #fff;
+}
+
+.colorCheckIcon {
+  color: #fff;
+  font-size: 1rem;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
