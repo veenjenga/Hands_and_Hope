@@ -1,0 +1,178 @@
+/* src/App.module.css */
+.appContainer {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.mainContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background-color: #f9fafb;
+  color: #111827;
+}
+
+.mainContentHighContrast {
+  background-color: #000;
+  color: #fff;
+}
+
+/* Accessibility Panel Styles */
+.accessibilityPanel {
+  position: fixed;
+  top: 120px;
+  right: 16px;
+  z-index: 1000;
+}
+
+.accessibilityPanelHighContrast {
+  /* No additional styles needed; handled by child elements */
+}
+
+.wheelchairButton {
+  padding: 8px;
+  background: #facc15; /* Yellow background for visibility */
+  color: #1f2937;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: transform 0.2s;
+  font-size: 2.0rem; /* Larger icon for visibility */
+}
+
+.wheelchairButton:hover {
+  transform: scale(1.05);
+}
+
+.accessibilityPanelHighContrast .wheelchairButton {
+  background: #fff;
+  color: #000;
+}
+
+.accessibilityOptions {
+  margin-top: 8px;
+  padding: 12px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.accessibilityPanelHighContrast .accessibilityOptions {
+  background: #1f2937;
+  border: 2px solid #fff;
+}
+
+.optionRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.optionLabel {
+  font-size: 0.875rem;
+  color: #1f2937;
+}
+
+.accessibilityPanelHighContrast .optionLabel {
+  color: #fff;
+}
+
+.toggleSwitch {
+  width: 48px;
+  height: 24px;
+  background: #d1d5db;
+  border-radius: 9999px;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.toggleSwitchActive {
+  background: #2563eb;
+}
+
+.accessibilityPanelHighContrast .toggleSwitchActive {
+  background: #fff;
+}
+
+.toggleKnob {
+  width: 20px;
+  height: 20px;
+  background: #fff;
+  border-radius: 50%;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.2s;
+}
+
+.toggleSwitchActive .toggleKnob {
+  transform: translateX(24px);
+}
+
+.accessibilityPanelHighContrast .toggleSwitchActive .toggleKnob {
+  background: #000;
+}
+
+.fontSizeControls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.optionButton {
+  padding: 4px;
+  background: #f3f4f6;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.optionButton:hover {
+  transform: scale(1.05);
+}
+
+.optionButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.accessibilityPanelHighContrast .optionButton {
+  background: #d1d5db;
+  color: #000;
+}
+
+.fontSizeValue {
+  font-size: 0.875rem;
+  color: #4b5563;
+}
+
+.accessibilityPanelHighContrast .fontSizeValue {
+  color: #d1d5db;
+}
+
+.resetButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  background: #fef2f2;
+  color: #dc2626;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.resetButton:hover {
+  transform: scale(1.05);
+}
+
+.accessibilityPanelHighContrast .resetButton {
+  background: #fff;
+  color: #000;
+}

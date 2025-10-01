@@ -1,0 +1,120 @@
+/* src/components/ProductCard.module.css */
+.productCard {
+  background-color: #fff;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.productCard:hover {
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
+  transform: translateY(-4px);
+}
+
+.productCardHighContrast {
+  background-color: #1f2937;
+  border: 2px solid #fff;
+}
+
+.imageContainer {
+  height: 12rem;
+  overflow: hidden;
+}
+
+.productImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+}
+
+.productContent {
+  padding: 1rem;
+}
+
+.productHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.5rem;
+}
+
+.productName {
+  font-weight: 700;
+  color: #111827;
+}
+
+.productNameHighContrast {
+  color: #fff;
+}
+
+.productStatus {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  border-radius: 9999px;
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.productStatusHighContrast {
+  background-color: #fff;
+  color: #000;
+}
+
+.productPrice {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.productPriceHighContrast {
+  color: #fff;
+}
+
+.productActions {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: space-between;
+}
+
+.editButton {
+  padding: 0.25rem 0.75rem;
+  background-color: #2563eb;
+  color: #fff;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  transition: transform 0.2s;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.editButton:hover {
+  transform: scale(1.05);
+}
+
+.editButtonHighContrast {
+  background-color: #fff;
+  color: #000;
+}
+
+.viewButton {
+  padding: 0.25rem 0.75rem;
+  background-color: #e5e7eb;
+  color: #1f2937;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  transition: transform 0.2s;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.viewButton:hover {
+  transform: scale(1.05);
+}
+
+.viewButtonHighContrast {
+  background-color: #fff;
+  color: #000;
+}

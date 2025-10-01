@@ -1,0 +1,66 @@
+/* src/components/Sidebar.module.css */
+.sidebar {
+  width: 16rem;
+  height: 100%;
+  background-color: #1e3a8a;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.sidebarHighContrast {
+  background-color: #000;
+  color: #fff;
+}
+
+.sidebarHeader {
+  padding: 1.5rem;
+}
+
+.sidebarTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #fff; /* Explicitly set to white */
+}
+
+.sidebarNav {
+  margin-top: 1.5rem;
+}
+
+.navButton {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 1rem 1.5rem;
+  text-align: left;
+  transition: background-color 0.2s;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  border-radius: 0.5rem;
+  color: #fff; /* Explicitly set to white */
+}
+
+.navButton:hover {
+  background-color: #1e40af;
+}
+
+.navButtonActive {
+  background-color: #1e40af;
+  color: #fff; /* Ensure active button text is white */
+}
+
+.navButtonActiveHighContrast {
+  background-color: #fff; /* White background for active button in high-contrast mode */
+  color: #fff; /* Keep text white, overriding the previous black */
+}
+
+.navIcon {
+  margin-right: 1rem;
+  font-size: 1.25rem;
+}
+
+.navText {
+  font-size: 1.125rem;
+  color: #fff; /* Explicitly set to white */
+}
