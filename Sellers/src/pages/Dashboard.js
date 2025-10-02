@@ -1,39 +1,47 @@
 // src/pages/Dashboard.js
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import StatCard from '../components/StatCard';
 import ProductCard from '../components/ProductCard';
 import styles from './Dashboard.module.css';
 
 function Dashboard({ highContrastMode }) {
-  const stats = [
-    { title: 'Active Listings', value: '24', icon: 'tag', color: 'blue' },
-    { title: 'Pending Inquiries', value: '8', icon: 'question-circle', color: 'yellow' },
-    { title: 'Listed Categories', value: '3', icon: 'tag', color: 'green' },
-  ];
+  const [products, setProducts] = useState([]);
+  const [stats, setStats] = useState([
+    { title: 'Active Listings', value: '0', icon: 'tag', color: 'blue' },
+    { title: 'Pending Inquiries', value: '0', icon: 'question-circle', color: 'yellow' },
+    { title: 'Listed Categories', value: '0', icon: 'tag', color: 'green' },
+  ]);
 
-  const products = [
-    {
-      name: 'Handcrafted Wooden Chair',
-      price: '$149.99',
-      status: 'Active',
-      image: 'https://public.readdy.ai/ai/img_res/178e990867a812359b502d82b2529450.jpg',
-    },
-    {
-      name: 'Organic Cotton T-Shirt',
-      price: '$29.99',
-      status: 'Active',
-      image: 'https://public.readdy.ai/ai/img_res/34f2b6ef2b8a46854cb01dcdc4a5e72e.jpg',
-    },
-    {
-      name: 'Handmade Ceramic Vase',
-      price: '$79.99',
-      status: 'Active',
-      image: 'https://public.readdy.ai/ai/img_res/f402ad34942bd3e271a3ffd3f3c63970.jpg',
-    },
-  ];
+  // Fetch products from backend
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await fetch('http://localhost:5000/api/products');
+        const data = await res.json();
+        setProducts(data);
+
+        // Update stats dynamically
+        const activeCount = data.filter((p) => p.status === 'Active').length;
+        const categories = [...new Set(data.map((p) => p.category))].length;
+
+        setStats([
+          { title: 'Active Listings', value: activeCount, icon: 'tag', color: 'blue' },
+          { title: 'Pending Inquiries', value: '8', icon: 'question-circle', color: 'yellow' }, // 👈 replace with real inquiries later
+          { title: 'Listed Categories', value: categories, icon: 'tag', color: 'green' },
+        ]);
+      } catch (err) {
+        console.error('Error fetching products:', err);
+      }
+    };
+
+    fetchProducts();
+  }, []);
 
   return (
-    <main className={`${styles.main} ${highContrastMode ? styles.highContrast : ''}`} role="main">
+    <main
+      className={`${styles.main} ${highContrastMode ? styles.highContrast : ''}`}
+      role="main"
+    >
       {/* Welcome Section */}
       <div className={styles.welcomeSection}>
         <h1
@@ -87,10 +95,13 @@ function Dashboard({ highContrastMode }) {
         </div>
 
         <div className={styles.listingsGrid}>
-          {products.map((product, index) => (
+          {products.slice(0, 3).map((product, index) => (
             <ProductCard
-              key={index}
-              product={product}
+              key={product._id || index}
+              product={{
+                ...product,
+                price: `$${product.price.toFixed(2)}`, // format number
+              }}
               highContrastMode={highContrastMode}
             />
           ))}
