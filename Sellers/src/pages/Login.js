@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";   // ✅ Import Link
 
 function Login() {
   const [form, setForm] = useState({ email: "", password: "" });
@@ -20,11 +21,18 @@ function Login() {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <input name="email" placeholder="Email" onChange={handleChange} />
-      <input name="password" type="password" placeholder="Password" onChange={handleChange} />
-      <button type="submit">Login</button>
-    </form>
+    <div>
+      <h2>Login</h2>
+      <form onSubmit={handleSubmit}>
+        <input name="email" placeholder="Email" onChange={handleChange} />
+        <input name="password" type="password" placeholder="Password" onChange={handleChange} />
+        <button type="submit">Login</button>
+      </form>
+      <p>
+        Don’t have an account?{" "}
+        <Link to="/signup">Sign up here</Link>
+      </p>
+    </div>
   );
 }
 
