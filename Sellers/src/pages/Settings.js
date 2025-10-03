@@ -27,14 +27,53 @@ function Settings({ highContrastMode, fontSize, setFontSize, isVoiceNavigationEn
     setProfile((prev) => ({ ...prev, [name]: value }));
   };
 
-  const saveSettings = () => {
-    // Simulate saving profile settings (e.g., to local storage or backend)
-    localStorage.setItem('profileSettings', JSON.stringify(profile));
-    if (voiceFeedback) {
-      const utterance = new SpeechSynthesisUtterance('Settings saved successfully');
-      window.speechSynthesis.speak(utterance);
+  const saveSettings = async () => {
+    try {
+      const response = await fetch("/api/sellers/profile", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`, // JWT token
+        },
+        body: JSON.stringify(profile),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        if (voiceFeedback) {
+          const utterance = new SpeechSynthesisUtterance("Settings saved successfully");
+          window.speechSynthesis.speak(utterance);
+        }
+        alert("Profile updated successfully");
+      } else {
+        alert(data.message || "Error updating profile");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("Something went wrong");
     }
   };
+
+  const deactivateAccount = async () => {
+    await fetch("/api/sellers/deactivate", {
+      method: "PUT",
+      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+    });
+    alert("Account deactivated");
+  };
+
+  const deleteAccount = async () => {
+    if (window.confirm("Are you sure? This cannot be undone!")) {
+      await fetch("/api/sellers/delete", {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      localStorage.removeItem("token");
+      window.location.href = "/login";
+    }
+  };
+
+
 
   return (
     <main className={`${styles.main} ${highContrastMode ? styles.highContrast : ''}`}>
