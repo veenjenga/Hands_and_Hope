@@ -1,13 +1,21 @@
-import React, { useState } from 'react';
-import styles from './Settings.module.css';
+import React, { useState } from "react";
+import styles from "./Settings.module.css";
 
-function Settings({ highContrastMode, fontSize, setFontSize, isVoiceNavigationEnabled, setIsVoiceNavigationEnabled, voiceFeedback, setVoiceFeedback }) {
-  const [navigationMode, setNavigationMode] = useState('Screen'); // Default to Screen mode
+function Settings({
+  highContrastMode,
+  fontSize,
+  setFontSize,
+  isVoiceNavigationEnabled,
+  setIsVoiceNavigationEnabled,
+  voiceFeedback,
+  setVoiceFeedback,
+}) {
+  const [navigationMode, setNavigationMode] = useState("Screen"); // Default to Screen mode
   const [profile, setProfile] = useState({
-    fullName: 'John Doe',
-    businessName: 'JD Electronics',
-    email: 'john.doe@example.com',
-    phoneNumber: '+1 (555) 123-4567',
+    fullName: "John Doe",
+    businessName: "JD Electronics",
+    email: "john.doe@example.com",
+    phoneNumber: "+1 (555) 123-4567",
   });
 
   const increaseFontSize = () => {
@@ -27,22 +35,80 @@ function Settings({ highContrastMode, fontSize, setFontSize, isVoiceNavigationEn
     setProfile((prev) => ({ ...prev, [name]: value }));
   };
 
-  const saveSettings = () => {
-    // Simulate saving profile settings (e.g., to local storage or backend)
-    localStorage.setItem('profileSettings', JSON.stringify(profile));
-    if (voiceFeedback) {
-      const utterance = new SpeechSynthesisUtterance('Settings saved successfully');
-      window.speechSynthesis.speak(utterance);
+  // 🔹 Save profile to backend
+  const saveSettings = async () => {
+    try {
+      const response = await fetch("/api/sellers/profile", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`, // JWT token
+        },
+        body: JSON.stringify(profile),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        if (voiceFeedback) {
+          const utterance = new SpeechSynthesisUtterance(
+            "Settings saved successfully"
+          );
+          window.speechSynthesis.speak(utterance);
+        }
+        alert("Profile updated successfully");
+      } else {
+        alert(data.message || "Error updating profile");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("Something went wrong");
+    }
+  };
+
+  // 🔹 Deactivate account
+  const deactivateAccount = async () => {
+    try {
+      await fetch("/api/sellers/deactivate", {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      alert("Account deactivated");
+    } catch (err) {
+      console.error(err);
+      alert("Error deactivating account");
+    }
+  };
+
+  // 🔹 Delete account
+  const deleteAccount = async () => {
+    if (window.confirm("Are you sure? This cannot be undone!")) {
+      try {
+        await fetch("/api/sellers/delete", {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        });
+        localStorage.removeItem("token");
+        window.location.href = "/login";
+      } catch (err) {
+        console.error(err);
+        alert("Error deleting account");
+      }
     }
   };
 
   return (
-    <main className={`${styles.main} ${highContrastMode ? styles.highContrast : ''}`}>
+    <main
+      className={`${styles.main} ${highContrastMode ? styles.highContrast : ""}`}
+    >
       <div className={styles.container}>
         <h1 className={styles.title}>Settings</h1>
 
         {/* Profile Settings */}
-        <section className={`${styles.section} ${highContrastMode ? styles.sectionHighContrast : ''}`}>
+        <section
+          className={`${styles.section} ${
+            highContrastMode ? styles.sectionHighContrast : ""
+          }`}
+        >
           <h2 className={styles.sectionTitle}>Profile Settings</h2>
           <div className={styles.formGroup}>
             <label className={styles.label}>Full Name</label>
@@ -51,7 +117,9 @@ function Settings({ highContrastMode, fontSize, setFontSize, isVoiceNavigationEn
               name="fullName"
               value={profile.fullName}
               onChange={handleProfileChange}
-              className={`${styles.input} ${highContrastMode ? styles.inputHighContrast : ''}`}
+              className={`${styles.input} ${
+                highContrastMode ? styles.inputHighContrast : ""
+              }`}
             />
           </div>
           <div className={styles.formGroup}>
@@ -61,7 +129,9 @@ function Settings({ highContrastMode, fontSize, setFontSize, isVoiceNavigationEn
               name="businessName"
               value={profile.businessName}
               onChange={handleProfileChange}
-              className={`${styles.input} ${highContrastMode ? styles.inputHighContrast : ''}`}
+              className={`${styles.input} ${
+                highContrastMode ? styles.inputHighContrast : ""
+              }`}
             />
           </div>
           <div className={styles.formGroup}>
@@ -71,7 +141,9 @@ function Settings({ highContrastMode, fontSize, setFontSize, isVoiceNavigationEn
               name="email"
               value={profile.email}
               onChange={handleProfileChange}
-              className={`${styles.input} ${highContrastMode ? styles.inputHighContrast : ''}`}
+              className={`${styles.input} ${
+                highContrastMode ? styles.inputHighContrast : ""
+              }`}
             />
           </div>
           <div className={styles.formGroup}>
@@ -81,16 +153,26 @@ function Settings({ highContrastMode, fontSize, setFontSize, isVoiceNavigationEn
               name="phoneNumber"
               value={profile.phoneNumber}
               onChange={handleProfileChange}
-              className={`${styles.input} ${highContrastMode ? styles.inputHighContrast : ''}`}
+              className={`${styles.input} ${
+                highContrastMode ? styles.inputHighContrast : ""
+              }`}
             />
           </div>
         </section>
 
         {/* Accessibility Settings */}
-        <section className={`${styles.section} ${highContrastMode ? styles.sectionHighContrast : ''}`}>
+        <section
+          className={`${styles.section} ${
+            highContrastMode ? styles.sectionHighContrast : ""
+          }`}
+        >
           <div className={styles.sectionHeader}>
             <h2 className={styles.sectionTitle}>Accessibility Preferences</h2>
-            <div className={`${styles.badge} ${highContrastMode ? styles.badgeHighContrast : ''}`}>
+            <div
+              className={`${styles.badge} ${
+                highContrastMode ? styles.badgeHighContrast : ""
+              }`}
+            >
               Personalized
             </div>
           </div>
@@ -98,27 +180,48 @@ function Settings({ highContrastMode, fontSize, setFontSize, isVoiceNavigationEn
             <label className={styles.label}>Navigation Mode</label>
             <div className={styles.buttonGroup}>
               <button
-                className={`${styles.navButton} ${navigationMode === 'Screen' ? (highContrastMode ? styles.navButtonActiveHighContrast : styles.navButtonActive) : ''}`}
+                type="button"
+                className={`${styles.navButton} ${
+                  navigationMode === "Screen"
+                    ? highContrastMode
+                      ? styles.navButtonActiveHighContrast
+                      : styles.navButtonActive
+                    : ""
+                }`}
                 onClick={() => {
-                  setNavigationMode('Screen');
+                  setNavigationMode("Screen");
                   setIsVoiceNavigationEnabled(false);
                 }}
               >
                 <i className="fa fa-mouse-pointer mr-2"></i>Screen
               </button>
               <button
-                className={`${styles.navButton} ${navigationMode === 'Voice' ? (highContrastMode ? styles.navButtonActiveHighContrast : styles.navButtonActive) : ''}`}
+                type="button"
+                className={`${styles.navButton} ${
+                  navigationMode === "Voice"
+                    ? highContrastMode
+                      ? styles.navButtonActiveHighContrast
+                      : styles.navButtonActive
+                    : ""
+                }`}
                 onClick={() => {
-                  setNavigationMode('Voice');
+                  setNavigationMode("Voice");
                   setIsVoiceNavigationEnabled(true);
                 }}
               >
                 <i className="fa fa-microphone mr-2"></i>Voice
               </button>
               <button
-                className={`${styles.navButton} ${navigationMode === 'Hybrid' ? (highContrastMode ? styles.navButtonActiveHighContrast : styles.navButtonActive) : ''}`}
+                type="button"
+                className={`${styles.navButton} ${
+                  navigationMode === "Hybrid"
+                    ? highContrastMode
+                      ? styles.navButtonActiveHighContrast
+                      : styles.navButtonActive
+                    : ""
+                }`}
                 onClick={() => {
-                  setNavigationMode('Hybrid');
+                  setNavigationMode("Hybrid");
                   setIsVoiceNavigationEnabled(true);
                 }}
               >
@@ -129,11 +232,19 @@ function Settings({ highContrastMode, fontSize, setFontSize, isVoiceNavigationEn
           <div className={styles.formGroup}>
             <label className={styles.label}>Font Size</label>
             <div className={styles.fontSizeControl}>
-              <button onClick={decreaseFontSize} className={styles.controlButton}>
+              <button
+                type="button"
+                onClick={decreaseFontSize}
+                className={styles.controlButton}
+              >
                 <i className="fa fa-minus"></i>
               </button>
               <span className={styles.fontSizeValue}>{fontSize}px</span>
-              <button onClick={increaseFontSize} className={styles.controlButton}>
+              <button
+                type="button"
+                onClick={increaseFontSize}
+                className={styles.controlButton}
+              >
                 <i className="fa fa-plus"></i>
               </button>
             </div>
@@ -141,11 +252,14 @@ function Settings({ highContrastMode, fontSize, setFontSize, isVoiceNavigationEn
           <div className={styles.formGroup}>
             <label className={styles.label}>Display Mode</label>
             <button
+              type="button"
               onClick={toggleHighContrast}
-              className={`${styles.modeButton} ${highContrastMode ? styles.modeButtonHighContrast : ''}`}
+              className={`${styles.modeButton} ${
+                highContrastMode ? styles.modeButtonHighContrast : ""
+              }`}
             >
               <i className="fa fa-adjust mr-2"></i>
-              {highContrastMode ? 'High Contrast Mode' : 'Normal Mode'}
+              {highContrastMode ? "High Contrast Mode" : "Normal Mode"}
             </button>
           </div>
           <div className={styles.formGroup}>
@@ -159,22 +273,34 @@ function Settings({ highContrastMode, fontSize, setFontSize, isVoiceNavigationEn
                 onChange={(e) => {
                   setVoiceFeedback(e.target.checked);
                   if (e.target.checked) {
-                    const utterance = new SpeechSynthesisUtterance('Voice feedback enabled');
+                    const utterance = new SpeechSynthesisUtterance(
+                      "Voice feedback enabled"
+                    );
                     window.speechSynthesis.speak(utterance);
                   }
                 }}
               />
               <span className={styles.toggleSlider}></span>
-              <span className={styles.toggleLabel}>Enable voice feedback</span>
+              <span className={styles.toggleLabel}>
+                Enable voice feedback
+              </span>
             </label>
           </div>
         </section>
 
         {/* Notification Settings */}
-        <section className={`${styles.section} ${highContrastMode ? styles.sectionHighContrast : ''}`}>
+        <section
+          className={`${styles.section} ${
+            highContrastMode ? styles.sectionHighContrast : ""
+          }`}
+        >
           <div className={styles.sectionHeader}>
             <h2 className={styles.sectionTitle}>Notification Settings</h2>
-            <div className={`${styles.badge} ${highContrastMode ? styles.badgeHighContrast : ''} ${styles.badgeActive}`}>
+            <div
+              className={`${styles.badge} ${
+                highContrastMode ? styles.badgeHighContrast : ""
+              } ${styles.badgeActive}`}
+            >
               Active
             </div>
           </div>
@@ -182,19 +308,35 @@ function Settings({ highContrastMode, fontSize, setFontSize, isVoiceNavigationEn
             <div className={styles.notificationItem}>
               <div>
                 <h3 className={styles.notificationTitle}>Email Notifications</h3>
-                <p className={`${styles.notificationDescription} ${highContrastMode ? styles.notificationDescriptionHighContrast : ''}`}>
+                <p
+                  className={`${styles.notificationDescription} ${
+                    highContrastMode
+                      ? styles.notificationDescriptionHighContrast
+                      : ""
+                  }`}
+                >
                   Receive updates about your account via email
                 </p>
               </div>
               <label className={styles.toggleContainer}>
-                <input type="checkbox" className={styles.toggleInput} defaultChecked />
+                <input
+                  type="checkbox"
+                  className={styles.toggleInput}
+                  defaultChecked
+                />
                 <span className={styles.toggleSlider}></span>
               </label>
             </div>
             <div className={styles.notificationItem}>
               <div>
                 <h3 className={styles.notificationTitle}>Audio Alerts</h3>
-                <p className={`${styles.notificationDescription} ${highContrastMode ? styles.notificationDescriptionHighContrast : ''}`}>
+                <p
+                  className={`${styles.notificationDescription} ${
+                    highContrastMode
+                      ? styles.notificationDescriptionHighContrast
+                      : ""
+                  }`}
+                >
                   Play sound when receiving new messages
                 </p>
               </div>
@@ -207,43 +349,99 @@ function Settings({ highContrastMode, fontSize, setFontSize, isVoiceNavigationEn
         </section>
 
         {/* Account Settings */}
-        <section className={`${styles.section} ${highContrastMode ? styles.sectionHighContrast : ''}`}>
+        <section
+          className={`${styles.section} ${
+            highContrastMode ? styles.sectionHighContrast : ""
+          }`}
+        >
           <div className={styles.sectionHeader}>
             <h2 className={styles.sectionTitle}>Account Settings</h2>
-            <div className={`${styles.badge} ${highContrastMode ? styles.badgeHighContrast : ''} ${styles.badgeCaution}`}>
+            <div
+              className={`${styles.badge} ${
+                highContrastMode ? styles.badgeHighContrast : ""
+              } ${styles.badgeCaution}`}
+            >
               Caution
             </div>
           </div>
           <div className={styles.formGroup}>
-            <div className={`${styles.warningCard} ${highContrastMode ? styles.warningCardHighContrast : ''}`}>
+            <div
+              className={`${styles.warningCard} ${
+                highContrastMode ? styles.warningCardHighContrast : ""
+              }`}
+            >
               <div className={styles.warningContent}>
-                <i className={`fa fa-exclamation-triangle ${highContrastMode ? 'text-yellow-400' : 'text-yellow-600'} mt-1`}></i>
+                <i
+                  className={`fa fa-exclamation-triangle ${
+                    highContrastMode ? "text-yellow-400" : "text-yellow-600"
+                  } mt-1`}
+                ></i>
                 <div className={styles.warningText}>
-                  <h3 className={`${styles.warningTitle} ${highContrastMode ? styles.warningTitleHighContrast : ''}`}>
+                  <h3
+                    className={`${styles.warningTitle} ${
+                      highContrastMode ? styles.warningTitleHighContrast : ""
+                    }`}
+                  >
                     Account Deactivation
                   </h3>
-                  <p className={`${styles.warningDescription} ${highContrastMode ? styles.warningDescriptionHighContrast : ''}`}>
-                    Temporarily disable your account. You can reactivate it anytime.
+                  <p
+                    className={`${styles.warningDescription} ${
+                      highContrastMode
+                        ? styles.warningDescriptionHighContrast
+                        : ""
+                    }`}
+                  >
+                    Temporarily disable your account. You can reactivate it
+                    anytime.
                   </p>
                 </div>
               </div>
-              <button className={`${styles.warningButton} ${highContrastMode ? styles.warningButtonHighContrast : ''}`}>
+              <button
+                onClick={deactivateAccount}
+                className={`${styles.warningButton} ${
+                  highContrastMode ? styles.warningButtonHighContrast : ""
+                }`}
+              >
                 Deactivate Account
               </button>
             </div>
-            <div className={`${styles.dangerCard} ${highContrastMode ? styles.dangerCardHighContrast : ''}`}>
+            <div
+              className={`${styles.dangerCard} ${
+                highContrastMode ? styles.dangerCardHighContrast : ""
+              }`}
+            >
               <div className={styles.warningContent}>
-                <i className={`fa fa-trash-alt ${highContrastMode ? 'text-red-400' : 'text-red-600'} mt-1`}></i>
+                <i
+                  className={`fa fa-trash-alt ${
+                    highContrastMode ? "text-red-400" : "text-red-600"
+                  } mt-1`}
+                ></i>
                 <div className={styles.warningText}>
-                  <h3 className={`${styles.warningTitle} ${highContrastMode ? styles.warningTitleHighContrast : ''}`}>
+                  <h3
+                    className={`${styles.warningTitle} ${
+                      highContrastMode ? styles.warningTitleHighContrast : ""
+                    }`}
+                  >
                     Delete Account
                   </h3>
-                  <p className={`${styles.warningDescription} ${highContrastMode ? styles.warningDescriptionHighContrast : ''}`}>
-                    Permanently remove your account and all data. This action cannot be undone.
+                  <p
+                    className={`${styles.warningDescription} ${
+                      highContrastMode
+                        ? styles.warningDescriptionHighContrast
+                        : ""
+                    }`}
+                  >
+                    Permanently remove your account and all data. This action
+                    cannot be undone.
                   </p>
                 </div>
               </div>
-              <button className={`${styles.dangerButton} ${highContrastMode ? styles.dangerButtonHighContrast : ''}`}>
+              <button
+                onClick={deleteAccount}
+                className={`${styles.dangerButton} ${
+                  highContrastMode ? styles.dangerButtonHighContrast : ""
+                }`}
+              >
                 Delete Account
               </button>
             </div>
