@@ -1,7 +1,8 @@
-const express = require("express");
-const router = express.Router();   // initialize router
-const Product = require("../models/Product");
-const authMiddleware = require("../middleware/authMiddleware");
+import express from "express";
+import Product from "../models/Product.js";
+import authMiddleware from "../middleware/authMiddleware.js";
+
+const router = express.Router();
 
 // ==============================
 // @desc    Get all products
@@ -36,7 +37,7 @@ router.post("/", authMiddleware, async (req, res) => {
       status: status || "Active",
       category: category || "Uncategorized",
       image: image || "https://via.placeholder.com/150",
-      sellerId: req.user.id, // 👈 attach seller
+      sellerId: req.user.id, // attach seller
     });
 
     const savedProduct = await newProduct.save();
@@ -59,7 +60,6 @@ router.delete("/:id", authMiddleware, async (req, res) => {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    // check if seller owns the product
     if (product.sellerId.toString() !== req.user.id) {
       return res.status(403).json({ message: "Not authorized" });
     }
@@ -85,7 +85,6 @@ router.put("/:id", authMiddleware, async (req, res) => {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    // check if seller owns the product
     if (product.sellerId.toString() !== req.user.id) {
       return res.status(403).json({ message: "Not authorized" });
     }
@@ -103,4 +102,4 @@ router.put("/:id", authMiddleware, async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;
