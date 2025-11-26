@@ -4,7 +4,7 @@ import authMiddleware from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-// ==============================
+// ==============================\
 // @desc    Get all products
 // @route   GET /api/products
 // @access  Public

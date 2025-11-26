@@ -3,7 +3,7 @@ import User from "../models/User.js";
 // Get profile
 export const getProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id).select("-password");
+    const user = await User.findById(req.user.id).select("-password");
     if (!user) return res.status(404).json({ message: "User not found" });
     res.json(user);
   } catch (error) {
@@ -14,7 +14,7 @@ export const getProfile = async (req, res) => {
 // Update profile
 export const updateProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id);
+    const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
     user.name = req.body.fullName || user.name;
@@ -32,7 +32,7 @@ export const updateProfile = async (req, res) => {
 // Deactivate account
 export const deactivateAccount = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id);
+    const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
     user.active = false; // add `active` field in User schema
@@ -46,7 +46,7 @@ export const deactivateAccount = async (req, res) => {
 // Delete account
 export const deleteAccount = async (req, res) => {
   try {
-    await User.findByIdAndDelete(req.user._id);
+    await User.findByIdAndDelete(req.user.id);
     res.json({ message: "Account deleted permanently" });
   } catch (error) {
     res.status(500).json({ message: error.message });
