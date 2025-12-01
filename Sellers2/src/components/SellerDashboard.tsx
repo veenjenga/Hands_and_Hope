@@ -10,6 +10,7 @@ import { SettingsPage } from './SettingsPage';
 import { HelpPage } from './HelpPage';
 import { AccessibilityPanel } from './AccessibilityPanel';
 import { ImageWithFallback } from './figma/ImageWithFallback';
+import { ScreenReaderProvider } from '../contexts/ScreenReaderContext';
 import { 
   Accessibility, Wallet, TrendingUp, DollarSign, Package, 
   MessageSquare, AlertCircle, Calendar, Download, Printer,
@@ -170,6 +171,7 @@ export function SellerDashboard({ onLogout, userRole = 'seller' }: SellerDashboa
   };
 
   return (
+    <ScreenReaderProvider enabled={screenReader}>
     <div className={`flex min-h-screen ${highContrast ? 'bg-black text-white' : 'bg-gray-50'} ${fontSizeClass}`}>
       {/* Accessibility Button */}
       <button
@@ -1104,5 +1106,6 @@ export function SellerDashboard({ onLogout, userRole = 'seller' }: SellerDashboa
         </main>
       </div>
     </div>
+    </ScreenReaderProvider>
   );
 }

@@ -105,6 +105,7 @@
     --color-yellow-600: oklch(.681 .162 75.834);
     --color-yellow-700: oklch(.554 .135 66.442);
     --color-yellow-800: oklch(.476 .114 61.907);
+    --color-yellow-900: oklch(.421 .095 57.708);
     --color-green-50: oklch(.982 .018 155.826);
     --color-green-100: oklch(.962 .044 156.743);
     --color-green-200: oklch(.925 .084 155.995);
@@ -1629,8 +1630,16 @@
     border-color: var(--color-yellow-200);
   }
 
+  .border-yellow-400 {
+    border-color: var(--color-yellow-400);
+  }
+
   .border-yellow-500 {
     border-color: var(--color-yellow-500);
+  }
+
+  .border-yellow-600 {
+    border-color: var(--color-yellow-600);
   }
 
   .border-t-transparent {
@@ -2580,6 +2589,10 @@
     color: var(--color-yellow-800);
   }
 
+  .text-yellow-900 {
+    color: var(--color-yellow-900);
+  }
+
   .capitalize {
     text-transform: capitalize;
   }
@@ -2986,6 +2999,12 @@
       .hover\:bg-secondary\/80:hover {
         background-color: color-mix(in oklab, var(--secondary) 80%, transparent);
       }
+    }
+  }
+
+  @media (hover: hover) {
+    .hover\:bg-yellow-50:hover {
+      background-color: var(--color-yellow-50);
     }
   }
 

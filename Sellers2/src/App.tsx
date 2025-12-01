@@ -1,20 +1,28 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { LoginPage } from './components/LoginPage';
 import { RegistrationPage } from './components/RegistrationPage';
 import { SellerDashboard } from './components/SellerDashboard';
 import { TeacherDashboard } from './components/TeacherDashboard';
 import { SchoolDashboard } from './components/SchoolDashboard';
 import { AdminDashboard } from './components/AdminDashboard';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 type Page = 'login' | 'register' | 'dashboard' | 'admin-dashboard';
 type UserRole = 'seller' | 'teacher' | 'student' | 'school' | 'super-admin' | 'admin' | null;
 
-export default function App() {
+function AppContent() {
+  const { user, login: authLogin, logout: authLogout } = useAuth();
   const [currentPage, setCurrentPage] = useState<Page>('login');
-  const [userRole, setUserRole] = useState<UserRole>(null);
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  useEffect(() => {
+    console.debug('Auth user changed:', user);
+    setIsHydrated(true);
+  }, [user]);
 
   const handleLogin = (role: UserRole) => {
-    setUserRole(role);
+    // User is already set in context via login call in LoginPage
     if (role === 'super-admin' || role === 'admin') {
       setCurrentPage('admin-dashboard');
     } else {
@@ -23,14 +31,35 @@ export default function App() {
   };
 
   const handleRegister = (role: UserRole) => {
-    setUserRole(role);
+    // User is set in context after successful registration
     setCurrentPage('dashboard');
   };
 
   const handleLogout = () => {
-    setUserRole(null);
+    authLogout();
     setCurrentPage('login');
   };
+
+  // Show loading while auth rehydrates
+  if (!isHydrated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-lg">Loading authentication...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If not authenticated and not on login/register, show login
+  if (!user && currentPage !== 'login' && currentPage !== 'register') {
+    return (
+      <LoginPage 
+        onLogin={handleLogin}
+        onNavigateToRegister={() => setCurrentPage('register')}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen">
@@ -48,24 +77,40 @@ export default function App() {
         />
       )}
 
-      {currentPage === 'admin-dashboard' && (userRole === 'super-admin' || userRole === 'admin') && (
-        <AdminDashboard 
-          onLogout={handleLogout} 
-          adminRole={userRole}
-        />
+      {currentPage === 'admin-dashboard' && user && (user.role === 'super-admin' || user.role === 'admin') && (
+        <ErrorBoundary>
+          <AdminDashboard 
+            onLogout={handleLogout} 
+            adminRole={user.role}
+          />
+        </ErrorBoundary>
       )}
       
-      {currentPage === 'dashboard' && userRole === 'school' && (
-        <SchoolDashboard onLogout={handleLogout} />
+      {currentPage === 'dashboard' && user && user.role === 'school' && (
+        <ErrorBoundary>
+          <SchoolDashboard onLogout={handleLogout} />
+        </ErrorBoundary>
       )}
       
-      {currentPage === 'dashboard' && userRole === 'teacher' && (
-        <TeacherDashboard onLogout={handleLogout} />
+      {currentPage === 'dashboard' && user && user.role === 'teacher' && (
+        <ErrorBoundary>
+          <TeacherDashboard onLogout={handleLogout} />
+        </ErrorBoundary>
       )}
       
-      {currentPage === 'dashboard' && (userRole === 'seller' || userRole === 'student') && (
-        <SellerDashboard onLogout={handleLogout} userRole={userRole} />
+      {currentPage === 'dashboard' && user && (user.role === 'seller' || user.role === 'student') && (
+        <ErrorBoundary>
+          <SellerDashboard onLogout={handleLogout} userRole={user.role} />
+        </ErrorBoundary>
       )}
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }

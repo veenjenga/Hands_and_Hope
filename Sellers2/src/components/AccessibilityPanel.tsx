@@ -59,16 +59,33 @@ export function AccessibilityPanel({
       };
 
       recognitionInstance.onerror = (event: any) => {
+        console.log('Speech recognition error:', event.error);
+        
         // Silently handle common errors that don't need user attention
-        if (event.error === 'no-speech' || event.error === 'aborted') {
+        if (event.error === 'no-speech') {
+          // Just continue listening, no error needed
           return;
         }
         
-        // Only show permission error if user explicitly tried to enable voice nav
-        if (event.error === 'not-allowed' && voiceNavigation) {
-          console.log('Microphone permission needed for voice navigation');
+        if (event.error === 'aborted') {
+          // Normal abort, usually when user stops voice nav
+          return;
+        }
+        
+        // Handle permission errors
+        if (event.error === 'not-allowed') {
+          console.log('Microphone permission issue detected');
           setPermissionError(true);
-          setErrorMessage('Microphone permission needed.');
+          setErrorMessage('Microphone permission needed. Please allow microphone access and try again.');
+          setVoiceNavigation(false);
+          setIsListening(false);
+        }
+        
+        // Handle audio capture errors
+        if (event.error === 'audio-capture') {
+          console.log('Audio capture error - microphone may be in use');
+          setPermissionError(true);
+          setErrorMessage('Cannot access microphone. It may be in use by another application.');
           setVoiceNavigation(false);
           setIsListening(false);
         }
@@ -161,6 +178,14 @@ export function AccessibilityPanel({
     } else if (command.includes('go to help') || command.includes('open help') || command.includes('show help')) {
       onNavigate?.('help');
       speak('Navigating to help');
+    } 
+    // Login/Registration page navigation
+    else if (command.includes('create account') || command.includes('sign up') || command.includes('register')) {
+      onNavigate?.('register');
+      speak('Going to registration page');
+    } else if (command.includes('sign in') || command.includes('log in') || command.includes('login')) {
+      onNavigate?.('login');
+      speak('Going to login page');
     }
     // Text size commands
     else if (command.includes('increase text') || command.includes('larger text') || command.includes('bigger text')) {
@@ -263,7 +288,49 @@ export function AccessibilityPanel({
         return;
       }
       
-      // Request microphone permission
+      // Check if we already have permission using Permissions API
+      try {
+        // Try to check existing permission status first
+        if (navigator.permissions && navigator.permissions.query) {
+          try {
+            const permissionStatus = await navigator.permissions.query({ name: 'microphone' as PermissionName });
+            
+            if (permissionStatus.state === 'granted') {
+              // Permission already granted, just enable voice nav
+              setVoiceNavigation(true);
+              setIsListening(true);
+              setPermissionError(false);
+              setErrorMessage('');
+              setPermissionGranted(true);
+              return;
+            } else if (permissionStatus.state === 'denied') {
+              // Permission explicitly denied - check if it's due to iframe
+              const inIframe = window.self !== window.top;
+              const isFigmaPreview = window.location.hostname.includes('figma');
+              
+              if (inIframe || isFigmaPreview) {
+                setPermissionError(true);
+                setErrorMessage('⚠️ IFRAME RESTRICTION: Microphone is blocked in embedded previews. Please open this app in a new tab/window to use voice navigation.');
+              } else {
+                setPermissionError(true);
+                setErrorMessage('Microphone access was denied. Click "Show Instructions" below for help.');
+              }
+              setVoiceNavigation(false);
+              setIsListening(false);
+              return;
+            }
+            // If 'prompt', continue to request permission below
+          } catch (e) {
+            // Permissions API query failed, continue to getUserMedia
+            console.log('Permissions API not available, trying getUserMedia');
+          }
+        }
+      } catch (e) {
+        // Permissions API not supported, continue with getUserMedia
+        console.log('Permissions API not supported');
+      }
+      
+      // Request microphone permission (first time or after 'prompt' state)
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         // Stop the stream immediately, we just needed permission
@@ -285,7 +352,7 @@ export function AccessibilityPanel({
         } else if (error.name === 'NotReadableError') {
           setErrorMessage('Microphone is being used by another application. Please close other apps and try again.');
         } else {
-          setErrorMessage('Unable to access microphone. Please check your browser settings and try again.');
+          setErrorMessage(`Unable to access microphone: ${error.message || 'Unknown error'}. Please check your browser settings and try again.`);
         }
         
         setVoiceNavigation(false);
@@ -307,6 +374,44 @@ export function AccessibilityPanel({
     toggleVoiceNavigation(true);
   };
 
+  const checkPermissionStatus = async () => {
+    const messages: string[] = [];
+    
+    // Check if in iframe
+    const inIframe = window.self !== window.top;
+    const isFigmaPreview = window.location.hostname.includes('figma');
+    
+    messages.push(`✓ Secure Context: ${window.isSecureContext ? 'YES' : 'NO'}`);
+    messages.push(`✓ Running in iframe: ${inIframe ? 'YES' : 'NO'}`);
+    if (isFigmaPreview) {
+      messages.push(`⚠️ Figma Preview Environment Detected`);
+    }
+    
+    // Check API support
+    messages.push(`✓ Speech Recognition: ${supportsSpeech ? 'YES' : 'NO'}`);
+    messages.push(`✓ getUserMedia: ${(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) ? 'YES' : 'NO'}`);
+    
+    // Check permissions API
+    if (navigator.permissions && navigator.permissions.query) {
+      try {
+        const permissionStatus = await navigator.permissions.query({ name: 'microphone' as PermissionName });
+        messages.push(`✓ Microphone Permission: ${permissionStatus.state.toUpperCase()}`);
+        
+        if (permissionStatus.state === 'denied' && inIframe) {
+          messages.push(`\n⚠️ IFRAME RESTRICTION DETECTED`);
+          messages.push(`Microphone is blocked in iframes by browser security.`);
+          messages.push(`\nSOLUTION: Open this app in a new tab/window.`);
+        }
+      } catch (e) {
+        messages.push(`✗ Cannot check microphone permission (API not supported in this browser)`);
+      }
+    } else {
+      messages.push(`✗ Permissions API not supported`);
+    }
+    
+    alert('Voice Navigation Diagnostics:\n\n' + messages.join('\n'));
+  };
+
   return (
     <Card className="fixed right-6 top-24 z-50 w-96 shadow-2xl max-h-[calc(100vh-8rem)] overflow-y-auto">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 sticky top-0 bg-white z-10 border-b">
@@ -325,6 +430,26 @@ export function AccessibilityPanel({
       <CardContent className="space-y-6 pt-6">
         {/* Voice Navigation */}
         <div className={`rounded-lg border-2 p-4 ${voiceNavigation ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}>
+          {/* Iframe Warning */}
+          {(window.self !== window.top || window.location.hostname.includes('figma')) && (
+            <div className="mb-3 p-3 bg-yellow-50 border-2 border-yellow-400 rounded-lg">
+              <p className="text-sm font-semibold text-yellow-900 mb-1">
+                ⚠️ Running in Preview/Iframe Mode
+              </p>
+              <p className="text-xs text-yellow-800 mb-2">
+                Voice navigation may not work due to browser security restrictions in embedded previews.
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full bg-white hover:bg-yellow-50 border-yellow-600 text-yellow-900"
+                onClick={() => window.open(window.location.href, '_blank')}
+              >
+                🔓 Open in New Tab to Enable Voice Navigation
+              </Button>
+            </div>
+          )}
+          
           <div className="flex items-center justify-between space-x-4 mb-3">
             <div className="flex items-start gap-3">
               {isListening ? (
@@ -388,6 +513,16 @@ export function AccessibilityPanel({
                 </div>
               </div>
               <div className="flex gap-2">
+                {errorMessage.includes('IFRAME') && (
+                  <Button
+                    variant="default"
+                    size="sm"
+                    className="flex-1 bg-blue-600 hover:bg-blue-700"
+                    onClick={() => window.open(window.location.href, '_blank')}
+                  >
+                    🔓 Open in New Tab
+                  </Button>
+                )}
                 <Dialog>
                   <DialogTrigger asChild>
                     <Button variant="default" size="sm" className="flex-1 bg-amber-600 hover:bg-amber-700">
@@ -562,6 +697,18 @@ export function AccessibilityPanel({
             </div>
           )}
         </div>
+
+        {/* Diagnostic Button */}
+        {supportsSpeech && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={checkPermissionStatus}
+            className="w-full text-xs border-dashed"
+          >
+            🔍 Check Voice Navigation Status
+          </Button>
+        )}
 
         {/* Text Size Controls */}
         <div className="space-y-3">

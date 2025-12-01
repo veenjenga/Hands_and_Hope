@@ -58,7 +58,15 @@
       outDir: 'build',
     },
     server: {
-      port: 3000,
+      // Use a different port than Buyers2 to avoid conflicts
+      port: 3001,
       open: true,
+      proxy: {
+        '/api': {
+          target: 'http://localhost:5000',
+          changeOrigin: true,
+          secure: false,
+        }
+      },
     },
   });

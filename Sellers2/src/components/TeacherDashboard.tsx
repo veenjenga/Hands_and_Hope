@@ -7,6 +7,7 @@ import { SettingsPage } from './SettingsPage';
 import { HelpPage } from './HelpPage';
 import { AccessibilityPanel } from './AccessibilityPanel';
 import { ImageWithFallback } from './figma/ImageWithFallback';
+import { ScreenReaderProvider } from '../contexts/ScreenReaderContext';
 import { 
   Accessibility, Plus, CheckCircle, XCircle, ShoppingBag, TrendingUp, 
   AlertCircle, DollarSign, MessageSquare, Ban, UserCheck, FileText,
@@ -336,6 +337,7 @@ export function TeacherDashboard({ onLogout }: TeacherDashboardProps) {
     }));
 
   return (
+    <ScreenReaderProvider enabled={screenReader}>
     <div className={`flex min-h-screen ${highContrast ? 'bg-black text-white' : 'bg-gray-50'} ${fontSizeClass}`}>
       {/* Accessibility Button */}
       <button
@@ -1106,5 +1108,6 @@ export function TeacherDashboard({ onLogout }: TeacherDashboardProps) {
         </main>
       </div>
     </div>
+    </ScreenReaderProvider>
   );
 }

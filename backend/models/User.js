@@ -8,7 +8,18 @@ const userSchema = new mongoose.Schema(
     password: { type: String, required: true },
     businessName: String,
     phone: String,
-    role: { type: String, enum: ["seller", "admin"], default: "seller" },
+    role: { type: String, enum: ["seller", "teacher", "student", "school", "buyer", "admin", "super-admin"], default: "seller" },
+    school: { type: mongoose.Schema.Types.ObjectId, ref: 'School' },
+    documents: [
+      {
+        url: String,
+        filename: String,
+        mimeType: String,
+        size: Number,
+        verified: { type: Boolean, default: false },
+        uploadedAt: { type: Date, default: Date.now }
+      }
+    ],
     active: { type: Boolean, default: true }, // for deactivate
   },
   { timestamps: true }

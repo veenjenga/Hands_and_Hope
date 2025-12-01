@@ -1,15 +1,13 @@
 import { useState } from 'react';
-import { Eye, EyeOff, Accessibility, Shield, User } from 'lucide-react';
+import peopleWorking from '../assets/people-working.svg';
+import { Eye, EyeOff, Accessibility } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { AccessibilityPanel } from './AccessibilityPanel';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import handsHopeLogo from 'figma:asset/972a6bc015fa5c98ddeb2bc3d5985f42623eb1bb.png';
-import craftImage from 'figma:asset/be213fd3afb7194e83fe4ac6405c70d913f7a4df.png';
-import bannerImage from 'figma:asset/575120f8324783dbb6eac73158909b23747d4002.png';
-import communityImage from 'figma:asset/b7392069004a962a7faa4411e15b3a342808af78.png';
+import { ScreenReaderProvider } from '../contexts/ScreenReaderContext';
+import { useAuth } from '../contexts/AuthContext';
 
 type UserRole = 'seller' | 'teacher' | 'student' | 'school' | 'super-admin' | 'admin';
 
@@ -19,42 +17,51 @@ interface LoginPageProps {
 }
 
 export function LoginPage({ onLogin, onNavigateToRegister }: LoginPageProps) {
+  const { login: authLogin } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [userType, setUserType] = useState<UserRole>('seller');
   const [showPassword, setShowPassword] = useState(false);
   const [showAccessibility, setShowAccessibility] = useState(false);
-  const [fontSize, setFontSize] = useState<'normal' | 'large' | 'extra-large'>('normal');
+  const [fontSize, setFontSize] = useState('normal' as any);
   const [highContrast, setHighContrast] = useState(false);
   const [screenReader, setScreenReader] = useState(true);
-  const [voiceNavigation, setVoiceNavigation] = useState(true);
-  const [isAdminMode, setIsAdminMode] = useState(false);
+  const [voiceNavigation, setVoiceNavigation] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const API_URL = ((import.meta as any).env?.VITE_API_URL as string) || 'http://localhost:5000';
+
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
-    
-    // If admin mode, validate admin credentials
-    if (isAdminMode) {
-      const adminCredentials = {
-        'superadmin@handsandhope.com': { password: 'SuperAdmin@2024', role: 'super-admin' as const },
-        'admin@handsandhope.com': { password: 'Admin@2024', role: 'admin' as const },
-      };
-      
-      const admin = adminCredentials[email as keyof typeof adminCredentials];
-      if (admin && admin.password === password) {
-        onLogin(admin.role);
-      } else {
-        alert('Invalid administrator credentials');
+    setIsLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Login failed');
       }
-    } else {
-      onLogin(userType);
+      console.debug('Login response:', data);
+      // Store in auth context
+      authLogin(data.user, data.token);
+      console.debug('Auth context updated, user:', data.user);
+      onLogin(data.user.role as UserRole);
+    } catch (err: any) {
+      console.error('Login error', err);
+      alert(err.message || 'Login failed');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const fontSizeClass = fontSize === 'large' ? 'text-lg' : fontSize === 'extra-large' ? 'text-xl' : '';
 
   return (
+    <ScreenReaderProvider enabled={screenReader}>
     <div className={`relative min-h-screen overflow-hidden ${highContrast ? 'bg-black text-white' : ''} ${fontSizeClass}`}>
+      {/* Rest of the component remains the same until the form */}
       {/* Animated Background */}
       {!highContrast && (
         <div className="absolute inset-0 -z-10">
@@ -85,53 +92,71 @@ export function LoginPage({ onLogin, onNavigateToRegister }: LoginPageProps) {
           voiceNavigation={voiceNavigation}
           setVoiceNavigation={setVoiceNavigation}
           onClose={() => setShowAccessibility(false)}
+          onNavigate={(page) => {
+            if (page === 'register' || page === 'signup' || page === 'create account') {
+              onNavigateToRegister();
+            }
+          }}
         />
       )}
 
       <div className="container mx-auto flex min-h-screen items-center justify-center px-4 py-8">
         <div className="grid w-full max-w-6xl gap-12 lg:grid-cols-2 lg:gap-16">
           {/* Left Side - Branding & Image */}
-          <div className="flex flex-col justify-center space-y-8">
+          <div className="hidden lg:flex flex-col justify-center space-y-8">
             <div className="space-y-6">
-              <div className="inline-block rounded-2xl bg-white/10 p-4 backdrop-blur-sm">
-                <img 
-                  src={handsHopeLogo} 
-                  alt="Hands and Hope Logo" 
-                  className="h-16 w-auto drop-shadow-lg"
-                />
+              <div className="inline-flex items-center gap-3 rounded-2xl bg-white/10 px-6 py-4 backdrop-blur-sm">
+                <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center flex-shrink-0">
+                  <svg className="h-7 w-7 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10 2a8 8 0 100 16 8 8 0 000-16zM7 9.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm6 0a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"/>
+                  </svg>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-xl font-bold text-white">HANDS & HOPE</span>
+                  <span className="text-xs text-white/80">Accessibility Marketplace</span>
+                </div>
               </div>
-              <h1 className={`${highContrast ? 'text-white' : 'text-white drop-shadow-lg'}`}>
+              <h1 className={`text-5xl font-bold leading-tight ${highContrast ? 'text-white' : 'text-white drop-shadow-lg'}`}>
                 Welcome Back to<br />Hands & Hope
               </h1>
-              <p className={`text-xl leading-relaxed ${highContrast ? 'text-gray-300' : 'text-white/90'}`}>
-                An accessible marketplace designed for sellers with disabilities. 
-                Empowering everyone to share their talents and skills with the world.
+              <p className={`text-lg leading-relaxed ${highContrast ? 'text-gray-300' : 'text-white/90'}`}>
+                Empowering sellers with disabilities to share their talents and skills with the world. 
+                Join our inclusive marketplace today.
               </p>
-              <div className="flex flex-wrap gap-4">
-                <div className={`flex items-center gap-3 rounded-xl ${highContrast ? 'bg-white text-black' : 'bg-white/20 backdrop-blur-sm'} px-6 py-3`}>
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-400">
-                    <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="space-y-3 pt-4">
+                <div className={`flex items-center gap-3 rounded-xl ${highContrast ? 'bg-white text-black' : 'bg-white/20 backdrop-blur-sm'} px-5 py-3 transition-transform hover:scale-105`}>
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-green-400 flex-shrink-0">
+                    <svg className="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
-                  <span className={highContrast ? 'text-black' : 'text-white'}>Fully Accessible</span>
+                  <span className={`font-medium ${highContrast ? 'text-black' : 'text-white'}`}>Fully Accessible Design</span>
                 </div>
-                <div className={`flex items-center gap-3 rounded-xl ${highContrast ? 'bg-white text-black' : 'bg-white/20 backdrop-blur-sm'} px-6 py-3`}>
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-400">
-                    <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className={`flex items-center gap-3 rounded-xl ${highContrast ? 'bg-white text-black' : 'bg-white/20 backdrop-blur-sm'} px-5 py-3 transition-transform hover:scale-105`}>
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-400 flex-shrink-0">
+                    <svg className="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                     </svg>
                   </div>
-                  <span className={highContrast ? 'text-black' : 'text-white'}>Secure Platform</span>
+                  <span className={`font-medium ${highContrast ? 'text-black' : 'text-white'}`}>Secure & Verified Platform</span>
+                </div>
+                <div className={`flex items-center gap-3 rounded-xl ${highContrast ? 'bg-white text-black' : 'bg-white/20 backdrop-blur-sm'} px-5 py-3 transition-transform hover:scale-105`}>
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-purple-400 flex-shrink-0">
+                    <svg className="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                  </div>
+                  <span className={`font-medium ${highContrast ? 'text-black' : 'text-white'}`}>Empowering Community</span>
                 </div>
               </div>
             </div>
-            <div className="hidden lg:block">
-              <div className="overflow-hidden rounded-3xl shadow-2xl ring-4 ring-white/20">
-                <img 
-                  src={craftImage} 
-                  alt="People with disabilities creating crafts together" 
-                  className="w-full"
+            {/* Community Image */}
+            <div className="hidden xl:block pt-6">
+              <div className="overflow-hidden rounded-2xl shadow-2xl ring-4 ring-white/20 bg-white/10 backdrop-blur-sm">
+                <img
+                  src={peopleWorking}
+                  alt="People working together at Hands and Hope marketplace"
+                  className="w-full h-auto object-cover"
                 />
               </div>
             </div>
@@ -145,28 +170,18 @@ export function LoginPage({ onLogin, onNavigateToRegister }: LoginPageProps) {
                   Sign In to Your Account
                 </CardTitle>
                 <CardDescription className={`text-center ${highContrast ? 'text-gray-300' : ''}`}>
-                  Select your account type and enter your credentials
+                  Enter your email and password. Your role will be determined from your account.
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="space-y-2">
-                    <Label htmlFor="userType" className="text-lg">
-                      I am a *
-                    </Label>
-                    <Select value={userType} onValueChange={(value: UserRole) => setUserType(value)}>
-                      <SelectTrigger className="h-14 text-lg">
-                        <SelectValue placeholder="Select account type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="seller" className="text-lg">Individual Seller</SelectItem>
-                        <SelectItem value="student" className="text-lg">Student</SelectItem>
-                        <SelectItem value="teacher" className="text-lg">Teacher</SelectItem>
-                        <SelectItem value="school" className="text-lg">School Administrator</SelectItem>
-                        <SelectItem value="admin" className="text-lg">Admin</SelectItem>
-                        <SelectItem value="super-admin" className="text-lg">Super Admin</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <div className={`rounded-lg p-3 text-sm ${highContrast ? 'bg-gray-800 text-gray-300' : 'bg-blue-50 text-blue-700'}`}>
+                      <strong>Demo Credentials:</strong><br/>
+                      Admin: admin@handsandhope.com / Admin@2024<br/>
+                      Super Admin: superadmin@handsandhope.com / SuperAdmin@2024<br/>
+                      <small>Or register as a new user</small>
+                    </div>
                   </div>
 
                   <div className="space-y-2">
@@ -265,5 +280,6 @@ export function LoginPage({ onLogin, onNavigateToRegister }: LoginPageProps) {
         </div>
       </div>
     </div>
+    </ScreenReaderProvider>
   );
 }

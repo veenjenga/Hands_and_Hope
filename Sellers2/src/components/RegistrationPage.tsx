@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
+import communityImage from '../assets/be213fd3afb7194e83fe4ac6405c70d913f7a4df.png';
+import handsHopeLogo from '../assets/972a6bc015fa5c98ddeb2bc3d5985f42623eb1bb.png';
 import { Eye, EyeOff, Accessibility, CheckCircle, Plus, Upload } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -7,8 +9,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { AccessibilityPanel } from './AccessibilityPanel';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from './ui/dialog';
-import handsHopeLogo from 'figma:asset/972a6bc015fa5c98ddeb2bc3d5985f42623eb1bb.png';
-import communityImage from 'figma:asset/b7392069004a962a7faa4411e15b3a342808af78.png';
+import { ScreenReaderProvider } from '../contexts/ScreenReaderContext';
+import { useAuth } from '../contexts/AuthContext';
 
 type UserRole = 'seller' | 'teacher' | 'student' | 'school';
 type AccountTab = 'individual' | 'school-institution' | 'school-admin';
@@ -28,11 +30,12 @@ const EXISTING_SCHOOLS = [
 ];
 
 export function RegistrationPage({ onRegister, onNavigateToLogin }: RegistrationPageProps) {
+  const { login: authLogin } = useAuth();
   const [showAccessibility, setShowAccessibility] = useState(false);
   const [fontSize, setFontSize] = useState<'normal' | 'large' | 'extra-large'>('normal');
   const [highContrast, setHighContrast] = useState(false);
   const [screenReader, setScreenReader] = useState(true);
-  const [voiceNavigation, setVoiceNavigation] = useState(true);
+  const [voiceNavigation, setVoiceNavigation] = useState(false); // Disabled by default on registration page
   
   // Current active tab
   const [activeTab, setActiveTab] = useState<AccountTab>('individual');
@@ -43,22 +46,163 @@ export function RegistrationPage({ onRegister, onNavigateToLogin }: Registration
   const [selectedSchool, setSelectedSchool] = useState('');
   const [showNewSchoolDialog, setShowNewSchoolDialog] = useState(false);
   const [studentTeacherType, setStudentTeacherType] = useState<'student' | 'teacher'>('student');
+  const [disabilityFiles, setDisabilityFiles] = useState([] as File[]);
+  const [schoolFiles, setSchoolFiles] = useState([] as File[]);
+  const [adminFiles, setAdminFiles] = useState([] as File[]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const fontSizeClass = fontSize === 'large' ? 'text-lg' : fontSize === 'extra-large' ? 'text-xl' : '';
 
-  const handleSubmit = (e: React.FormEvent) => {
+  let API_URL = ((import.meta as any).env?.VITE_API_URL as string) || '';
+  if (!API_URL || !API_URL.startsWith('http')) API_URL = 'http://localhost:5000';
+
+  const uploadFiles = async (fileInputIdOrFiles: string | File[]) => {
+    let filesArr: File[] = [];
+    if (typeof fileInputIdOrFiles === 'string') {
+      const input = document.getElementById(fileInputIdOrFiles) as HTMLInputElement | null;
+      if (!input || !input.files || input.files.length === 0) return [];
+      filesArr = Array.from(input.files);
+    } else {
+      filesArr = fileInputIdOrFiles;
+      if (!filesArr || filesArr.length === 0) return [];
+    }
+
+    const form = new FormData();
+    filesArr.forEach((f) => form.append('files', f));
+    const res = await fetch(`${API_URL}/api/uploads`, { method: 'POST', body: form });
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(text || 'Upload failed');
+    }
+    const json = await res.json();
+    return json.files || [];
+  };
+
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
-    
-    if (activeTab === 'individual') {
-      onRegister('seller');
-    } else if (activeTab === 'school-institution') {
-      onRegister(studentTeacherType);
-    } else if (activeTab === 'school-admin') {
-      onRegister('school');
+    setIsLoading(true);
+    try {
+      // Common helpers to read values
+      const get = (id: string) => (document.getElementById(id) as HTMLInputElement | null)?.value || '';
+
+      if (activeTab === 'individual') {
+        const name = get('fullName');
+        const email = get('email');
+        const phone = get('phone');
+        const disabilityId = get('disabilityId');
+        const password = get('password');
+        const confirm = get('confirmPassword');
+        if (password !== confirm) return alert('Passwords do not match');
+
+        // upload certificate (use selected files state)
+        const files = await uploadFiles(disabilityFiles);
+
+        const payload = {
+          name,
+          email,
+          phone,
+          password,
+          role: 'seller',
+          disabilityId,
+          documents: files,
+        };
+
+        const res = await fetch(`${API_URL}/api/auth/signup`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+        console.log('Signup response', data);
+        if (!res.ok) throw new Error(data.error || 'Registration failed');
+        // Store user and token in auth context
+        authLogin(data.user, data.token);
+        onRegister('seller');
+      } else if (activeTab === 'school-institution') {
+        const name = get('fullNameSchool');
+        const email = get('emailSchool');
+        const phone = get('phoneSchool');
+        const password = get('passwordSchool');
+        const confirm = get('confirmPasswordSchool');
+        if (password !== confirm) return alert('Passwords do not match');
+
+        const schoolId = selectedSchool === 'request-new' ? undefined : selectedSchool;
+        const schoolNameFromSelect = selectedSchool && selectedSchool !== 'request-new' ? (EXISTING_SCHOOLS.find(s => s.id === selectedSchool)?.name) : undefined;
+        const studentDisabilityId = get('studentDisabilityId');
+
+        const files = await uploadFiles(schoolFiles);
+
+        const payload = {
+          name,
+          email,
+          phone,
+          password,
+          role: studentTeacherType,
+          schoolId,
+          schoolName: schoolNameFromSelect,
+          studentId: studentTeacherType === 'student' ? get('studentDisabilityId') : undefined,
+          disabilityId: studentTeacherType === 'student' ? studentDisabilityId : undefined,
+          documents: files,
+        };
+
+        const res = await fetch(`${API_URL}/api/auth/signup`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+        console.log('Signup response', data);
+        if (!res.ok) throw new Error(data.error || 'Registration failed');
+        // Store user and token in auth context
+        authLogin(data.user, data.token);
+        onRegister(studentTeacherType);
+      } else if (activeTab === 'school-admin') {
+        const name = get('adminName');
+        const email = get('adminEmail');
+        const schoolName = get('schoolName');
+        const registrationNumber = get('registrationNumber');
+        const adminPhone = get('adminPhone');
+        const schoolAddress = get('schoolAddress');
+        const password = get('passwordAdmin');
+        const confirm = get('confirmPasswordAdmin');
+        if (password !== confirm) return alert('Passwords do not match');
+
+        const files = await uploadFiles(adminFiles);
+
+        const payload = {
+          name,
+          email,
+          phone: adminPhone,
+          password,
+          role: 'school',
+          schoolName,
+          registrationNumber,
+          schoolAddress,
+          schoolDocuments: files,
+        };
+
+        const res = await fetch(`${API_URL}/api/auth/signup`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+        console.log('Signup response', data);
+        if (!res.ok) throw new Error(data.error || 'Registration failed');
+        // Store user and token in auth context
+        authLogin(data.user, data.token);
+        onRegister('school');
+      }
+    } catch (err: any) {
+      console.error('Registration error', err);
+      alert(err.message || 'Registration failed');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
+    <ScreenReaderProvider enabled={screenReader}>
     <div className={`min-h-screen ${highContrast ? 'bg-black text-white' : 'bg-gradient-to-br from-blue-50 to-green-50'} ${fontSizeClass}`}>
       {/* Accessibility Button */}
       <button
@@ -82,6 +226,11 @@ export function RegistrationPage({ onRegister, onNavigateToLogin }: Registration
           voiceNavigation={voiceNavigation}
           setVoiceNavigation={setVoiceNavigation}
           onClose={() => setShowAccessibility(false)}
+          onNavigate={(page) => {
+            if (page === 'login' || page === 'signin' || page === 'sign in') {
+              onNavigateToLogin();
+            }
+          }}
         />
       )}
 
@@ -230,10 +379,21 @@ export function RegistrationPage({ onRegister, onNavigateToLogin }: Registration
                           <Upload className="h-8 w-8 mx-auto mb-2 text-gray-400" />
                           <p className="text-sm text-gray-600">Click to upload or drag and drop</p>
                           <p className="text-xs text-gray-500 mt-1">PDF, JPG, PNG (Max 5MB)</p>
-                          <Input type="file" className="hidden" id="disabilityCert" />
+                          <Input
+                            type="file"
+                            accept=".pdf,image/jpeg,image/png"
+                            className="hidden"
+                            id="disabilityCert"
+                            onChange={(e: any) => setDisabilityFiles(Array.from(e.target.files || []))}
+                          />
                           <Button type="button" variant="outline" className="mt-3" onClick={() => document.getElementById('disabilityCert')?.click()}>
                             Choose File
                           </Button>
+                          {disabilityFiles.length > 0 && (
+                            <div className="mt-2 text-sm text-gray-700">
+                              Selected: {disabilityFiles.map(f => f.name).join(', ')}
+                            </div>
+                          )}
                         </div>
                       </div>
 
@@ -395,10 +555,22 @@ export function RegistrationPage({ onRegister, onNavigateToLogin }: Registration
                           <p className="text-sm text-gray-600">
                             {studentTeacherType === 'student' ? 'Student ID & Disability Certificate' : 'Teacher ID & Credentials'}
                           </p>
-                          <Input type="file" className="hidden" id="schoolDocs" multiple />
+                          <Input
+                            type="file"
+                            accept=".pdf,image/jpeg,image/png"
+                            className="hidden"
+                            id="schoolDocs"
+                            multiple
+                            onChange={(e: any) => setSchoolFiles(Array.from(e.target.files || []))}
+                          />
                           <Button type="button" variant="outline" className="mt-3" onClick={() => document.getElementById('schoolDocs')?.click()}>
                             Choose Files
                           </Button>
+                          {schoolFiles.length > 0 && (
+                            <div className="mt-2 text-sm text-gray-700">
+                              Selected: {schoolFiles.map(f => f.name).join(', ')}
+                            </div>
+                          )}
                         </div>
                       </div>
 
@@ -517,10 +689,22 @@ export function RegistrationPage({ onRegister, onNavigateToLogin }: Registration
                         <div className={`border-2 border-dashed rounded-lg p-6 text-center ${highContrast ? 'border-white' : 'border-gray-300'}`}>
                           <Upload className="h-8 w-8 mx-auto mb-2 text-gray-400" />
                           <p className="text-sm text-gray-600">School License & Registration Certificate</p>
-                          <Input type="file" className="hidden" id="adminDocs" multiple />
+                          <Input
+                            type="file"
+                            accept=".pdf,image/jpeg,image/png"
+                            className="hidden"
+                            id="adminDocs"
+                            multiple
+                            onChange={(e: any) => setAdminFiles(Array.from(e.target.files || []))}
+                          />
                           <Button type="button" variant="outline" className="mt-3" onClick={() => document.getElementById('adminDocs')?.click()}>
                             Choose Files
                           </Button>
+                          {adminFiles.length > 0 && (
+                            <div className="mt-2 text-sm text-gray-700">
+                              Selected: {adminFiles.map(f => f.name).join(', ')}
+                            </div>
+                          )}
                         </div>
                       </div>
 
@@ -625,5 +809,6 @@ export function RegistrationPage({ onRegister, onNavigateToLogin }: Registration
         </DialogContent>
       </Dialog>
     </div>
+    </ScreenReaderProvider>
   );
 }

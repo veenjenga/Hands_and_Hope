@@ -6,6 +6,7 @@ import { ProfilePage } from './ProfilePage';
 import { SettingsPage } from './SettingsPage';
 import { HelpPage } from './HelpPage';
 import { AccessibilityPanel } from './AccessibilityPanel';
+import { ScreenReaderProvider } from '../contexts/ScreenReaderContext';
 import { 
   Accessibility, Plus, Trash2, Edit, Users, GraduationCap, 
   CheckCircle, XCircle, Ban, UserCheck, Activity, MessageSquare,
@@ -247,6 +248,7 @@ export function SchoolDashboard({ onLogout }: SchoolDashboardProps) {
   };
 
   return (
+    <ScreenReaderProvider enabled={screenReader}>
     <div className={`flex min-h-screen ${highContrast ? 'bg-black text-white' : 'bg-gray-50'} ${fontSizeClass}`}>
       {/* Accessibility Button */}
       <button
@@ -1302,5 +1304,6 @@ export function SchoolDashboard({ onLogout }: SchoolDashboardProps) {
         </main>
       </div>
     </div>
+    </ScreenReaderProvider>
   );
 }

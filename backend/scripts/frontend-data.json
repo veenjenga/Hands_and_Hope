@@ -1,0 +1,1429 @@
+{
+  "mockCartItems": [
+    {
+      "id": 6,
+      "product": "Canvas Tote Bag",
+      "price": 19.99,
+      "quantity": 2,
+      "image": "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=200"
+    },
+    {
+      "id": 7,
+      "product": "Abstract Painting",
+      "price": 129.99,
+      "quantity": 1,
+      "image": "https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=200"
+    },
+    {
+      "id": 6,
+      "product": "Canvas Tote Bag",
+      "price": 19.99,
+      "quantity": 2,
+      "image": "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=200"
+    },
+    {
+      "id": 7,
+      "product": "Abstract Painting",
+      "price": 129.99,
+      "quantity": 1,
+      "image": "https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=200"
+    }
+  ],
+  "allProducts": [
+    {
+      "id": 1,
+      "name": "Handmade Wooden Chair",
+      "price": 89.99,
+      "category": "Furniture",
+      "image": "https://images.unsplash.com/photo-1503602642458-232111445657?w=400",
+      "seller": "Hope Valley School",
+      "rating": 4.8,
+      "reviewCount": 24,
+      "description": "Beautiful handcrafted wooden chair with traditional design"
+    },
+    {
+      "id": 2,
+      "name": "Cotton T-Shirt",
+      "price": 24.99,
+      "category": "Textiles",
+      "image": "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400",
+      "seller": "Bright Future Academy",
+      "rating": 4.6,
+      "reviewCount": 18,
+      "description": "Comfortable 100% cotton t-shirt, handmade with care"
+    },
+    {
+      "id": 3,
+      "name": "Ceramic Bowl Set",
+      "price": 45.99,
+      "category": "Handmade Crafts",
+      "image": "https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?w=400",
+      "seller": "Creative Minds Institute",
+      "rating": 4.9,
+      "reviewCount": 32,
+      "description": "Set of 4 handmade ceramic bowls with unique glazing"
+    },
+    {
+      "id": 4,
+      "name": "Knitted Scarf",
+      "price": 34.99,
+      "category": "Wearables",
+      "image": "https://images.unsplash.com/photo-1520903920243-00d872a2d1c9?w=400",
+      "seller": "Hope Valley School",
+      "rating": 4.7,
+      "reviewCount": 15,
+      "description": "Warm wool scarf, hand-knitted with love"
+    },
+    {
+      "id": 5,
+      "name": "Wooden Cutting Board",
+      "price": 39.99,
+      "category": "Handmade Crafts",
+      "image": "https://images.unsplash.com/photo-1565084888279-aca607ecce0c?w=400",
+      "seller": "Bright Future Academy",
+      "rating": 4.8,
+      "reviewCount": 28,
+      "description": "Durable hardwood cutting board with natural finish"
+    },
+    {
+      "id": 6,
+      "name": "Canvas Tote Bag",
+      "price": 19.99,
+      "category": "Textiles",
+      "image": "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=400",
+      "seller": "Creative Minds Institute",
+      "rating": 4.5,
+      "reviewCount": 21,
+      "description": "Eco-friendly canvas bag with hand-painted design"
+    },
+    {
+      "id": 7,
+      "name": "Abstract Painting",
+      "price": 129.99,
+      "category": "Art",
+      "image": "https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=400",
+      "seller": "Hope Valley School",
+      "rating": 4.9,
+      "reviewCount": 12,
+      "description": "Original abstract artwork on canvas"
+    },
+    {
+      "id": 8,
+      "name": "Leather Wallet",
+      "price": 49.99,
+      "category": "Wearables",
+      "image": "https://images.unsplash.com/photo-1627123424574-724758594e93?w=400",
+      "seller": "Bright Future Academy",
+      "rating": 4.7,
+      "reviewCount": 19,
+      "description": "Handcrafted leather wallet with multiple card slots"
+    },
+    {
+      "id": 1,
+      "name": "Handmade Wooden Chair",
+      "price": 89.99,
+      "category": "Furniture",
+      "image": "https://images.unsplash.com/photo-1503602642458-232111445657?w=400",
+      "seller": "Hope Valley School",
+      "sellerName": "Sarah Johnson",
+      "rating": 4.8,
+      "reviewCount": 24,
+      "description": "Beautiful handcrafted wooden chair with traditional oak design"
+    },
+    {
+      "id": 4,
+      "name": "Knitted Scarf",
+      "price": 34.99,
+      "category": "Wearables",
+      "image": "https://images.unsplash.com/photo-1520903920243-00d872a2d1c9?w=400",
+      "seller": "Hope Valley School",
+      "sellerName": "Michael Chen",
+      "rating": 4.7,
+      "reviewCount": 15,
+      "description": "Warm wool scarf, hand-knitted with love and care"
+    },
+    {
+      "id": 7,
+      "name": "Abstract Painting",
+      "price": 129.99,
+      "category": "Art",
+      "image": "https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=400",
+      "seller": "Hope Valley School",
+      "sellerName": "Sarah Johnson",
+      "rating": 4.9,
+      "reviewCount": 12,
+      "description": "Original abstract artwork on canvas"
+    },
+    {
+      "id": 9,
+      "name": "Oak Coffee Table",
+      "price": 159.99,
+      "category": "Furniture",
+      "image": "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400",
+      "seller": "Hope Valley School",
+      "sellerName": "Sarah Johnson",
+      "rating": 4.9,
+      "reviewCount": 18,
+      "description": "Rustic oak coffee table with hand-carved details"
+    },
+    {
+      "id": 10,
+      "name": "Wool Blanket",
+      "price": 79.99,
+      "category": "Textiles",
+      "image": "https://images.unsplash.com/photo-1610832958506-aa56368176cf?w=400",
+      "seller": "Hope Valley School",
+      "sellerName": "Michael Chen",
+      "rating": 4.8,
+      "reviewCount": 22,
+      "description": "Cozy hand-knitted wool blanket in earth tones"
+    },
+    {
+      "id": 3,
+      "name": "Ceramic Bowl Set",
+      "price": 45.99,
+      "category": "Handmade Crafts",
+      "image": "https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?w=400",
+      "seller": "Bright Future Academy",
+      "sellerName": "Emma Williams",
+      "rating": 4.9,
+      "reviewCount": 32,
+      "description": "Set of 4 handmade ceramic bowls with unique glazing"
+    },
+    {
+      "id": 8,
+      "name": "Leather Wallet",
+      "price": 49.99,
+      "category": "Wearables",
+      "image": "https://images.unsplash.com/photo-1627123424574-724758594e93?w=400",
+      "seller": "Bright Future Academy",
+      "sellerName": "David Martinez",
+      "rating": 4.7,
+      "reviewCount": 19,
+      "description": "Handcrafted leather wallet with multiple card slots"
+    },
+    {
+      "id": 11,
+      "name": "Ceramic Vase",
+      "price": 34.99,
+      "category": "Handmade Crafts",
+      "image": "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=400",
+      "seller": "Bright Future Academy",
+      "sellerName": "Emma Williams",
+      "rating": 4.8,
+      "reviewCount": 16,
+      "description": "Beautiful handmade ceramic vase with blue glaze finish"
+    },
+    {
+      "id": 12,
+      "name": "Leather Messenger Bag",
+      "price": 129.99,
+      "category": "Wearables",
+      "image": "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=400",
+      "seller": "Bright Future Academy",
+      "sellerName": "David Martinez",
+      "rating": 4.9,
+      "reviewCount": 25,
+      "description": "Durable leather messenger bag with brass hardware"
+    },
+    {
+      "id": 5,
+      "name": "Wooden Cutting Board",
+      "price": 39.99,
+      "category": "Handmade Crafts",
+      "image": "https://images.unsplash.com/photo-1565084888279-aca607ecce0c?w=400",
+      "seller": "Bright Future Academy",
+      "sellerName": "Emma Williams",
+      "rating": 4.8,
+      "reviewCount": 28,
+      "description": "Durable hardwood cutting board with natural finish"
+    },
+    {
+      "id": 6,
+      "name": "Canvas Tote Bag",
+      "price": 19.99,
+      "category": "Textiles",
+      "image": "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=400",
+      "seller": "Creative Minds Institute",
+      "sellerName": "James Taylor",
+      "rating": 4.5,
+      "reviewCount": 21,
+      "description": "Eco-friendly canvas bag with hand-painted design"
+    },
+    {
+      "id": 13,
+      "name": "Watercolor Landscape",
+      "price": 89.99,
+      "category": "Art",
+      "image": "https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=400",
+      "seller": "Creative Minds Institute",
+      "sellerName": "Lisa Anderson",
+      "rating": 4.7,
+      "reviewCount": 14,
+      "description": "Original watercolor painting of serene landscape"
+    },
+    {
+      "id": 14,
+      "name": "Hand-painted Tote",
+      "price": 29.99,
+      "category": "Textiles",
+      "image": "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=400",
+      "seller": "Creative Minds Institute",
+      "sellerName": "James Taylor",
+      "rating": 4.6,
+      "reviewCount": 19,
+      "description": "Canvas tote bag with unique abstract hand-painted art"
+    },
+    {
+      "id": 15,
+      "name": "Acrylic Pour Art",
+      "price": 149.99,
+      "category": "Art",
+      "image": "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=400",
+      "seller": "Creative Minds Institute",
+      "sellerName": "Lisa Anderson",
+      "rating": 4.9,
+      "reviewCount": 21,
+      "description": "Vibrant acrylic pour painting with metallic accents"
+    },
+    {
+      "id": 2,
+      "name": "Cotton T-Shirt",
+      "price": 24.99,
+      "category": "Textiles",
+      "image": "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400",
+      "seller": "Creative Minds Institute",
+      "sellerName": "James Taylor",
+      "rating": 4.6,
+      "reviewCount": 18,
+      "description": "Comfortable 100% cotton t-shirt with hand-painted design"
+    }
+  ],
+  "products": [
+    {
+      "id": 1,
+      "name": "Handmade Wooden Chair",
+      "price": 89.99,
+      "category": "Furniture",
+      "image": "https://images.unsplash.com/photo-1503602642458-232111445657?w=800",
+      "seller": "Hope Valley School",
+      "rating": 4.8,
+      "reviewCount": 24,
+      "description": "Beautiful handcrafted wooden chair with traditional design. Each piece is carefully crafted by our talented students at Hope Valley School. Made from sustainable oak wood with a natural finish.",
+      "stock": 5,
+      "reviews": [
+        {
+          "id": 1,
+          "user": "Sarah M.",
+          "rating": 5,
+          "comment": "Absolutely beautiful craftsmanship! Worth every penny.",
+          "date": "2024-01-15"
+        },
+        {
+          "id": 2,
+          "user": "John D.",
+          "rating": 4,
+          "comment": "Great quality, took a bit longer to arrive but very happy with it.",
+          "date": "2024-01-10"
+        },
+        {
+          "id": 3,
+          "user": "Emma W.",
+          "rating": 5,
+          "comment": "Supporting a great cause and got a wonderful product!",
+          "date": "2024-01-05"
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "name": "Handcrafted Silver Necklace",
+      "price": 45.99,
+      "image": "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=500",
+      "inStock": true,
+      "sales": 45
+    },
+    {
+      "id": 2,
+      "name": "Beaded Bracelet Set",
+      "price": 28.5,
+      "image": "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=500",
+      "inStock": true,
+      "sales": 89
+    },
+    {
+      "id": 3,
+      "name": "Custom Name Ring",
+      "price": 52,
+      "image": "https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=500",
+      "inStock": true,
+      "sales": 123
+    },
+    {
+      "id": 4,
+      "name": "Pearl Earrings",
+      "price": 35.99,
+      "image": "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=500",
+      "inStock": false,
+      "sales": 67
+    },
+    {
+      "id": 5,
+      "name": "Gemstone Pendant",
+      "price": 58,
+      "image": "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=500",
+      "inStock": true,
+      "sales": 34
+    },
+    {
+      "id": 6,
+      "name": "Leather Wrap Bracelet",
+      "price": 32.5,
+      "image": "https://images.unsplash.com/photo-1611085583191-a3b181a88401?w=500",
+      "inStock": true,
+      "sales": 56
+    }
+  ],
+  "recommendedProducts": [
+    {
+      "id": 5,
+      "name": "Wooden Cutting Board",
+      "price": 39.99,
+      "image": "https://images.unsplash.com/photo-1565084888279-aca607ecce0c?w=300",
+      "rating": 4.8
+    },
+    {
+      "id": 3,
+      "name": "Ceramic Bowl Set",
+      "price": 45.99,
+      "image": "https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?w=300",
+      "rating": 4.9
+    }
+  ],
+  "mockPurchaseHistory": [
+    {
+      "id": 1,
+      "product": "Handmade Wooden Chair",
+      "price": 89.99,
+      "date": "2024-01-15",
+      "status": "Delivered",
+      "image": "https://images.unsplash.com/photo-1503602642458-232111445657?w=200"
+    },
+    {
+      "id": 2,
+      "product": "Cotton T-Shirt",
+      "price": 24.99,
+      "date": "2024-01-10",
+      "status": "Delivered",
+      "image": "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=200"
+    },
+    {
+      "id": 3,
+      "product": "Ceramic Bowl Set",
+      "price": 45.99,
+      "date": "2024-01-05",
+      "status": "Delivered",
+      "image": "https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?w=200"
+    }
+  ],
+  "mockPendingOrders": [
+    {
+      "id": 4,
+      "product": "Knitted Scarf",
+      "price": 34.99,
+      "orderDate": "2024-01-18",
+      "estimatedDelivery": "2024-01-25",
+      "status": "In Transit",
+      "image": "https://images.unsplash.com/photo-1520903920243-00d872a2d1c9?w=200",
+      "trackingNumber": "TRK123456789"
+    },
+    {
+      "id": 5,
+      "product": "Wooden Cutting Board",
+      "price": 39.99,
+      "orderDate": "2024-01-19",
+      "estimatedDelivery": "2024-01-28",
+      "status": "Processing",
+      "image": "https://images.unsplash.com/photo-1565084888279-aca607ecce0c?w=200",
+      "trackingNumber": "TRK987654321"
+    }
+  ],
+  "paymentMethods": [
+    {
+      "id": 1,
+      "type": "Credit Card",
+      "last4": "4242",
+      "expiry": "12/25",
+      "brand": "Visa"
+    },
+    {
+      "id": 2,
+      "type": "Mobile Money",
+      "number": "+1234567890",
+      "provider": "BuyGoods"
+    }
+  ],
+  "schools": [
+    {
+      "id": 1,
+      "name": "Hope Valley School",
+      "location": "California, USA",
+      "students": 45,
+      "productsListed": 28,
+      "description": "Hope Valley School specializes in woodworking and textile arts, empowering students with disabilities to create beautiful handmade products.",
+      "achievements": [
+        "5 Years Active",
+        "Top Seller 2023",
+        "1000+ Products Sold"
+      ],
+      "featuredStudents": [
+        {
+          "name": "Sarah Johnson",
+          "specialty": "Woodworking",
+          "bio": "Sarah discovered her passion for woodworking at age 16. Despite being deaf, she has developed an incredible talent for creating intricate wooden furniture. She specializes in traditional oak designs and loves the feeling of transforming raw wood into beautiful, functional pieces. Sarah has been with Hope Valley School for 3 years and has sold over 150 pieces.",
+          "skills": "Furniture making, wood carving, finishing",
+          "image": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200"
+        },
+        {
+          "name": "Michael Chen",
+          "specialty": "Textiles",
+          "bio": "Michael is a visually impaired textile artist who creates stunning hand-knitted scarves, blankets, and accessories. His heightened sense of touch allows him to create incredibly even and precise stitches. He has been knitting for 5 years and finds it both therapeutic and empowering. Michael loves working with natural fibers and earth-tone color palettes.",
+          "skills": "Hand-knitting, textile design, color coordination",
+          "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Bright Future Academy",
+      "location": "New York, USA",
+      "students": 32,
+      "productsListed": 22,
+      "description": "Bright Future Academy focuses on leather crafts and ceramics, providing comprehensive training and support for students with various disabilities.",
+      "achievements": [
+        "3 Years Active",
+        "Quality Excellence Award",
+        "500+ Products Sold"
+      ],
+      "featuredStudents": [
+        {
+          "name": "Emma Williams",
+          "specialty": "Ceramics",
+          "bio": "Emma has autism and found her calling in ceramic arts. Working with clay provides her with a calming, meditative experience. She has developed her own unique glazing techniques that create stunning color variations. Emma has been working with ceramics for 4 years and creates everything from functional bowls to decorative vases. Her attention to detail is extraordinary.",
+          "skills": "Pottery, glazing, ceramic sculpture",
+          "image": "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200"
+        },
+        {
+          "name": "David Martinez",
+          "specialty": "Leather Crafts",
+          "bio": "David has cerebral palsy affecting his lower body, but his hands are skilled and precise. He crafts beautiful leather goods including wallets, bags, and accessories. David takes pride in every stitch and uses only premium leather. He has been perfecting his craft for 6 years and loves knowing that his products will be used and cherished by customers daily.",
+          "skills": "Leather working, stitching, hardware installation",
+          "image": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Creative Minds Institute",
+      "location": "Texas, USA",
+      "students": 38,
+      "productsListed": 35,
+      "description": "Creative Minds Institute offers programs in painting, ceramics, and textile arts, fostering creativity and independence among students with disabilities.",
+      "achievements": [
+        "7 Years Active",
+        "Community Impact Award",
+        "2000+ Products Sold"
+      ],
+      "featuredStudents": [
+        {
+          "name": "Lisa Anderson",
+          "specialty": "Painting",
+          "bio": "Lisa has Down syndrome and is a talented abstract artist. Her vibrant, emotionally expressive paintings have gained recognition in local galleries. She loves experimenting with acrylics, watercolors, and mixed media. Lisa has been painting for 8 years and views her art as a way to communicate her feelings and share joy with others. Each piece is truly one-of-a-kind.",
+          "skills": "Abstract art, color theory, mixed media",
+          "image": "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=200"
+        },
+        {
+          "name": "James Taylor",
+          "specialty": "Textiles",
+          "bio": "James has a mobility impairment and creates beautiful canvas bags with hand-painted designs. He combines his love of art and functional design to create wearable art. James has been with Creative Minds for 5 years and specializes in nature-inspired and abstract patterns. He takes great pride in knowing his bags help reduce plastic waste while showcasing artistic expression.",
+          "skills": "Textile painting, pattern design, sustainable crafts",
+          "image": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200"
+        }
+      ]
+    }
+  ],
+  "DEFAULT_CATEGORIES": [
+    "Pottery",
+    "Painting",
+    "Jewelry",
+    "Textiles",
+    "Sculpture",
+    "Crafts",
+    "Woodwork",
+    "Photography",
+    "Digital Art",
+    "Fashion",
+    "Home Decor",
+    "Toys & Games"
+  ],
+  "MOCK_PENDING_ACCOUNTS": [
+    {
+      "id": "pa1",
+      "type": "individual",
+      "name": "John Anderson",
+      "email": "john@example.com",
+      "disabilityId": "DIS-2024-301",
+      "documents": [
+        "disability_certificate.pdf",
+        "id_document.pdf"
+      ],
+      "location": "Nairobi, Kenya",
+      "requestedDate": "2024-11-14",
+      "status": "pending"
+    },
+    {
+      "id": "pa2",
+      "type": "school",
+      "name": "Bright Future Academy",
+      "email": "admin@brightfuture.edu",
+      "registrationNumber": "SCH-2024-445",
+      "documents": [
+        "school_license.pdf",
+        "registration_certificate.pdf"
+      ],
+      "location": "Mombasa, Kenya",
+      "requestedDate": "2024-11-15",
+      "status": "pending"
+    }
+  ],
+  "MOCK_ALL_USERS": [
+    {
+      "id": "u1",
+      "type": "individual",
+      "name": "Sarah Williams",
+      "email": "sarah@example.com",
+      "status": "active",
+      "location": "Nairobi",
+      "joinDate": "2024-09-15",
+      "totalSales": 2450,
+      "productsListed": 8
+    },
+    {
+      "id": "u2",
+      "type": "school",
+      "name": "Hope Academy",
+      "email": "admin@hope.edu",
+      "status": "active",
+      "location": "Kisumu",
+      "joinDate": "2024-08-10",
+      "teachers": 15,
+      "students": 120
+    },
+    {
+      "id": "u3",
+      "type": "buyer",
+      "name": "Michael Chen",
+      "email": "michael@example.com",
+      "status": "active",
+      "location": "Nairobi",
+      "joinDate": "2024-10-20",
+      "totalPurchases": 890.5
+    },
+    {
+      "id": "u4",
+      "type": "individual",
+      "name": "Emma Johnson",
+      "email": "emma@example.com",
+      "status": "banned",
+      "location": "Mombasa",
+      "joinDate": "2024-10-01",
+      "banReason": "Fraudulent activity",
+      "bannedDate": "2024-11-10"
+    }
+  ],
+  "MOCK_TRANSACTIONS": [
+    {
+      "id": "t1",
+      "userId": "u1",
+      "userName": "Sarah Williams",
+      "type": "sale",
+      "amount": 45,
+      "product": "Ceramic Bowl",
+      "date": "2024-11-15 10:30 AM",
+      "status": "completed"
+    },
+    {
+      "id": "t2",
+      "userId": "u3",
+      "userName": "Michael Chen",
+      "type": "purchase",
+      "amount": 120,
+      "product": "Painting",
+      "date": "2024-11-14 2:45 PM",
+      "status": "completed"
+    },
+    {
+      "id": "t3",
+      "userId": "u1",
+      "userName": "Sarah Williams",
+      "type": "withdrawal",
+      "amount": 280.5,
+      "method": "Bank Transfer",
+      "date": "2024-11-13 11:20 AM",
+      "status": "completed"
+    }
+  ],
+  "MOCK_PENDING_PRODUCTS": [
+    {
+      "id": "pp1",
+      "sellerId": "u1",
+      "sellerName": "Sarah Williams",
+      "productName": "Hand-painted Vase",
+      "price": 65,
+      "category": "Pottery",
+      "images": 4,
+      "submittedDate": "2024-11-14",
+      "documents": [
+        "product_photo_1.jpg",
+        "product_photo_2.jpg"
+      ]
+    },
+    {
+      "id": "pp2",
+      "sellerId": "u4",
+      "sellerName": "Emma Johnson",
+      "productName": "Wooden Sculpture",
+      "price": 150,
+      "category": "Woodwork",
+      "images": 5,
+      "submittedDate": "2024-11-15",
+      "documents": [
+        "product_photo_1.jpg"
+      ]
+    },
+    {
+      "id": "pp1",
+      "studentId": "1",
+      "studentName": "Emma Johnson",
+      "title": "Hand-painted Ceramics",
+      "category": "Art & Crafts",
+      "price": 45,
+      "description": "Beautiful hand-painted ceramic bowls",
+      "submittedDate": "2024-11-16",
+      "status": "pending",
+      "image": "https://images.unsplash.com/photo-1610701596295-4dc5d6289214?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxoYW5kbWFkZSUyMGNlcmFtaWNzJTIwYm93bHxlbnwxfHx8fDE3NjMyNjA5MDd8MA&ixlib=rb-4.1.0&q=80&w=1080"
+    },
+    {
+      "id": "pp2",
+      "studentId": "3",
+      "studentName": "Sophia Davis",
+      "title": "Knitted Scarves",
+      "category": "Clothing",
+      "price": 25,
+      "description": "Warm winter scarves, hand-knitted",
+      "submittedDate": "2024-11-15",
+      "status": "pending",
+      "image": "https://images.unsplash.com/photo-1572371179162-9c0141483610?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxrbml0dGVkJTIwc2NhcmYlMjB3aW50ZXJ8ZW58MXx8fHwxNzYzMjk0MjQ2fDA&ixlib=rb-4.1.0&q=80&w=1080"
+    }
+  ],
+  "MOCK_REPORTS": [
+    {
+      "id": "r1",
+      "reporterId": "u3",
+      "reporterName": "Michael Chen",
+      "reportedUser": "Sarah Williams",
+      "reportedUserId": "u1",
+      "reason": "Product not as described",
+      "date": "2024-11-12",
+      "status": "pending"
+    },
+    {
+      "id": "r2",
+      "reporterId": "u2",
+      "reporterName": "Hope Academy",
+      "reportedUser": "Emma Johnson",
+      "reportedUserId": "u4",
+      "reason": "Inappropriate behavior",
+      "date": "2024-11-10",
+      "status": "resolved"
+    }
+  ],
+  "MOCK_SIGNUP_STATS": {
+    "daily": {
+      "individuals": 3,
+      "schools": 0,
+      "students": 5,
+      "teachers": 1,
+      "buyers": 8
+    },
+    "weekly": {
+      "individuals": 15,
+      "schools": 2,
+      "students": 32,
+      "teachers": 6,
+      "buyers": 45
+    },
+    "monthly": {
+      "individuals": 68,
+      "schools": 8,
+      "students": 145,
+      "teachers": 28,
+      "buyers": 234
+    },
+    "yearly": {
+      "individuals": 420,
+      "schools": 45,
+      "students": 1250,
+      "teachers": 180,
+      "buyers": 1890
+    }
+  },
+  "MOCK_LOCATION_DATA": [
+    {
+      "location": "Nairobi",
+      "schools": 25,
+      "teachers": 180,
+      "students": 1240,
+      "individuals": 150,
+      "buyers": 890
+    },
+    {
+      "location": "Mombasa",
+      "schools": 15,
+      "teachers": 95,
+      "students": 680,
+      "individuals": 85,
+      "buyers": 450
+    },
+    {
+      "location": "Kisumu",
+      "schools": 12,
+      "teachers": 78,
+      "students": 520,
+      "individuals": 62,
+      "buyers": 320
+    }
+  ],
+  "MOCK_ADMINS": [
+    {
+      "id": "a1",
+      "name": "Super Admin",
+      "email": "superadmin@handsandhope.com",
+      "role": "super-admin",
+      "createdDate": "2024-01-01",
+      "lastLogin": "2024-11-16 09:00 AM",
+      "status": "active"
+    },
+    {
+      "id": "a2",
+      "name": "John Smith",
+      "email": "john.smith@handsandhope.com",
+      "role": "admin",
+      "createdDate": "2024-06-15",
+      "lastLogin": "2024-11-15 3:30 PM",
+      "status": "active",
+      "createdBy": "Super Admin"
+    }
+  ],
+  "ADMIN_CREDENTIALS": {
+    "superadmin@handsandhope.com": {
+      "password": "SuperAdmin@2024",
+      "role": null
+    },
+    "admin@handsandhope.com": {
+      "password": "Admin@2024",
+      "role": null
+    }
+  },
+  "INITIAL_INQUIRIES": [
+    {
+      "id": "1",
+      "customerName": "Sarah Johnson",
+      "customerEmail": "sarah.j@email.com",
+      "customerAvatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=sarah",
+      "productName": "Handmade Ceramic Bowl",
+      "productImage": "https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?w=100",
+      "message": "Hi! I love this ceramic bowl. Is it dishwasher safe? Also, do you offer international shipping? I'm located in Canada.",
+      "timestamp": "2 hours ago",
+      "status": "pending",
+      "priority": "high"
+    },
+    {
+      "id": "2",
+      "customerName": "Michael Chen",
+      "customerEmail": "michael.chen@email.com",
+      "customerAvatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=michael",
+      "productName": "Watercolor Landscape Painting",
+      "productImage": "https://images.unsplash.com/photo-1547891654-e66ed7ebb968?w=100",
+      "message": "Beautiful work! Could you tell me more about the paper quality? Is this piece signed?",
+      "timestamp": "5 hours ago",
+      "status": "pending",
+      "priority": "medium"
+    },
+    {
+      "id": "3",
+      "customerName": "Emily Rodriguez",
+      "customerEmail": "emily.r@email.com",
+      "customerAvatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=emily",
+      "productName": "Sterling Silver Bracelet",
+      "productImage": "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=100",
+      "message": "I'm interested in this bracelet. What size is it? Can it be adjusted?",
+      "timestamp": "1 day ago",
+      "status": "replied",
+      "priority": "medium"
+    },
+    {
+      "id": "4",
+      "customerName": "David Kim",
+      "customerEmail": "david.kim@email.com",
+      "customerAvatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=david",
+      "productName": "Woven Wall Hanging",
+      "productImage": "https://images.unsplash.com/photo-1566206091558-7f218b696731?w=100",
+      "message": "Would you be able to create a custom size version of this? I need something about 3 feet wide.",
+      "timestamp": "1 day ago",
+      "status": "pending",
+      "priority": "low"
+    },
+    {
+      "id": "5",
+      "customerName": "Jessica Martinez",
+      "customerEmail": "jessica.m@email.com",
+      "customerAvatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=jessica",
+      "productName": "Handmade Greeting Cards Set",
+      "productImage": "https://images.unsplash.com/photo-1565552645632-d725f8bfc19a?w=100",
+      "message": "These cards are perfect! Do you offer bulk discounts? I need about 20 sets for a corporate event.",
+      "timestamp": "2 days ago",
+      "status": "replied",
+      "priority": "high"
+    },
+    {
+      "id": "6",
+      "customerName": "Robert Taylor",
+      "customerEmail": "robert.t@email.com",
+      "customerAvatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=robert",
+      "productName": "Clay Sculpture - Abstract",
+      "productImage": "https://images.unsplash.com/photo-1533158326339-7f3cf2404354?w=100",
+      "message": "Stunning piece! Is this still available? I'd like to purchase it as a gift.",
+      "timestamp": "3 days ago",
+      "status": "archived",
+      "priority": "low"
+    }
+  ],
+  "INITIAL_PRODUCTS": [
+    {
+      "id": "1",
+      "name": "Handmade Ceramic Bowl",
+      "price": "45.00",
+      "description": "Beautiful handcrafted ceramic bowl with unique glaze patterns. Perfect for serving or decoration.",
+      "category": "Pottery",
+      "stock": "3",
+      "images": [
+        "https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?w=400"
+      ],
+      "status": "active",
+      "views": 234,
+      "createdAt": "2024-10-15"
+    },
+    {
+      "id": "2",
+      "name": "Watercolor Landscape Painting",
+      "price": "120.00",
+      "description": "Original watercolor painting of a serene mountain landscape. 16x20 inches on premium watercolor paper.",
+      "category": "Painting",
+      "stock": "1",
+      "images": [
+        "https://images.unsplash.com/photo-1547891654-e66ed7ebb968?w=400"
+      ],
+      "status": "active",
+      "views": 189,
+      "createdAt": "2024-10-20"
+    },
+    {
+      "id": "3",
+      "name": "Sterling Silver Bracelet",
+      "price": "85.00",
+      "description": "Elegant sterling silver bracelet with intricate Celtic knot design. Handcrafted with care.",
+      "category": "Jewelry",
+      "stock": "5",
+      "images": [
+        "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=400"
+      ],
+      "status": "active",
+      "views": 156,
+      "createdAt": "2024-10-25"
+    },
+    {
+      "id": "4",
+      "name": "Woven Wall Hanging",
+      "price": "65.00",
+      "description": "Handwoven macrame wall hanging in natural cotton. Adds bohemian charm to any room.",
+      "category": "Textiles",
+      "stock": "2",
+      "images": [
+        "https://images.unsplash.com/photo-1566206091558-7f218b696731?w=400"
+      ],
+      "status": "active",
+      "views": 98,
+      "createdAt": "2024-11-01"
+    },
+    {
+      "id": "5",
+      "name": "Clay Sculpture - Abstract",
+      "price": "150.00",
+      "description": "Contemporary abstract clay sculpture. Unique piece that makes a bold statement.",
+      "category": "Sculpture",
+      "stock": "1",
+      "images": [
+        "https://images.unsplash.com/photo-1533158326339-7f3cf2404354?w=400"
+      ],
+      "status": "sold",
+      "views": 312,
+      "createdAt": "2024-09-18"
+    },
+    {
+      "id": "6",
+      "name": "Handmade Greeting Cards Set",
+      "price": "28.00",
+      "description": "Set of 10 hand-painted greeting cards with envelopes. Perfect for any occasion.",
+      "category": "Crafts",
+      "stock": "8",
+      "images": [
+        "https://images.unsplash.com/photo-1565552645632-d725f8bfc19a?w=400"
+      ],
+      "status": "active",
+      "views": 145,
+      "createdAt": "2024-11-05"
+    }
+  ],
+  "EXISTING_SCHOOLS": [
+    {
+      "id": "1",
+      "name": "Hope Academy for Special Education"
+    },
+    {
+      "id": "2",
+      "name": "Bright Futures School"
+    },
+    {
+      "id": "3",
+      "name": "Sunshine Learning Center"
+    },
+    {
+      "id": "4",
+      "name": "Rainbow Special Needs School"
+    },
+    {
+      "id": "5",
+      "name": "Liberty School for the Disabled"
+    }
+  ],
+  "MOCK_PENDING_TEACHERS": [
+    {
+      "id": "pt1",
+      "name": "Dr. Robert Chen",
+      "email": "robert@school.com",
+      "department": "Art & Crafts",
+      "requestedDate": "2024-11-14",
+      "credentials": "PhD in Art Education"
+    },
+    {
+      "id": "pt2",
+      "name": "Ms. Patricia Green",
+      "email": "patricia@school.com",
+      "department": "Music Therapy",
+      "requestedDate": "2024-11-15",
+      "credentials": "MA in Music Therapy"
+    }
+  ],
+  "MOCK_PENDING_STUDENTS": [
+    {
+      "id": "ps1",
+      "name": "Lucas Martinez",
+      "email": "lucas@school.com",
+      "disabilityId": "DIS-2024-101",
+      "requestedDate": "2024-11-14",
+      "assignedTeacher": "Dr. Sarah Williams"
+    },
+    {
+      "id": "ps2",
+      "name": "Ava Thompson",
+      "email": "ava@school.com",
+      "disabilityId": "DIS-2024-102",
+      "requestedDate": "2024-11-15",
+      "assignedTeacher": "Mr. James Miller"
+    },
+    {
+      "id": "p1",
+      "name": "James Wilson",
+      "email": "james@school.com",
+      "disabilityId": "DIS-2024-001",
+      "requestedDate": "2024-11-14",
+      "school": "Lincoln High School"
+    },
+    {
+      "id": "p2",
+      "name": "Olivia Martinez",
+      "email": "olivia@school.com",
+      "disabilityId": "DIS-2024-002",
+      "requestedDate": "2024-11-15",
+      "school": "Lincoln High School"
+    }
+  ],
+  "MOCK_TEACHERS": [
+    {
+      "id": "1",
+      "name": "Dr. Sarah Williams",
+      "email": "sarah@school.com",
+      "department": "Art & Crafts",
+      "students": 8,
+      "status": "active",
+      "joinDate": "2023-08-15"
+    },
+    {
+      "id": "2",
+      "name": "Mr. James Miller",
+      "email": "james@school.com",
+      "department": "Music Therapy",
+      "students": 12,
+      "status": "active",
+      "joinDate": "2023-09-01"
+    },
+    {
+      "id": "3",
+      "name": "Mrs. Lisa Anderson",
+      "email": "lisa@school.com",
+      "department": "Vocational Training",
+      "students": 6,
+      "status": "active",
+      "joinDate": "2024-01-10"
+    }
+  ],
+  "MOCK_STUDENTS": [
+    {
+      "id": "1",
+      "name": "Emma Johnson",
+      "email": "emma@school.com",
+      "teacher": "Dr. Sarah Williams",
+      "teacherId": "1",
+      "products": 3,
+      "status": "active",
+      "joinDate": "2024-09-15"
+    },
+    {
+      "id": "2",
+      "name": "Michael Brown",
+      "email": "michael@school.com",
+      "teacher": "Mr. James Miller",
+      "teacherId": "2",
+      "products": 1,
+      "status": "active",
+      "joinDate": "2024-10-01"
+    },
+    {
+      "id": "3",
+      "name": "Sophia Davis",
+      "email": "sophia@school.com",
+      "teacher": "Dr. Sarah Williams",
+      "teacherId": "1",
+      "products": 5,
+      "status": "active",
+      "joinDate": "2024-08-20"
+    },
+    {
+      "id": "4",
+      "name": "Oliver Wilson",
+      "email": "oliver@school.com",
+      "teacher": "Mrs. Lisa Anderson",
+      "teacherId": "3",
+      "products": 2,
+      "status": "active",
+      "joinDate": "2024-09-10"
+    },
+    {
+      "id": "1",
+      "name": "Emma Johnson",
+      "email": "emma@school.com",
+      "school": "Lincoln High School",
+      "products": 3,
+      "status": "active",
+      "totalSales": 450,
+      "totalInquiries": 12,
+      "unrespondedInquiries": 2,
+      "joinDate": "2024-09-15"
+    },
+    {
+      "id": "2",
+      "name": "Michael Brown",
+      "email": "michael@school.com",
+      "school": "Lincoln High School",
+      "products": 1,
+      "status": "active",
+      "totalSales": 125,
+      "totalInquiries": 5,
+      "unrespondedInquiries": 0,
+      "joinDate": "2024-10-01"
+    },
+    {
+      "id": "3",
+      "name": "Sophia Davis",
+      "email": "sophia@school.com",
+      "school": "Lincoln High School",
+      "products": 5,
+      "status": "active",
+      "totalSales": 780,
+      "totalInquiries": 18,
+      "unrespondedInquiries": 3,
+      "joinDate": "2024-08-20"
+    },
+    {
+      "id": "4",
+      "name": "Liam Anderson",
+      "email": "liam@school.com",
+      "school": "Lincoln High School",
+      "products": 0,
+      "status": "banned",
+      "totalSales": 0,
+      "totalInquiries": 0,
+      "unrespondedInquiries": 0,
+      "joinDate": "2024-09-01",
+      "banReason": "Inappropriate product listings",
+      "bannedDate": "2024-11-10",
+      "bannedBy": "Teacher John Smith"
+    }
+  ],
+  "MOCK_TEACHER_ACTIVITY": [
+    {
+      "id": "ta1",
+      "teacherId": "1",
+      "teacherName": "Dr. Sarah Williams",
+      "action": "Approved student account",
+      "details": "Approved account for Emma Johnson",
+      "studentAffected": "Emma Johnson",
+      "timestamp": "2024-11-16 10:30 AM",
+      "type": "account_approval"
+    },
+    {
+      "id": "ta2",
+      "teacherId": "1",
+      "teacherName": "Dr. Sarah Williams",
+      "action": "Approved product",
+      "details": "Approved \"Hand-crafted Jewelry\" by Emma Johnson",
+      "studentAffected": "Emma Johnson",
+      "timestamp": "2024-11-16 09:15 AM",
+      "type": "product_approval"
+    },
+    {
+      "id": "ta3",
+      "teacherId": "2",
+      "teacherName": "Mr. James Miller",
+      "action": "Banned student",
+      "details": "Banned Liam Anderson - Reason: Inappropriate product listings",
+      "studentAffected": "Liam Anderson",
+      "timestamp": "2024-11-10 11:45 AM",
+      "type": "ban"
+    },
+    {
+      "id": "ta4",
+      "teacherId": "1",
+      "teacherName": "Dr. Sarah Williams",
+      "action": "Rejected product",
+      "details": "Rejected \"Wooden Crafts\" by Sophia Davis - Reason: Does not meet quality standards",
+      "studentAffected": "Sophia Davis",
+      "timestamp": "2024-11-09 2:30 PM",
+      "type": "product_rejection"
+    }
+  ],
+  "MOCK_WITHDRAWAL_HISTORY": [
+    {
+      "id": "w1",
+      "amount": 450,
+      "method": "Mobile Money",
+      "provider": "Safaricom",
+      "account": "0712345678",
+      "date": "2024-11-10",
+      "status": "completed"
+    },
+    {
+      "id": "w2",
+      "amount": 280.5,
+      "method": "Bank Transfer",
+      "bank": "KCB Bank",
+      "account": "1234567890",
+      "date": "2024-10-28",
+      "status": "completed"
+    },
+    {
+      "id": "w3",
+      "amount": 150,
+      "method": "Mobile Money",
+      "provider": "Airtel",
+      "account": "0723456789",
+      "date": "2024-10-15",
+      "status": "completed"
+    }
+  ],
+  "MOCK_PENDING_ORDERS": [
+    {
+      "id": "o1",
+      "productName": "Hand-painted Ceramic Bowl",
+      "buyer": "Sarah Johnson",
+      "buyerEmail": "sarah@example.com",
+      "amount": 45,
+      "status": "awaiting_delivery",
+      "orderDate": "2024-11-14",
+      "shippingMethod": "self",
+      "trackingNumber": null
+    },
+    {
+      "id": "o2",
+      "productName": "Knitted Winter Scarf",
+      "buyer": "Michael Chen",
+      "buyerEmail": "michael@example.com",
+      "amount": 35,
+      "status": "in_transit",
+      "orderDate": "2024-11-12",
+      "shippingMethod": "platform",
+      "trackingNumber": "TRK-2024-001"
+    }
+  ],
+  "MOCK_COMPLETED_ORDERS": [
+    {
+      "id": "c1",
+      "productName": "Handmade Jewelry",
+      "buyer": "Emma Wilson",
+      "amount": 55,
+      "completedDate": "2024-11-08",
+      "rating": 5,
+      "feedback": "Beautiful work!"
+    },
+    {
+      "id": "c2",
+      "productName": "Wooden Crafts",
+      "buyer": "David Brown",
+      "amount": 40,
+      "completedDate": "2024-11-05",
+      "rating": 4,
+      "feedback": "Great quality"
+    }
+  ],
+  "MOCK_REFUNDS": [
+    {
+      "id": "r1",
+      "productName": "Ceramic Vase",
+      "buyer": "Lisa Anderson",
+      "amount": 60,
+      "reason": "Product arrived damaged",
+      "date": "2024-11-11",
+      "status": "approved",
+      "refundDeadline": "2024-11-18"
+    },
+    {
+      "id": "r2",
+      "productName": "Painted Canvas",
+      "buyer": "John Smith",
+      "amount": 80,
+      "reason": "Not as described",
+      "date": "2024-11-09",
+      "status": "pending",
+      "refundDeadline": "2024-11-16"
+    }
+  ],
+  "MOCK_BUYER_MESSAGES": [
+    {
+      "id": "m1",
+      "buyer": "Sarah Johnson",
+      "buyerAvatar": "SJ",
+      "message": "When will my order ship?",
+      "productName": "Ceramic Bowl",
+      "timestamp": "2024-11-15 2:30 PM",
+      "unread": true
+    },
+    {
+      "id": "m2",
+      "buyer": "Michael Chen",
+      "buyerAvatar": "MC",
+      "message": "Can you customize the color?",
+      "productName": "Winter Scarf",
+      "timestamp": "2024-11-14 5:45 PM",
+      "unread": false
+    }
+  ],
+  "MOCK_SALES_DATA": {
+    "daily": {
+      "total": 125.5,
+      "count": 3,
+      "refunds": 0
+    },
+    "weekly": {
+      "total": 645,
+      "count": 12,
+      "refunds": 1
+    },
+    "monthly": {
+      "total": 2340,
+      "count": 48,
+      "refunds": 3
+    },
+    "yearly": {
+      "total": 15680,
+      "count": 287,
+      "refunds": 12
+    }
+  },
+  "MOCK_PRODUCT_VIEWS": {
+    "daily": 45,
+    "weekly": 234,
+    "monthly": 1023,
+    "yearly": 8945
+  },
+  "MOCK_SOLD_OUT_PRODUCTS": [
+    {
+      "id": "so1",
+      "productName": "Custom Necklace",
+      "lastSoldDate": "2024-11-14",
+      "totalSold": 15,
+      "avgTimeToSellOut": "3 days"
+    },
+    {
+      "id": "so2",
+      "productName": "Handmade Cards",
+      "lastSoldDate": "2024-11-10",
+      "totalSold": 25,
+      "avgTimeToSellOut": "5 days"
+    }
+  ],
+  "MOCK_ACTIVITY_LOG": [
+    {
+      "id": "log1",
+      "teacherName": "You",
+      "action": "Approved product",
+      "details": "Approved \"Hand-crafted Jewelry\" by Emma Johnson",
+      "timestamp": "2024-11-16 10:30 AM",
+      "type": "product_approval"
+    },
+    {
+      "id": "log2",
+      "teacherName": "You",
+      "action": "Created student account",
+      "details": "Created account for Michael Brown",
+      "timestamp": "2024-11-15 2:15 PM",
+      "type": "account_creation"
+    },
+    {
+      "id": "log3",
+      "teacherName": "You",
+      "action": "Banned student",
+      "details": "Banned Liam Anderson - Reason: Inappropriate product listings",
+      "timestamp": "2024-11-10 11:45 AM",
+      "type": "ban"
+    },
+    {
+      "id": "log4",
+      "teacherName": "You",
+      "action": "Assisted product placement",
+      "details": "Added product \"Wooden Toys\" for Emma Johnson (Authorization: #AUTH-2024-001)",
+      "timestamp": "2024-11-09 3:20 PM",
+      "type": "product_assistance"
+    }
+  ]
+}

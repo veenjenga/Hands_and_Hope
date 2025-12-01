@@ -8,6 +8,8 @@ import authRoutes from "./routes/authRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
 import sellerRoutes from "./routes/sellerRoutes.js";
 import buyerRoutes from "./routes/buyerRoutes.js";   // ✅ Added buyer routes
+import uploadRoutes from "./routes/uploadRoutes.js";
+import dashboardRoutes from "./routes/dashboardRoutes.js";
 
 dotenv.config();
 
@@ -21,11 +23,17 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 
+// serve uploaded files
+import path from 'path';
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+
 // ✅ Route mounting
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/sellers", sellerRoutes);
 app.use("/api/buyers", buyerRoutes);   // ✅ Added this line
+app.use('/api/uploads', uploadRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // Connect to MongoDB and start server
 connectDB().then(() => {
