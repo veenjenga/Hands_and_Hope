@@ -10,10 +10,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Badge } from './ui/badge';
 import { Separator } from './ui/separator';
 import { Calendar, CreditCard, Package, DollarSign, MapPin, Edit } from 'lucide-react';
+import { AccessibilitySettings } from './AccessibilityMenu';
 
 interface ProfilePageProps {
   currentUser: any;
   onLogout: () => void;
+  accessibilitySettings?: AccessibilitySettings;
+  onAccessibilityChange?: (settings: AccessibilitySettings) => void;
 }
 
 const mockPurchaseHistory = [
@@ -37,7 +40,7 @@ const paymentMethods = [
   { id: 2, type: 'Mobile Money', number: '+1234567890', provider: 'BuyGoods' }
 ];
 
-export default function ProfilePage({ currentUser, onLogout }: ProfilePageProps) {
+export default function ProfilePage({ currentUser, onLogout, accessibilitySettings, onAccessibilityChange }: ProfilePageProps) {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
@@ -68,9 +71,11 @@ export default function ProfilePage({ currentUser, onLogout }: ProfilePageProps)
           isLoggedIn={true} 
           currentUser={currentUser} 
           onLogout={onLogout}
+          accessibilitySettings={accessibilitySettings}
+          onAccessibilityChange={onAccessibilityChange}
         />
 
-        <main className="p-6" role="main">
+        <main id="main-content" className="p-6" role="main">
           <div className="mb-6">
             <h1 className="text-[#1e2875] mb-2">My Profile</h1>
             <p className="text-gray-600">Manage your account and view your orders</p>

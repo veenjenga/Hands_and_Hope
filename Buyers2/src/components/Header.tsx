@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Search, ShoppingCart, User, LogOut, Settings as SettingsIcon } from 'lucide-react';
 import { Button } from './ui/button';
@@ -9,6 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
+import AccessibilityMenu, { AccessibilitySettings } from './AccessibilityMenu';
 
 interface HeaderProps {
   isLoggedIn: boolean;
@@ -18,6 +20,8 @@ interface HeaderProps {
   onSearchChange?: (query: string) => void;
   onSearch?: () => void;
   cartItemCount?: number;
+  accessibilitySettings?: AccessibilitySettings;
+  onAccessibilityChange?: (settings: AccessibilitySettings) => void;
 }
 
 export default function Header({ 
@@ -27,9 +31,12 @@ export default function Header({
   searchQuery = '', 
   onSearchChange = () => {}, 
   onSearch = () => {},
-  cartItemCount = 0
+  cartItemCount = 0,
+  accessibilitySettings,
+  onAccessibilityChange
 }: HeaderProps) {
   const navigate = useNavigate();
+  const [isAccessibilityMenuOpen, setIsAccessibilityMenuOpen] = useState(false);
 
   const handleLogout = () => {
     onLogout();
@@ -42,8 +49,18 @@ export default function Header({
   };
 
   return (
-    <header className="bg-white border-b border-gray-200 sticky top-0 z-50" role="banner">
-      <div className="flex items-center justify-between px-6 py-4">
+    <>
+      {/* Skip to main content link for keyboard users */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-[#1e2875] focus:text-white focus:rounded focus:ring-2 focus:ring-yellow-400"
+        aria-label="Skip to main content"
+      >
+        Skip to main content
+      </a>
+      
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-50" role="banner">
+        <div className="flex items-center justify-between px-6 py-4">
         <Link to="/" className="flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">
           <h1 className="text-[#1e2875]">Hands and Hope</h1>
         </Link>
@@ -79,13 +96,25 @@ export default function Header({
           </Button>
 
           <button
-            className="fixed bottom-4 right-4 bg-yellow-400 text-[#1e2875] rounded-full w-14 h-14 flex items-center justify-center shadow-lg hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-yellow-600 z-50"
+            onClick={() => setIsAccessibilityMenuOpen(!isAccessibilityMenuOpen)}
+            className="fixed bottom-4 right-4 bg-yellow-400 text-[#1e2875] rounded-full w-16 h-16 flex items-center justify-center shadow-lg hover:bg-yellow-500 hover:scale-110 focus:outline-none focus:ring-4 focus:ring-yellow-600 z-50 transition-all duration-300 animate-pulse"
             aria-label="Toggle accessibility menu"
+            aria-expanded={isAccessibilityMenuOpen}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-9 h-9" aria-hidden="true">
               <path d="M12 2a2 2 0 100 4 2 2 0 000-4zM8.5 8a1.5 1.5 0 00-1.5 1.5V14a1 1 0 01-2 0V9.5a3.5 3.5 0 013-3.465A3.5 3.5 0 0111.5 3h1a3.5 3.5 0 013.5 3.5V14a1 1 0 11-2 0V9.5A1.5 1.5 0 0012.5 8h-1a1.5 1.5 0 00-1.5 1.5V18l2.5 4a1 1 0 11-1.714 1.028L8 18.618l-2.786 4.41A1 1 0 013.5 22l2.5-4V9.5A1.5 1.5 0 018.5 8z"/>
             </svg>
           </button>
+
+          {/* Accessibility Menu */}
+          {accessibilitySettings && onAccessibilityChange && (
+            <AccessibilityMenu
+              isOpen={isAccessibilityMenuOpen}
+              onClose={() => setIsAccessibilityMenuOpen(false)}
+              settings={accessibilitySettings}
+              onSettingsChange={onAccessibilityChange}
+            />
+          )}
 
           {isLoggedIn ? (
             <>
@@ -137,7 +166,7 @@ export default function Header({
                 Login
               </Button>
               <Button
-                onClick={() => navigate('/signup')}
+                onClick={() => { window.location.href = 'http://localhost:3001'; }}
                 className="bg-yellow-400 text-[#1e2875] hover:bg-yellow-500 focus:ring-2 focus:ring-yellow-600"
               >
                 Register as Seller
@@ -147,5 +176,6 @@ export default function Header({
         </div>
       </div>
     </header>
+    </>
   );
 }

@@ -6,11 +6,14 @@ import ProductCard from './ProductCard';
 import { Button } from './ui/button';
 import { ShoppingBag } from 'lucide-react';
 import heroImage from 'figma:asset/d2fb7d885d1d47742f3ffd01a5bcc98de3caebce.png';
+import { AccessibilitySettings } from './AccessibilityMenu';
 
 interface HomePageProps {
   isLoggedIn: boolean;
   currentUser?: any;
   onLogout: () => void;
+  accessibilitySettings?: AccessibilitySettings;
+  onAccessibilityChange?: (settings: AccessibilitySettings) => void;
 }
 
 // Mock product data
@@ -105,7 +108,7 @@ const allProducts = [
   }
 ];
 
-export default function HomePage({ isLoggedIn, currentUser, onLogout }: HomePageProps) {
+export default function HomePage({ isLoggedIn, currentUser, onLogout, accessibilitySettings, onAccessibilityChange }: HomePageProps) {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredProducts, setFilteredProducts] = useState(allProducts);
@@ -163,9 +166,11 @@ export default function HomePage({ isLoggedIn, currentUser, onLogout }: HomePage
           onSearchChange={setSearchQuery}
           onSearch={handleSearch}
           cartItemCount={cartItems.length}
+          accessibilitySettings={accessibilitySettings}
+          onAccessibilityChange={onAccessibilityChange}
         />
 
-        <main className="p-6" role="main">
+        <main id="main-content" className="p-6" role="main">
           {showHero && (
             <section 
               className="relative rounded-lg overflow-hidden mb-8"

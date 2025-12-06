@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Home, ShoppingBag, School, Info, Settings, ChevronDown, ChevronUp } from 'lucide-react';
+import { Home, ShoppingBag, School, Info, Settings, ChevronDown, ChevronUp, Users } from 'lucide-react';
 import { useState } from 'react';
 import { Checkbox } from './ui/checkbox';
 import { Label } from './ui/label';
@@ -98,6 +98,15 @@ export default function Sidebar({ selectedCategories, onCategoryChange }: Sideba
         >
           <Info size={20} aria-hidden="true" />
           <span>About Us</span>
+        </Link>
+
+        <Link 
+          to="/team" 
+          className="flex items-center gap-3 px-4 py-3 rounded hover:bg-[#2a3490] transition-colors focus:outline-none focus:ring-2 focus:ring-yellow-400"
+          aria-label="Our team"
+        >
+          <Users size={20} aria-hidden="true" />
+          <span>Our Team</span>
         </Link>
 
         <Link 

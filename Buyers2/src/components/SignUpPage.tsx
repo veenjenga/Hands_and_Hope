@@ -6,12 +6,16 @@ import { Label } from './ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
 import { Alert, AlertDescription } from './ui/alert';
 import { Checkbox } from './ui/checkbox';
+import Header from './Header';
+import { AccessibilitySettings } from './AccessibilityMenu';
 
 interface SignUpPageProps {
   onSignUp: (user: any) => void;
+  accessibilitySettings?: AccessibilitySettings;
+  onAccessibilityChange?: (settings: AccessibilitySettings) => void;
 }
 
-export default function SignUpPage({ onSignUp }: SignUpPageProps) {
+export default function SignUpPage({ onSignUp, accessibilitySettings, onAccessibilityChange }: SignUpPageProps) {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -65,8 +69,15 @@ export default function SignUpPage({ onSignUp }: SignUpPageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen bg-gray-50">
+      <Header 
+        isLoggedIn={false} 
+        onLogout={() => {}}
+        accessibilitySettings={accessibilitySettings}
+        onAccessibilityChange={onAccessibilityChange}
+      />
+      <main id="main-content" className="flex items-center justify-center p-4" role="main">
+        <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-center">
             <Link to="/" className="text-[#1e2875] hover:text-[#2a3490] focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">
@@ -204,6 +215,7 @@ export default function SignUpPage({ onSignUp }: SignUpPageProps) {
           </CardFooter>
         </form>
       </Card>
+      </main>
     </div>
   );
 }

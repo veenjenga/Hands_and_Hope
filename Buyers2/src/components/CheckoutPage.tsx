@@ -10,10 +10,13 @@ import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import { Checkbox } from './ui/checkbox';
 import { Separator } from './ui/separator';
 import { CreditCard, Smartphone, MapPin, Package } from 'lucide-react';
+import { AccessibilitySettings } from './AccessibilityMenu';
 
 interface CheckoutPageProps {
   currentUser: any;
   onLogout: () => void;
+  accessibilitySettings?: AccessibilitySettings;
+  onAccessibilityChange?: (settings: AccessibilitySettings) => void;
 }
 
 const mockCartItems = [
@@ -21,7 +24,7 @@ const mockCartItems = [
   { id: 7, product: 'Abstract Painting', price: 129.99, quantity: 1, image: 'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=200' }
 ];
 
-export default function CheckoutPage({ currentUser, onLogout }: CheckoutPageProps) {
+export default function CheckoutPage({ currentUser, onLogout, accessibilitySettings, onAccessibilityChange }: CheckoutPageProps) {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [paymentMethod, setPaymentMethod] = useState('credit-card');
   const [enableLocationTracking, setEnableLocationTracking] = useState(false);
@@ -63,9 +66,11 @@ export default function CheckoutPage({ currentUser, onLogout }: CheckoutPageProp
           currentUser={currentUser} 
           onLogout={onLogout}
           cartItemCount={mockCartItems.reduce((sum, item) => sum + item.quantity, 0)}
+          accessibilitySettings={accessibilitySettings}
+          onAccessibilityChange={onAccessibilityChange}
         />
 
-        <main className="p-6" role="main">
+        <main id="main-content" className="p-6" role="main">
           <div className="max-w-6xl mx-auto">
             <Button
               variant="ghost"

@@ -5,12 +5,16 @@ import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
 import { Alert, AlertDescription } from './ui/alert';
+import Header from './Header';
+import { AccessibilitySettings } from './AccessibilityMenu';
 
 interface LoginPageProps {
   onLogin: (user: any) => void;
+  accessibilitySettings?: AccessibilitySettings;
+  onAccessibilityChange?: (settings: AccessibilitySettings) => void;
 }
 
-export default function LoginPage({ onLogin }: LoginPageProps) {
+export default function LoginPage({ onLogin, accessibilitySettings, onAccessibilityChange }: LoginPageProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -39,8 +43,15 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen bg-gray-50">
+      <Header 
+        isLoggedIn={false} 
+        onLogout={() => {}}
+        accessibilitySettings={accessibilitySettings}
+        onAccessibilityChange={onAccessibilityChange}
+      />
+      <main id="main-content" className="flex items-center justify-center p-4" role="main">
+        <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-center">
             <Link to="/" className="text-[#1e2875] hover:text-[#2a3490] focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded">
@@ -116,6 +127,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
           </CardFooter>
         </form>
       </Card>
+      </main>
     </div>
   );
 }

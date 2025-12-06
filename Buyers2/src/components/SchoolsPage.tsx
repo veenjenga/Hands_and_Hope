@@ -8,11 +8,14 @@ import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { MapPin, Users, Award, ChevronDown, ChevronUp } from 'lucide-react';
+import { AccessibilitySettings } from './AccessibilityMenu';
 
 interface SchoolsPageProps {
   isLoggedIn: boolean;
   currentUser?: any;
   onLogout: () => void;
+  accessibilitySettings?: AccessibilitySettings;
+  onAccessibilityChange?: (settings: AccessibilitySettings) => void;
 }
 
 // All available products
@@ -277,7 +280,7 @@ const schools = [
   }
 ];
 
-export default function SchoolsPage({ isLoggedIn, currentUser, onLogout }: SchoolsPageProps) {
+export default function SchoolsPage({ isLoggedIn, currentUser, onLogout, accessibilitySettings, onAccessibilityChange }: SchoolsPageProps) {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [expandedSchools, setExpandedSchools] = useState<number[]>([]);
   const [expandedSellers, setExpandedSellers] = useState<string[]>([]);
@@ -323,9 +326,11 @@ export default function SchoolsPage({ isLoggedIn, currentUser, onLogout }: Schoo
           isLoggedIn={isLoggedIn} 
           currentUser={currentUser} 
           onLogout={onLogout}
+          accessibilitySettings={accessibilitySettings}
+          onAccessibilityChange={onAccessibilityChange}
         />
 
-        <main className="p-6" role="main">
+        <main id="main-content" className="p-6" role="main">
           <div className="mb-8">
             <h1 className="text-[#1e2875] mb-2">Schools & Institutions</h1>
             <p className="text-gray-600">

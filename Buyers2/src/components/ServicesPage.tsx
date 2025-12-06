@@ -7,14 +7,17 @@ import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
 import { Clock, Mail } from 'lucide-react';
+import { AccessibilitySettings } from './AccessibilityMenu';
 
 interface ServicesPageProps {
   isLoggedIn: boolean;
   currentUser?: any;
   onLogout: () => void;
+  accessibilitySettings?: AccessibilitySettings;
+  onAccessibilityChange?: (settings: AccessibilitySettings) => void;
 }
 
-export default function ServicesPage({ isLoggedIn, currentUser, onLogout }: ServicesPageProps) {
+export default function ServicesPage({ isLoggedIn, currentUser, onLogout, accessibilitySettings, onAccessibilityChange }: ServicesPageProps) {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [formData, setFormData] = useState({
     name: '',
@@ -37,9 +40,11 @@ export default function ServicesPage({ isLoggedIn, currentUser, onLogout }: Serv
           isLoggedIn={isLoggedIn} 
           currentUser={currentUser} 
           onLogout={onLogout}
+          accessibilitySettings={accessibilitySettings}
+          onAccessibilityChange={onAccessibilityChange}
         />
 
-        <main className="p-6" role="main">
+        <main id="main-content" className="p-6" role="main">
           <div className="max-w-4xl mx-auto">
             {/* Coming Soon Banner */}
             <Card className="mb-8 bg-gradient-to-r from-[#1e2875] to-[#2a3490] text-white border-none">

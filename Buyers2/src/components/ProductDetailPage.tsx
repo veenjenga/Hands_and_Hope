@@ -10,11 +10,14 @@ import { Textarea } from './ui/textarea';
 import { Label } from './ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Progress } from './ui/progress';
+import { AccessibilitySettings } from './AccessibilityMenu';
 
 interface ProductDetailPageProps {
   isLoggedIn: boolean;
   currentUser?: any;
   onLogout: () => void;
+  accessibilitySettings?: AccessibilitySettings;
+  onAccessibilityChange?: (settings: AccessibilitySettings) => void;
 }
 
 // Mock data - same as HomePage
@@ -56,7 +59,7 @@ const recommendedProducts = [
   }
 ];
 
-export default function ProductDetailPage({ isLoggedIn, currentUser, onLogout }: ProductDetailPageProps) {
+export default function ProductDetailPage({ isLoggedIn, currentUser, onLogout, accessibilitySettings, onAccessibilityChange }: ProductDetailPageProps) {
   const { id } = useParams();
   const navigate = useNavigate();
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
@@ -103,9 +106,11 @@ export default function ProductDetailPage({ isLoggedIn, currentUser, onLogout }:
           isLoggedIn={isLoggedIn} 
           currentUser={currentUser} 
           onLogout={onLogout}
+          accessibilitySettings={accessibilitySettings}
+          onAccessibilityChange={onAccessibilityChange}
         />
 
-        <main className="p-6" role="main">
+        <main id="main-content" className="p-6" role="main">
           <Button
             variant="ghost"
             onClick={() => navigate(-1)}

@@ -3,14 +3,17 @@ import Header from './Header';
 import Sidebar from './Sidebar';
 import { Card, CardContent } from './ui/card';
 import { Heart, Users, ShoppingBag, Globe } from 'lucide-react';
+import { AccessibilitySettings } from './AccessibilityMenu';
 
 interface AboutPageProps {
   isLoggedIn: boolean;
   currentUser?: any;
   onLogout: () => void;
+  accessibilitySettings?: AccessibilitySettings;
+  onAccessibilityChange?: (settings: AccessibilitySettings) => void;
 }
 
-export default function AboutPage({ isLoggedIn, currentUser, onLogout }: AboutPageProps) {
+export default function AboutPage({ isLoggedIn, currentUser, onLogout, accessibilitySettings, onAccessibilityChange }: AboutPageProps) {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
   return (
@@ -22,9 +25,11 @@ export default function AboutPage({ isLoggedIn, currentUser, onLogout }: AboutPa
           isLoggedIn={isLoggedIn} 
           currentUser={currentUser} 
           onLogout={onLogout}
+          accessibilitySettings={accessibilitySettings}
+          onAccessibilityChange={onAccessibilityChange}
         />
 
-        <main className="p-6" role="main">
+        <main id="main-content" className="p-6" role="main">
           <div className="max-w-5xl mx-auto">
             {/* Hero Section */}
             <div className="text-center mb-12">
