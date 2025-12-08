@@ -13,6 +13,8 @@ function Profile() {
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  const [showScrollBottom, setShowScrollBottom] = useState(false);
 
   // Load user data from localStorage on component mount
   useEffect(() => {
@@ -30,6 +32,25 @@ function Profile() {
       } catch (error) {
         console.error('Error parsing user data:', error);
       }
+    }
+  }, []);
+
+  // Handle scroll events to show/hide scroll buttons
+  useEffect(() => {
+    const handleScroll = () => {
+      const profileForm = document.querySelector(`.${styles.profileForm}`);
+      if (profileForm) {
+        const { scrollTop, scrollHeight, clientHeight } = profileForm;
+        setShowScrollTop(scrollTop > 0);
+        setShowScrollBottom(scrollTop + clientHeight < scrollHeight);
+      }
+    };
+
+    const profileForm = document.querySelector(`.${styles.profileForm}`);
+    if (profileForm) {
+      profileForm.addEventListener('scroll', handleScroll);
+      handleScroll(); // Initial check
+      return () => profileForm.removeEventListener('scroll', handleScroll);
     }
   }, []);
 
@@ -79,6 +100,20 @@ function Profile() {
     history.goBack();
   };
 
+  const scrollToTop = () => {
+    const profileForm = document.querySelector(`.${styles.profileForm}`);
+    if (profileForm) {
+      profileForm.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const scrollToBottom = () => {
+    const profileForm = document.querySelector(`.${styles.profileForm}`);
+    if (profileForm) {
+      profileForm.scrollTo({ top: profileForm.scrollHeight, behavior: 'smooth' });
+    }
+  };
+
   return (
     <div className={styles.profileContainer}>
       <div className={styles.profileHeader}>
@@ -95,6 +130,17 @@ function Profile() {
         <div className={styles.message}>
           {message}
         </div>
+      )}
+
+      {/* Scroll to Top Button */}
+      {showScrollTop && (
+        <button 
+          onClick={scrollToTop}
+          className={`${styles.scrollButton} ${styles.scrollTop}`}
+          aria-label="Scroll to top"
+        >
+          ↑
+        </button>
       )}
 
       <form onSubmit={handleSave} className={styles.profileForm}>
@@ -178,6 +224,17 @@ function Profile() {
           {loading ? 'Saving...' : 'Save Changes'}
         </button>
       </form>
+
+      {/* Scroll to Bottom Button */}
+      {showScrollBottom && (
+        <button 
+          onClick={scrollToBottom}
+          className={`${styles.scrollButton} ${styles.scrollBottom}`}
+          aria-label="Scroll to bottom"
+        >
+          ↓
+        </button>
+      )}
     </div>
   );
 }
