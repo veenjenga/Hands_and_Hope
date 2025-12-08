@@ -11,6 +11,18 @@ function Dashboard({ highContrastMode }) {
     { title: 'Pending Inquiries', value: '0', icon: 'question-circle', color: 'yellow' },
     { title: 'Listed Categories', value: '0', icon: 'tag', color: 'green' },
   ]);
+  
+  const [isNewUser, setIsNewUser] = useState(false);
+
+  // Check if this is a new user
+  useEffect(() => {
+    const newUserFlag = localStorage.getItem('isNewUser');
+    if (newUserFlag === 'true') {
+      setIsNewUser(true);
+      // Remove the flag so the message doesn't show again
+      localStorage.removeItem('isNewUser');
+    }
+  }, []);
 
   // Fetch products from backend
   useEffect(() => {
@@ -44,20 +56,41 @@ function Dashboard({ highContrastMode }) {
     >
       {/* Welcome Section */}
       <div className={styles.welcomeSection}>
-        <h1
-          className={`${styles.welcomeTitle} ${
-            highContrastMode ? styles.welcomeTitleHighContrast : ''
-          }`}
-        >
-          Welcome, John Doe
-        </h1>
-        <p
-          className={`${styles.welcomeText} ${
-            highContrastMode ? styles.welcomeTextHighContrast : ''
-          }`}
-        >
-          Here's an overview of your store performance
-        </p>
+        {isNewUser ? (
+          <>
+            <h1
+              className={`${styles.welcomeTitle} ${
+                highContrastMode ? styles.welcomeTitleHighContrast : ''
+              }`}
+            >
+              Welcome to Hands and Hope!
+            </h1>
+            <p
+              className={`${styles.welcomeText} ${
+                highContrastMode ? styles.welcomeTextHighContrast : ''
+              }`}
+            >
+              Congratulations on joining our community. We're excited to see what you'll build for trade!
+            </p>
+          </>
+        ) : (
+          <>
+            <h1
+              className={`${styles.welcomeTitle} ${
+                highContrastMode ? styles.welcomeTitleHighContrast : ''
+              }`}
+            >
+              Welcome, John Doe
+            </h1>
+            <p
+              className={`${styles.welcomeText} ${
+                highContrastMode ? styles.welcomeTextHighContrast : ''
+              }`}
+            >
+              Here's an overview of your store performance
+            </p>
+          </>
+        )}
       </div>
 
       {/* Stats Section */}

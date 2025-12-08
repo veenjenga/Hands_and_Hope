@@ -28,6 +28,22 @@ function App() {
   // ✅ track authentication
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem("token"));
 
+  // Listen for authentication changes
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setIsAuthenticated(!!localStorage.getItem("token"));
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  // Function to handle auto-login after signup
+  const handleAutoLogin = (token) => {
+    localStorage.setItem("token", token);
+    setIsAuthenticated(true);
+  };
+
   // ✅ Products from backend
   const [products, setProducts] = useState([]);
 
@@ -79,10 +95,10 @@ function App() {
         <Switch>
           {/* Public Routes */}
           <Route path="/login">
-            <Login setIsAuthenticated={setIsAuthenticated} />
+            <Login onLogin={handleAutoLogin} />
           </Route>
           <Route path="/signup">
-            <Signup />
+            <Signup onAutoLogin={handleAutoLogin} />
           </Route>
 
           {/* Protected Routes */}
