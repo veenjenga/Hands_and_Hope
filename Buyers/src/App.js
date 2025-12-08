@@ -5,6 +5,7 @@ import BuyerHeader from './components/BuyerHeader';
 import BuyersDashboard from './pages/BuyersDashboard';
 import Cart from './pages/Cart';
 import Register from './pages/Register';
+import Login from './pages/Login';
 import RegisterModeSelection from './components/RegisterModeSelection';
 import Settings from './pages/Settings';
 import VoiceNavigation from './components/VoiceNavigation';
@@ -196,6 +197,12 @@ function App() {
     }
   };
 
+  const handleLogin = async (token, user) => {
+    // Handle login logic here
+    console.log('User logged in:', user);
+    // You might want to set some state or redirect the user
+  };
+
   const handleModeSelect = (mode) => {
     setSelectedMode(mode);
   };
@@ -254,6 +261,10 @@ function App() {
               <Route
                 path="/cart"
                 element={<Cart />}
+              />
+              <Route
+                path="/login"
+                element={<Login onLogin={handleLogin} />}
               />
               <Route
                 path="/register"

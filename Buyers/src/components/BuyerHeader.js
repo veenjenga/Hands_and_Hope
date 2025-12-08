@@ -41,10 +41,16 @@ function BuyerHeader({ highContrastMode, searchQuery, onSearchQueryChange }) {
             )}
           </Link>
           <Link
+            to='/login'
+            className={`${styles.loginButton} ${highContrastMode ? styles.buttonHighContrast : ""}`}
+          >
+            Login
+          </Link>
+          <Link
             to='/register'
             className={`${styles.registerButton} ${highContrastMode ? styles.buttonHighContrast : ""}`}
           >
-            Register as Seller
+            Register
           </Link>
           <Link
             to='/settings'
