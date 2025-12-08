@@ -1,6 +1,8 @@
 import express from "express";
 import { updateProfile, getProfile, deactivateAccount, deleteAccount } from "../controllers/sellerController.js";
-import { protect } from "../middleware/authMiddleware.js"; 
+import authMiddleware from "../middleware/authMiddleware.js";
+
+const protect = authMiddleware; 
 
 const router = express.Router();
 

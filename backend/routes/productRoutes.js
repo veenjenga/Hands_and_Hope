@@ -1,7 +1,7 @@
-const express = require("express");
+import express from "express";
 const router = express.Router();   // initialize router
-const Product = require("../models/Product");
-const authMiddleware = require("../middleware/authMiddleware");
+import Product from "../models/Product.js";
+import authMiddleware from "../middleware/authMiddleware.js";
 
 // ==============================
 // @desc    Get all products
@@ -103,4 +103,4 @@ router.put("/:id", authMiddleware, async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

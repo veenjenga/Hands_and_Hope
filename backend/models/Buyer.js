@@ -1,5 +1,5 @@
-const mongoose = require("mongoose");
-const bcrypt = require("bcryptjs");
+import mongoose from "mongoose";
+import bcrypt from "bcryptjs";
 
 const buyerSchema = new mongoose.Schema(
   {
@@ -45,4 +45,4 @@ buyerSchema.pre("save", async function (next) {
   next();
 });
 
-module.exports = mongoose.model("Buyer", buyerSchema);
+export default mongoose.model("Buyer", buyerSchema);

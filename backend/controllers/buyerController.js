@@ -1,6 +1,6 @@
-const Buyer = require("../models/Buyer");
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcryptjs");
+import Buyer from "../models/Buyer.js";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
 
 // Generate JWT token
 const generateToken = (buyer) => {
@@ -12,7 +12,7 @@ const generateToken = (buyer) => {
 };
 
 // @desc Register buyer
-exports.registerBuyer = async (req, res) => {
+const registerBuyer = async (req, res) => {
   try {
     const { name, email, password, phoneNumber } = req.body;
 
@@ -36,7 +36,7 @@ exports.registerBuyer = async (req, res) => {
 };
 
 // @desc Login buyer
-exports.loginBuyer = async (req, res) => {
+const loginBuyer = async (req, res) => {
   try {
     const { email, password } = req.body;
     const buyer = await Buyer.findOne({ email });
@@ -54,7 +54,7 @@ exports.loginBuyer = async (req, res) => {
 };
 
 // @desc Get buyer profile
-exports.getBuyerProfile = async (req, res) => {
+const getBuyerProfile = async (req, res) => {
   try {
     const buyer = await Buyer.findById(req.user.id).select("-password");
     if (!buyer) return res.status(404).json({ message: "Buyer not found" });
@@ -65,7 +65,7 @@ exports.getBuyerProfile = async (req, res) => {
 };
 
 // @desc Deactivate buyer
-exports.deactivateBuyer = async (req, res) => {
+const deactivateBuyer = async (req, res) => {
   try {
     const buyer = await Buyer.findByIdAndUpdate(req.user.id, { isActive: false }, { new: true });
     res.json({ message: "Account deactivated", buyer });
@@ -75,7 +75,7 @@ exports.deactivateBuyer = async (req, res) => {
 };
 
 // @desc Delete buyer account
-exports.deleteBuyer = async (req, res) => {
+const deleteBuyer = async (req, res) => {
   try {
     await Buyer.findByIdAndDelete(req.user.id);
     res.json({ message: "Buyer account deleted successfully" });
@@ -83,3 +83,5 @@ exports.deleteBuyer = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+export { registerBuyer, loginBuyer, getBuyerProfile, deactivateBuyer, deleteBuyer };

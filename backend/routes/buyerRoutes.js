@@ -1,14 +1,15 @@
-const express = require("express");
-const {
+import express from "express";
+import {
   registerBuyer,
   loginBuyer,
   getBuyerProfile,
   deactivateBuyer,
   deleteBuyer,
-} = require("../controllers/buyerController");
+} from "../controllers/buyerController.js";
 
-const { protect } = require("../middleware/authMiddleware"); // same middleware used for sellers
+import authMiddleware from "../middleware/authMiddleware.js"; // same middleware used for sellers
 
+const protect = authMiddleware;
 const router = express.Router();
 
 // Public
@@ -20,4 +21,4 @@ router.get("/profile", protect, getBuyerProfile);
 router.put("/deactivate", protect, deactivateBuyer);
 router.delete("/delete", protect, deleteBuyer);
 
-module.exports = router;
+export default router;
