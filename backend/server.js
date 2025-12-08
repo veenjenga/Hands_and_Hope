@@ -6,31 +6,50 @@ import dotenv from "dotenv";
 // ✅ Import all routes
 import authRoutes from "./routes/authRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
-import sellerRoutes from "./routes/sellerRoutes.js";
-import buyerRoutes from "./routes/buyerRoutes.js";   // ✅ Added buyer routes
-import profileRoutes from "./routes/profileRoutes.js"; // ✅ Added profile routes
-import activityRoutes from "./routes/activityRoutes.js"; // ✅ Added activity routes
+import profileRoutes from "./routes/profileRoutes.js";
+import activityRoutes from "./routes/activityRoutes.js";
 
 dotenv.config();
 
 const app = express();
+const PORT = process.env.PORT || 5000;
 
 // ✅ Middleware
 app.use(cors());
 app.use(express.json());
 
+// Connect to MongoDB
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+.then(() => console.log('✅ Connected to MongoDB'))
+.catch(err => console.error('❌ MongoDB connection error:', err));
+
 // ✅ Route mounting
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
-app.use("/api/sellers", sellerRoutes);
-app.use("/api/buyers", buyerRoutes);   // ✅ Added this line
-app.use("/api", profileRoutes); // ✅ Added profile routes
-app.use("/api/activity", activityRoutes); // ✅ Added activity routes
+app.use("/api/profile", profileRoutes);
+app.use("/api/activities", activityRoutes);
+
+// Health check routes
+app.get("/", (req, res) => {
+  res.json({ 
+    message: "Hands and Hope Backend is running!",
+    timestamp: new Date(),
+    status: "OK"
+  });
+});
+
+app.get("/health", (req, res) => {
+  res.json({ 
+    status: "OK", 
+    service: "Hands and Hope API",
+    timestamp: new Date()
+  });
+});
 
 // ✅ MongoDB connection and server start
-mongoose.connect(process.env.MONGO_URI)
-.then(() => {
-  const PORT = process.env.PORT || 5000;
-  app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
-})
-.catch(err => console.error("❌ MongoDB connection error:", err));
+app.listen(PORT, () => {
+  console.log(`✅ Server running on port ${PORT}`);
+});
