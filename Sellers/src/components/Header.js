@@ -3,7 +3,7 @@ import React from 'react';
 import { useHistory } from 'react-router-dom';
 import styles from './Header.module.css';
 
-function Header({ highContrastMode }) {
+function Header({ highContrastMode, currentUser }) {
   const history = useHistory();
 
   const handleAddProduct = () => {
@@ -56,12 +56,24 @@ function Header({ highContrastMode }) {
           </button>
 
           <div className={styles.userInfo}>
-            <img
-              src="https://public.readdy.ai/ai/img_res/d148673ac06fcc36bc7ff4b04964af63.jpg"
-              alt="User Avatar for John Doe"
-              className={styles.userAvatar}
-            />
-            <span className={styles.userName}>John Doe</span>
+            <div 
+              className={styles.avatarContainer}
+              onClick={() => history.push('/profile')}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  history.push('/profile');
+                }
+              }}
+            >
+              <img
+                src="https://public.readdy.ai/ai/img_res/d148673ac06fcc36bc7ff4b04964af63.jpg"
+                alt={`User Avatar for ${currentUser?.name || 'Seller'}`}
+                className={styles.userAvatar}
+              />
+            </div>
+            <span className={styles.userName}>{currentUser?.name || 'Seller'}</span>
             <button
               onClick={handleLogout}
               className={`${styles.logoutButton} ${

@@ -1,19 +1,22 @@
-/* src/components/Header.module.css */
 .header {
-  background-color: #fff;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  padding: 1rem 1.5rem;
+  background-color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 0 1.5rem;
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
 .headerHighContrast {
-  background-color: #000;
-  border-bottom: 1px solid #fff;
+  background-color: black;
+  box-shadow: 0 2px 4px rgba(255, 255, 255, 0.1);
 }
 
 .headerContent {
   display: flex;
-  align-items: center;
   justify-content: space-between;
+  align-items: center;
+  height: 4.5rem;
 }
 
 .logoContainer {
@@ -22,41 +25,36 @@
 }
 
 .logo {
-  height: 6.5rem;
+  height: 2.5rem;
 }
 
 .searchContainer {
-  width: 40%;
+  flex: 1;
+  max-width: 30rem;
+  margin: 0 2rem;
   position: relative;
 }
 
 .searchInput {
   width: 100%;
-  padding: 0.5rem 0.5rem 0.5rem 2.5rem;
-  background-color: #f3f4f6;
-  color: #111827;
-  border: none;
-  border-radius: 9999px;
+  padding: 0.5rem 2.5rem 0.5rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
   font-size: 0.875rem;
-  outline: none;
-}
-
-.searchInput:focus {
-  ring: 2px solid #3b82f6;
 }
 
 .searchInputHighContrast {
-  background-color: #fff;
-  color: #000;
-  border: 2px solid #fff;
+  border: 1px solid white;
+  background-color: black;
+  color: white;
 }
 
 .searchIcon {
   position: absolute;
-  left: 0.75rem;
+  right: 0.75rem;
   top: 50%;
   transform: translateY(-50%);
-  color: #6b7280;
+  color: #999;
 }
 
 .userActions {
@@ -66,62 +64,99 @@
 }
 
 .addButton {
+  background-color: #007bff;
+  color: white;
+  border: none;
   padding: 0.5rem 1rem;
-  background-color: #15803d;
-  color: #fff;
-  border-radius: 9999px;
+  border-radius: 4px;
+  cursor: pointer;
   display: flex;
   align-items: center;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: transform 0.2s;
-}
-
-.addButton:hover {
-  transform: scale(1.05);
+  gap: 0.5rem;
+  font-size: 0.875rem;
 }
 
 .addButtonHighContrast {
-  background-color: #fff;
-  color: #000;
+  background-color: #007bff;
+  color: white;
+}
+
+.buttonIcon {
+  font-size: 0.875rem;
 }
 
 .userInfo {
   display: flex;
   align-items: center;
+  gap: 0.75rem;
+}
+
+.avatarContainer {
+  cursor: pointer;
+  border-radius: 50%;
+  transition: transform 0.2s;
+}
+
+.avatarContainer:hover {
+  transform: scale(1.05);
 }
 
 .userAvatar {
-  height: 2.5rem;
   width: 2.5rem;
-  border-radius: 9999px;
+  height: 2.5rem;
+  border-radius: 50%;
   object-fit: cover;
 }
 
 .userName {
-  margin-left: 0.5rem;
-  margin-right: 1rem;
+  font-weight: 500;
+  color: #333;
+}
+
+.userNameHighContrast {
+  color: white;
 }
 
 .logoutButton {
-  padding: 0.5rem 1rem;
-  background-color: #facc15;
-  color: #111827;
-  border-radius: 9999px;
+  background-color: transparent;
+  border: 1px solid #ddd;
+  padding: 0.5rem;
+  border-radius: 4px;
   cursor: pointer;
-  white-space: nowrap;
-  transition: transform 0.2s;
-}
-
-.logoutButton:hover {
-  transform: scale(1.05);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #333;
 }
 
 .logoutButtonHighContrast {
-  background-color: #fff;
-  color: #000;
+  border: 1px solid white;
+  color: white;
 }
 
-.buttonIcon {
-  margin-right: 0.5rem;
+@media (max-width: 768px) {
+  .headerContent {
+    flex-wrap: wrap;
+    height: auto;
+    padding: 1rem 0;
+  }
+
+  .logoContainer {
+    order: 1;
+  }
+
+  .searchContainer {
+    order: 3;
+    margin: 1rem 0 0;
+    max-width: 100%;
+  }
+
+  .userActions {
+    order: 2;
+  }
+
+  .userName {
+    display: none;
+  }
 }

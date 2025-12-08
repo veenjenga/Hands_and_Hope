@@ -8,6 +8,7 @@ import ProductListing from './pages/ProductListing';
 import AddProduct from './pages/AddProduct';
 import Inquiries from './pages/Inquiries';
 import Settings from './pages/Settings';
+import Profile from './pages/Profile'; // ✅ import profile
 import VoiceNavigation from './components/VoiceNavigation';
 import AccessibilityPanel from './components/AccessibilityPanel';
 import Login from './pages/Login';   // ✅ import login
@@ -125,7 +126,7 @@ function App() {
                   highContrastMode ? styles.mainContentHighContrast : ''
                 }`}
               >
-                <Header highContrastMode={highContrastMode} />
+                <Header highContrastMode={highContrastMode} currentUser={currentUser} />
 
                 <Switch>
                   <Route exact path="/">
@@ -160,6 +161,9 @@ function App() {
                       voiceFeedback={voiceFeedback}
                       setVoiceFeedback={setVoiceFeedback}
                     />
+                  </Route>
+                  <Route path="/profile">
+                    <Profile />
                   </Route>
                 </Switch>
               </div>
