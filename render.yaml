@@ -21,7 +21,6 @@ services:
     env: static
     rootDir: Buyers
     buildCommand: npm install && npm run build
-    startCommand: npx serve -s build
     staticPublishPath: build
     envVars:
       - key: REACT_APP_BACKEND_URL
@@ -38,7 +37,6 @@ services:
     env: static
     rootDir: Sellers
     buildCommand: npm install && npm run build
-    startCommand: npx serve -s build
     staticPublishPath: build
     envVars:
       - key: REACT_APP_BACKEND_URL
