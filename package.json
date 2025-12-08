@@ -1,0 +1,19 @@
+{
+  "name": "hands-and-hope-monorepo",
+  "version": "1.0.0",
+  "description": "Hands and Hope e-commerce platform",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "Buyers",
+    "Sellers"
+  ],
+  "scripts": {
+    "postinstall": "echo \"Installing dependencies for all workspaces\"",
+    "start:backend": "cd backend && npm start",
+    "start:buyers": "cd Buyers && npm start",
+    "start:sellers": "cd Sellers && npm start",
+    "build:buyers": "cd Buyers && npm run build",
+    "build:sellers": "cd Sellers && npm run build"
+  }
+}
