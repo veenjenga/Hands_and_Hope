@@ -14,6 +14,7 @@ function Dashboard({ highContrastMode }) {
     pendingOrders: 0,
     totalRevenue: 0
   });
+  const [recentActivity, setRecentActivity] = useState([]);
 
   // Check if this is the user's first visit
   useEffect(() => {
@@ -30,19 +31,20 @@ function Dashboard({ highContrastMode }) {
 
   // Fetch seller products and calculate stats
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchData = async () => {
       try {
         const token = localStorage.getItem('token');
         if (!token) return;
         
-        const response = await fetch('http://localhost:5000/api/products/seller', {
+        // Fetch products
+        const productsResponse = await fetch('http://localhost:5000/api/products/seller', {
           headers: {
             'Authorization': `Bearer ${token}`
           }
         });
         
-        if (response.ok) {
-          const productsData = await response.json();
+        if (productsResponse.ok) {
+          const productsData = await productsResponse.json();
           setProducts(productsData);
           
           // Calculate stats
@@ -60,12 +62,24 @@ function Dashboard({ highContrastMode }) {
             totalRevenue
           });
         }
+        
+        // Fetch recent activity
+        const activityResponse = await fetch('http://localhost:5000/api/activity/recent', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (activityResponse.ok) {
+          const activityData = await activityResponse.json();
+          setRecentActivity(activityData);
+        }
       } catch (error) {
-        console.error('Error fetching products:', error);
+        console.error('Error fetching data:', error);
       }
     };
     
-    fetchProducts();
+    fetchData();
   }, []);
 
   // Handle welcome tour
@@ -122,6 +136,26 @@ function Dashboard({ highContrastMode }) {
         break;
       default:
         break;
+    }
+  };
+
+  // Format timestamp to relative time
+  const formatTimeAgo = (timestamp) => {
+    const now = new Date();
+    const activityTime = new Date(timestamp);
+    const diffInSeconds = Math.floor((now - activityTime) / 1000);
+    
+    if (diffInSeconds < 60) {
+      return 'just now';
+    } else if (diffInSeconds < 3600) {
+      const minutes = Math.floor(diffInSeconds / 60);
+      return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+    } else if (diffInSeconds < 86400) {
+      const hours = Math.floor(diffInSeconds / 3600);
+      return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+    } else {
+      const days = Math.floor(diffInSeconds / 86400);
+      return `${days} day${days > 1 ? 's' : ''} ago`;
     }
   };
 
@@ -185,20 +219,18 @@ function Dashboard({ highContrastMode }) {
           Recent Activity
         </h2>
         <div className={`${styles.activityCard} ${highContrastMode ? styles.activityCardHighContrast : ''}`}>
-          <ul className={styles.activityList}>
-            <li className={styles.activityItem}>
-              <span className={styles.activityTime}>2 hours ago</span>
-              <span className={styles.activityText}>New inquiry received for "Wireless Headphones"</span>
-            </li>
-            <li className={styles.activityItem}>
-              <span className={styles.activityTime}>5 hours ago</span>
-              <span className={styles.activityText}>"Vintage Camera" listing approved</span>
-            </li>
-            <li className={styles.activityItem}>
-              <span className={styles.activityTime}>1 day ago</span>
-              <span className={styles.activityText}>Order placed for "Leather Wallet"</span>
-            </li>
-          </ul>
+          {recentActivity.length > 0 ? (
+            <ul className={styles.activityList}>
+              {recentActivity.map((activity, index) => (
+                <li key={index} className={styles.activityItem}>
+                  <span className={styles.activityTime}>{formatTimeAgo(activity.timestamp)}</span>
+                  <span className={styles.activityText}>{activity.description}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className={styles.noActivity}>No recent activity found.</p>
+          )}
         </div>
       </section>
 

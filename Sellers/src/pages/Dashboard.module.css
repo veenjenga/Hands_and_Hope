@@ -178,6 +178,13 @@
   color: #111827;
 }
 
+.noActivity {
+  text-align: center;
+  color: #6b7280;
+  font-style: italic;
+  padding: 1rem;
+}
+
 .listingsSection {
   margin-bottom: 2.5rem;
 }
