@@ -1,17 +1,43 @@
 // src/components/Header.js
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import styles from './Header.module.css';
 
 function Header({ highContrastMode, currentUser }) {
   const history = useHistory();
+  const [user, setUser] = useState(currentUser);
+
+  // Update local user state when currentUser prop changes
+  useEffect(() => {
+    setUser(currentUser);
+  }, [currentUser]);
+
+  // Listen for storage changes to update user data
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        try {
+          const userData = JSON.parse(storedUser);
+          setUser(userData);
+        } catch (error) {
+          console.error('Error parsing user data:', error);
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
 
   const handleAddProduct = () => {
     history.push('/add-product');
   };
 
   const handleLogout = () => {
-    // Add logout logic here (e.g., clear auth token)
+    // Clear auth token and user data
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
     history.push('/login');
   };
 
@@ -68,12 +94,14 @@ function Header({ highContrastMode, currentUser }) {
               }}
             >
               <img
-                src="https://public.readdy.ai/ai/img_res/d148673ac06fcc36bc7ff4b04964af63.jpg"
-                alt={`User Avatar for ${currentUser?.name || 'Seller'}`}
+                src={user?.profilePicture || "https://public.readdy.ai/ai/img_res/d148673ac06fcc36bc7ff4b04964af63.jpg"}
+                alt={`User Avatar for ${user?.name || 'Seller'}`}
                 className={styles.userAvatar}
               />
             </div>
-            <span className={styles.userName}>{currentUser?.name || 'Seller'}</span>
+            <span className={`${styles.userName} ${highContrastMode ? styles.userNameHighContrast : ''}`}>
+              {user?.name || 'Seller'}
+            </span>
             <button
               onClick={handleLogout}
               className={`${styles.logoutButton} ${

@@ -87,6 +87,11 @@ function Profile() {
         
         // Also update in App state by triggering a storage event
         window.dispatchEvent(new Event('storage'));
+        
+        // Show success message for 3 seconds then clear it
+        setTimeout(() => {
+          setMessage('');
+        }, 3000);
       }
     } catch (error) {
       console.error('Error updating profile:', error);
