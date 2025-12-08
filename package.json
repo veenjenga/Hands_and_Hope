@@ -4,6 +4,7 @@
   "description": "Root package for Hands and Hope monorepo",
   "private": true,
   "scripts": {
-    "postinstall": "echo \"Root package installed\""
+    "postinstall": "echo \"Root package installed\"",
+    "start": "echo \"Root package - services started individually\""
   }
 }
