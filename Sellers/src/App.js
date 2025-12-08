@@ -27,11 +27,17 @@ function App() {
 
   // ✅ track authentication
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem("token"));
+  const [currentUser, setCurrentUser] = useState(() => {
+    const user = localStorage.getItem("user");
+    return user ? JSON.parse(user) : null;
+  });
 
   // Listen for authentication changes
   useEffect(() => {
     const handleStorageChange = () => {
       setIsAuthenticated(!!localStorage.getItem("token"));
+      const user = localStorage.getItem("user");
+      setCurrentUser(user ? JSON.parse(user) : null);
     };
 
     window.addEventListener('storage', handleStorageChange);
@@ -39,8 +45,12 @@ function App() {
   }, []);
 
   // Function to handle auto-login after signup
-  const handleAutoLogin = (token) => {
+  const handleAutoLogin = (token, userData) => {
     localStorage.setItem("token", token);
+    if (userData) {
+      localStorage.setItem("user", JSON.stringify(userData));
+      setCurrentUser(userData);
+    }
     setIsAuthenticated(true);
   };
 
@@ -98,7 +108,7 @@ function App() {
             <Login onLogin={handleAutoLogin} />
           </Route>
           <Route path="/signup">
-            <Signup onAutoLogin={handleAutoLogin} />
+            <Signup onAutoLogin={(token, userData) => handleAutoLogin(token, userData)} />
           </Route>
 
           {/* Protected Routes */}

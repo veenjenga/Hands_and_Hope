@@ -13,9 +13,34 @@ function Dashboard({ highContrastMode }) {
   ]);
   
   const [isNewUser, setIsNewUser] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
 
-  // Check if this is a new user
+  // Get user data from localStorage
   useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setCurrentUser(JSON.parse(storedUser));
+    }
+    
+    const newUserFlag = localStorage.getItem('isNewUser');
+    if (newUserFlag === 'true') {
+      setIsNewUser(true);
+      // Remove the flag so the message doesn't show again
+      localStorage.removeItem('isNewUser');
+    }
+  }, []);
+
+  // Combined effect to load user data and check if this is a new user
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      try {
+        setCurrentUser(JSON.parse(storedUser));
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+      }
+    }
+    
     const newUserFlag = localStorage.getItem('isNewUser');
     if (newUserFlag === 'true') {
       setIsNewUser(true);
@@ -80,7 +105,7 @@ function Dashboard({ highContrastMode }) {
                 highContrastMode ? styles.welcomeTitleHighContrast : ''
               }`}
             >
-              Welcome, John Doe
+              Welcome, {currentUser?.name || 'Seller'}
             </h1>
             <p
               className={`${styles.welcomeText} ${

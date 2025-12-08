@@ -34,6 +34,8 @@ function Login({ onLogin }) {
       const data = await res.json();
       
       if (res.ok && data.token) {
+        // Store user data in localStorage
+        localStorage.setItem('user', JSON.stringify(data.user));
         // Show success message
         setSuccess("Login successful! Redirecting to dashboard...");
         // Call the login function passed from App.js

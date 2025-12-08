@@ -25,13 +25,14 @@ function Signup({ onAutoLogin }) {
       const data = await res.json();
       
       if (res.ok) {
-        console.log('Signup successful, proceeding with auto-login');
-        // Auto-login the user
-        await autoLoginUser(form.email, form.password);
-        console.log('Auto-login completed, playing success sound');
+        // Set flag to indicate this is a new user
+        localStorage.setItem('isNewUser', 'true');
+        // Auto-login the user with token and user data
+        onAutoLogin(data.token, data.user);
         // Play audio feedback
-        playSuccessSound();
-        console.log('Success sound played, redirecting to dashboard');
+        setTimeout(() => {
+          playSuccessSound();
+        }, 1000);
         // Add a small delay before redirecting
         setTimeout(() => {
           history.push("/");
@@ -47,35 +48,10 @@ function Signup({ onAutoLogin }) {
     }
   };
 
-  const autoLoginUser = async (email, password) => {
-    console.log('Attempting auto-login with email:', email);
-    try {
-      const res = await fetch("http://localhost:5000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-      
-      const data = await res.json();
-      console.log('Login response:', data);
-      
-      if (res.ok && data.token) {
-        console.log('Login successful, setting new user flag');
-        // Set flag to indicate this is a new user
-        localStorage.setItem('isNewUser', 'true');
-        // Call the auto-login function passed from App.js
-        onAutoLogin(data.token);
-      } else {
-        console.log('Login failed:', data.error);
-      }
-    } catch (err) {
-      console.error("Auto-login failed:", err);
-    }
-  };
+
 
   const playSuccessSound = async () => {
     const text = "Congratulations! Welcome to Hands and Hope. We can't wait to see what you build for trade.";
-    console.log('Playing success sound with Eleven Labs');
     
     try {
       // Use Eleven Labs API for high-quality speech synthesis
@@ -96,16 +72,12 @@ function Signup({ onAutoLogin }) {
         })
       });
       
-      console.log('Eleven Labs response status:', response.status);
-      
       if (response.ok) {
         const audioBlob = await response.blob();
         const audioUrl = URL.createObjectURL(audioBlob);
         const audio = new Audio(audioUrl);
-        console.log('Playing Eleven Labs audio');
         audio.play();
       } else {
-        console.log('Eleven Labs failed, using fallback');
         // Fallback to browser speech synthesis if Eleven Labs fails
         fallbackToBrowserSpeech(text);
       }
@@ -117,15 +89,12 @@ function Signup({ onAutoLogin }) {
   };
 
   const fallbackToBrowserSpeech = (text) => {
-    console.log('Using fallback browser speech synthesis');
     if ('speechSynthesis' in window) {
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.rate = 1.0;
       utterance.pitch = 1.0;
       utterance.volume = 1.0;
       speechSynthesis.speak(utterance);
-    } else {
-      console.log('Browser speech synthesis not available');
     }
   };
 
