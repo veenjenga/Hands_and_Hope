@@ -1,258 +1,221 @@
-// src/pages/Dashboard.js
-import React, { useEffect, useState } from 'react';
-import StatCard from '../components/StatCard';
-import ProductCard from '../components/ProductCard';
+import React, { useState, useEffect } from 'react';
+import { useHistory } from 'react-router-dom';
 import styles from './Dashboard.module.css';
 
 function Dashboard({ highContrastMode }) {
+  const history = useHistory();
+  const [showWelcomeTour, setShowWelcomeTour] = useState(false);
+  const [tourStep, setTourStep] = useState(0);
+  const [isVoiceNavEnabled, setIsVoiceNavEnabled] = useState(false);
   const [products, setProducts] = useState([]);
-  const [stats, setStats] = useState([
-    { title: 'Active Listings', value: '0', icon: 'tag', color: 'blue' },
-    { title: 'Pending Inquiries', value: '0', icon: 'question-circle', color: 'yellow' },
-    { title: 'Listed Categories', value: '0', icon: 'tag', color: 'green' },
-  ]);
-  
-  const [isNewUser, setIsNewUser] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
-  const [voiceNavigationAnnounced, setVoiceNavigationAnnounced] = useState(false);
-  const [isPlayingFeedback, setIsPlayingFeedback] = useState(false); // Prevent overlapping feedback
+  const [stats, setStats] = useState({
+    totalProducts: 0,
+    activeListings: 0,
+    pendingOrders: 0,
+    totalRevenue: 0
+  });
 
-  // Get user data from localStorage
+  // Check if this is the user's first visit
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setCurrentUser(JSON.parse(storedUser));
+    const isFirstVisit = !localStorage.getItem('hasVisitedDashboard');
+    if (isFirstVisit) {
+      setShowWelcomeTour(true);
+      localStorage.setItem('hasVisitedDashboard', 'true');
     }
     
-    const newUserFlag = localStorage.getItem('isNewUser');
-    if (newUserFlag === 'true') {
-      setIsNewUser(true);
-      // Remove the flag so the message doesn't show again
-      localStorage.removeItem('isNewUser');
-    }
+    // Check if voice navigation is enabled
+    const voiceNavPref = localStorage.getItem('voiceNavigationPreference');
+    setIsVoiceNavEnabled(voiceNavPref === 'enabled');
   }, []);
 
-  // Combined effect to load user data and check if this is a new user
-  useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      try {
-        setCurrentUser(JSON.parse(storedUser));
-      } catch (error) {
-        console.error('Error parsing user data:', error);
-      }
-    }
-    
-    const newUserFlag = localStorage.getItem('isNewUser');
-    if (newUserFlag === 'true') {
-      setIsNewUser(true);
-      // Remove the flag so the message doesn't show again
-      localStorage.removeItem('isNewUser');
-    }
-  }, []);
-
-  // Fetch products from backend
+  // Fetch seller products and calculate stats
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/products');
-        const data = await res.json();
-        setProducts(data);
-
-        // Update stats dynamically
-        const activeCount = data.filter((p) => p.status === 'Active').length;
-        const categories = [...new Set(data.map((p) => p.category))].length;
-
-        setStats([
-          { title: 'Active Listings', value: activeCount, icon: 'tag', color: 'blue' },
-          { title: 'Pending Inquiries', value: '8', icon: 'question-circle', color: 'yellow' }, // 👈 replace with real inquiries later
-          { title: 'Listed Categories', value: categories, icon: 'tag', color: 'green' },
-        ]);
-      } catch (err) {
-        console.error('Error fetching products:', err);
+        const token = localStorage.getItem('token');
+        if (!token) return;
+        
+        const response = await fetch('http://localhost:5000/api/products/seller', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (response.ok) {
+          const productsData = await response.json();
+          setProducts(productsData);
+          
+          // Calculate stats
+          const totalProducts = productsData.length;
+          const activeListings = productsData.filter(p => p.status === 'Active').length;
+          const pendingOrders = productsData.filter(p => p.status === 'Pending').length;
+          const totalRevenue = productsData
+            .filter(p => p.status === 'Sold')
+            .reduce((sum, product) => sum + product.price, 0);
+          
+          setStats({
+            totalProducts,
+            activeListings,
+            pendingOrders,
+            totalRevenue
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching products:', error);
       }
     };
-
+    
     fetchProducts();
   }, []);
 
-  // Check voice navigation status and announce if enabled
+  // Handle welcome tour
   useEffect(() => {
-    const storedVoicePref = localStorage.getItem('voiceNavigationPreference');
-    if (storedVoicePref === 'enabled' && !voiceNavigationAnnounced) {
-      setVoiceNavigationAnnounced(true);
-      // Small delay to ensure DOM is ready
-      setTimeout(() => {
-        announceVoiceNavigationStatus();
-      }, 2000);
+    if (showWelcomeTour && isVoiceNavEnabled) {
+      // Start the welcome tour
+      startWelcomeTour();
     }
-  }, [voiceNavigationAnnounced]);
+  }, [showWelcomeTour, isVoiceNavEnabled]);
 
-  const announceVoiceNavigationStatus = async () => {
-    // Prevent overlapping feedback
-    if (isPlayingFeedback) return;
-    
-    setIsPlayingFeedback(true);
-    
-    const message = "Voice navigation is enabled. You can say 'turn off voice navigation' to disable it.";
-    
-    try {
-      // Use Eleven Labs API for high-quality speech synthesis
-      const response = await fetch('https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM', {
-        method: 'POST',
-        headers: {
-          'Accept': 'audio/mpeg',
-          'xi-api-key': 'sk_20734ae2903209818628e37d95e46a5c6f59a503a17d1eb3',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          text: message,
-          model_id: 'eleven_monolingual_v1',
-          voice_settings: {
-            stability: 0.5,
-            similarity_boost: 0.5
-          }
-        })
-      });
-      
-      if (response.ok) {
-        const audioBlob = await response.blob();
-        const audioUrl = URL.createObjectURL(audioBlob);
-        const audio = new Audio(audioUrl);
-        
-        // Play the Eleven Labs audio
-        audio.play();
-        
-        // Reset the playing flag when audio finishes
-        audio.onended = () => {
-          setIsPlayingFeedback(false);
-        };
-      } else {
-        // Fallback to browser speech synthesis if Eleven Labs fails
-        fallbackToBrowserSpeech(message);
-      }
-    } catch (error) {
-      console.error('Eleven Labs API error:', error);
-      // Fallback to browser speech synthesis if Eleven Labs fails
-      fallbackToBrowserSpeech(message);
+  const startWelcomeTour = () => {
+    // This would be handled by the VoiceNavigation component
+    // We'll trigger a custom event that VoiceNavigation can listen to
+    window.dispatchEvent(new CustomEvent('startWelcomeTour'));
+  };
+
+  const tourSteps = [
+    "Welcome to Hand and Hope! I'm your AI assistant and I'll guide you through the platform.",
+    "This is your dashboard where you can see an overview of your products and sales.",
+    "You can navigate to different sections using the sidebar on the left or by using voice commands.",
+    "To add a new product, you can say 'add new product' or click the 'Add Product' link in the sidebar.",
+    "To view your existing products, say 'go to products' or click 'Products' in the sidebar.",
+    "To check customer inquiries, say 'go to inquiries' or click 'Inquiries' in the sidebar.",
+    "To update your profile or change settings, say 'go to settings' or click 'Settings' in the sidebar.",
+    "Would you like me to continue showing you how to use voice navigation or do you have any questions?",
+  ];
+
+  const nextTourStep = () => {
+    if (tourStep < tourSteps.length - 1) {
+      setTourStep(tourStep + 1);
+    } else {
+      setShowWelcomeTour(false);
     }
   };
 
-  const fallbackToBrowserSpeech = (text) => {
-    // Cancel any ongoing speech synthesis to prevent overlap
-    if (speechSynthesis.speaking) {
-      speechSynthesis.cancel();
-    }
-    
-    if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 1.0;
-      utterance.pitch = 1.0;
-      utterance.volume = 1.0;
-      
-      // Reset the playing flag when speech ends
-      utterance.onend = () => {
-        setIsPlayingFeedback(false);
-      };
-      
-      window.speechSynthesis.speak(utterance);
-    } else {
-      // Reset the playing flag if no speech synthesis available
-      setIsPlayingFeedback(false);
+  const skipTour = () => {
+    setShowWelcomeTour(false);
+  };
+
+  // Handle stat card clicks
+  const handleStatClick = (statType) => {
+    switch (statType) {
+      case 'totalProducts':
+        history.push('/products');
+        break;
+      case 'activeListings':
+        history.push('/products?status=Active');
+        break;
+      case 'pendingOrders':
+        history.push('/inquiries');
+        break;
+      case 'totalRevenue':
+        // Could navigate to a revenue report page if implemented
+        break;
+      default:
+        break;
     }
   };
 
   return (
-    <main
-      className={`${styles.main} ${highContrastMode ? styles.highContrast : ''}`}
-      role="main"
-    >
-      {/* Welcome Section */}
+    <main className={`${styles.main} ${highContrastMode ? styles.highContrast : ''}`}>
       <div className={styles.welcomeSection}>
-        {isNewUser ? (
-          <>
-            <h1
-              className={`${styles.welcomeTitle} ${
-                highContrastMode ? styles.welcomeTitleHighContrast : ''
-              }`}
-            >
-              Welcome to Hands and Hope!
-            </h1>
-            <p
-              className={`${styles.welcomeText} ${
-                highContrastMode ? styles.welcomeTextHighContrast : ''
-              }`}
-            >
-              Congratulations on joining our community. We're excited to see what you'll build for trade!
-            </p>
-          </>
-        ) : (
-          <>
-            <h1
-              className={`${styles.welcomeTitle} ${
-                highContrastMode ? styles.welcomeTitleHighContrast : ''
-              }`}
-            >
-              Welcome, {currentUser?.name || 'Seller'}
-            </h1>
-            <p
-              className={`${styles.welcomeText} ${
-                highContrastMode ? styles.welcomeTextHighContrast : ''
-              }`}
-            >
-              Here's an overview of your store performance
-            </p>
-          </>
-        )}
+        <h1 className={`${styles.welcomeTitle} ${highContrastMode ? styles.welcomeTitleHighContrast : ''}`}>
+          Dashboard
+        </h1>
+        <p className={`${styles.welcomeText} ${highContrastMode ? styles.welcomeTextHighContrast : ''}`}>
+          Welcome back! Here's what's happening with your store today.
+        </p>
       </div>
 
-      {/* Stats Section */}
-      <div className={styles.statsSection}>
-        {stats.map((stat, index) => (
-          <StatCard
-            key={index}
-            title={stat.title}
-            value={stat.value}
-            icon={stat.icon}
-            color={stat.color}
-            highContrastMode={highContrastMode}
-          />
-        ))}
-      </div>
-
-      {/* Recent Listings Section */}
-      <div className={styles.listingsSection}>
-        <div className={styles.listingsHeader}>
-          <h2
-            className={`${styles.listingsTitle} ${
-              highContrastMode ? styles.listingsTitleHighContrast : ''
-            }`}
+      <section className={styles.statsSection}>
+        <h2 className={`${styles.sectionTitle} ${highContrastMode ? styles.sectionTitleHighContrast : ''}`}>
+          Store Statistics
+        </h2>
+        <div className={styles.statsGrid}>
+          <div 
+            className={`${styles.statCard} ${styles.yellowCard} ${highContrastMode ? styles.statCardHighContrast : ''}`}
+            onClick={() => handleStatClick('totalProducts')}
           >
-            Recent Listings
-          </h2>
-          <button
-            className={`${styles.viewAllButton} ${
-              highContrastMode ? styles.viewAllButtonHighContrast : ''
-            }`}
-            aria-label="View all recent listings"
+            <h3 className={styles.statValue}>{stats.totalProducts}</h3>
+            <p className={`${styles.statLabel} ${highContrastMode ? styles.statLabelHighContrast : ''}`}>
+              Total Products
+            </p>
+          </div>
+          <div 
+            className={`${styles.statCard} ${styles.blueCard} ${highContrastMode ? styles.statCardHighContrast : ''}`}
+            onClick={() => handleStatClick('activeListings')}
           >
-            View All
-          </button>
+            <h3 className={styles.statValue}>{stats.activeListings}</h3>
+            <p className={`${styles.statLabel} ${highContrastMode ? styles.statLabelHighContrast : ''}`}>
+              Active Listings
+            </p>
+          </div>
+          <div 
+            className={`${styles.statCard} ${styles.yellowCard} ${highContrastMode ? styles.statCardHighContrast : ''}`}
+            onClick={() => handleStatClick('pendingOrders')}
+          >
+            <h3 className={styles.statValue}>{stats.pendingOrders}</h3>
+            <p className={`${styles.statLabel} ${highContrastMode ? styles.statLabelHighContrast : ''}`}>
+              Pending Orders
+            </p>
+          </div>
+          <div 
+            className={`${styles.statCard} ${styles.blueCard} ${highContrastMode ? styles.statCardHighContrast : ''}`}
+            onClick={() => handleStatClick('totalRevenue')}
+          >
+            <h3 className={styles.statValue}>${stats.totalRevenue.toLocaleString()}</h3>
+            <p className={`${styles.statLabel} ${highContrastMode ? styles.statLabelHighContrast : ''}`}>
+              Total Revenue
+            </p>
+          </div>
         </div>
+      </section>
 
-        <div className={styles.listingsGrid}>
-          {products.slice(0, 3).map((product, index) => (
-            <ProductCard
-              key={product._id || index}
-              product={{
-                ...product,
-                price: `$${product.price.toFixed(2)}`, // format number
-              }}
-              highContrastMode={highContrastMode}
-            />
-          ))}
+      <section className={styles.recentActivitySection}>
+        <h2 className={`${styles.sectionTitle} ${highContrastMode ? styles.sectionTitleHighContrast : ''}`}>
+          Recent Activity
+        </h2>
+        <div className={`${styles.activityCard} ${highContrastMode ? styles.activityCardHighContrast : ''}`}>
+          <ul className={styles.activityList}>
+            <li className={styles.activityItem}>
+              <span className={styles.activityTime}>2 hours ago</span>
+              <span className={styles.activityText}>New inquiry received for "Wireless Headphones"</span>
+            </li>
+            <li className={styles.activityItem}>
+              <span className={styles.activityTime}>5 hours ago</span>
+              <span className={styles.activityText}>"Vintage Camera" listing approved</span>
+            </li>
+            <li className={styles.activityItem}>
+              <span className={styles.activityTime}>1 day ago</span>
+              <span className={styles.activityText}>Order placed for "Leather Wallet"</span>
+            </li>
+          </ul>
         </div>
-      </div>
+      </section>
+
+      {showWelcomeTour && (
+        <div className={styles.welcomeTour}>
+          <div className={styles.tourContent}>
+            <h3>Welcome Tour</h3>
+            <p>{tourSteps[tourStep]}</p>
+            <div className={styles.tourControls}>
+              <button onClick={skipTour}>Skip Tour</button>
+              <button onClick={nextTourStep}>
+                {tourStep < tourSteps.length - 1 ? 'Next' : 'Finish'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

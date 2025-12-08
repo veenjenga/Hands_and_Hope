@@ -33,6 +33,30 @@ function ProductListing({
     return matchesCategory && matchesStatus && matchesSearch;
   });
 
+  // Function to update product status
+  const updateProductStatus = async (productId, newStatus) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:5000/api/products/${productId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
+
+      if (response.ok) {
+        // Refresh the product list or update the specific product in state
+        window.location.reload();
+      } else {
+        console.error('Failed to update product status');
+      }
+    } catch (error) {
+      console.error('Error updating product status:', error);
+    }
+  };
+
   return (
     <main className={`${styles.productListing} ${highContrastMode ? styles.highContrast : ''}`}>
       {/* Products Header Section */}
@@ -158,6 +182,22 @@ function ProductListing({
               </div>
               <p className={styles.category}>{product.category}</p>
               <p className={styles.price}>${product.price.toFixed(2)}</p>
+              
+              {/* Status Change Dropdown */}
+              <div className={styles.statusChangeContainer}>
+                <label htmlFor={`status-${product._id}`}>Change Status:</label>
+                <select
+                  id={`status-${product._id}`}
+                  value={product.status}
+                  onChange={(e) => updateProductStatus(product._id, e.target.value)}
+                  className={styles.statusSelect}
+                >
+                  <option value="Active">Active</option>
+                  <option value="Draft">Draft</option>
+                  <option value="Sold Out">Sold Out</option>
+                </select>
+              </div>
+              
               <div className={styles.actions}>
                 <button className={styles.editButton}>
                   <i className="fa fa-edit"></i>

@@ -102,6 +102,9 @@ function App() {
             setCurrentUser(JSON.parse(storedUser));
           }
         }
+        
+        // Fetch products for the authenticated seller
+        fetchSellerProducts(token);
       } else {
         setCurrentUser(null);
       }
@@ -139,16 +142,30 @@ function App() {
       setCurrentUser(userData);
     }
     setIsAuthenticated(true);
+    
+    // Fetch products for the authenticated seller
+    fetchSellerProducts(token);
   };
 
   // ✅ Products from backend
   const [products, setProducts] = useState([]);
 
-  useEffect(() => {
-    axios.get("http://localhost:5000/api/products")
-      .then(res => setProducts(res.data))
-      .catch(err => console.error("Error fetching products:", err));
-  }, []);
+  const fetchSellerProducts = async (token) => {
+    try {
+      const response = await fetch("http://localhost:5000/api/products/seller", {
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
+      
+      if (response.ok) {
+        const productsData = await response.json();
+        setProducts(productsData);
+      }
+    } catch (err) {
+      console.error("Error fetching products:", err);
+    }
+  };
 
   const handleAddProduct = async (newProduct) => {
     try {

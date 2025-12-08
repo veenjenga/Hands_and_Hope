@@ -301,6 +301,38 @@
   color: #fff;
 }
 
+/* Status Change Container */
+.statusChangeContainer {
+  margin: 12px 0;
+}
+
+.statusChangeContainer label {
+  display: block;
+  font-size: 14px;
+  color: #4b5563;
+  margin-bottom: 4px;
+}
+
+.highContrast .statusChangeContainer label {
+  color: #d1d5db;
+}
+
+.statusSelect {
+  width: 100%;
+  padding: 6px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  background: #fff;
+  color: #1f2937;
+  font-size: 14px;
+}
+
+.highContrast .statusSelect {
+  background: #fff;
+  color: #000;
+  border: 1px solid #fff;
+}
+
 .actions {
   display: flex;
   gap: 8px;

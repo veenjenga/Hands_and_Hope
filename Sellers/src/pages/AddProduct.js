@@ -18,14 +18,21 @@ function AddProduct({ onAddProduct }) {
   useEffect(() => {
     const voiceNavPref = localStorage.getItem('voiceNavigationPreference');
     setIsVoiceNavActive(voiceNavPref === 'enabled');
-    
-    // When component mounts and voice nav is active, prompt user
-    if (voiceNavPref === 'enabled') {
-      setVoicePrompt('What product would you like to list? Please describe it to me.');
-    }
   }, []);
 
   // Handle voice command updates
+  useEffect(() => {
+    const handleVoiceUpdate = (event) => {
+      const { field, value } = event.detail;
+      handleVoiceFieldUpdate(field, value);
+    };
+
+    window.addEventListener('voiceFieldUpdate', handleVoiceUpdate);
+    return () => {
+      window.removeEventListener('voiceFieldUpdate', handleVoiceUpdate);
+    };
+  }, []);
+
   const handleVoiceFieldUpdate = (field, value) => {
     switch (field) {
       case 'name':
@@ -101,7 +108,8 @@ function AddProduct({ onAddProduct }) {
       <h2>Add New Product</h2>
       {isVoiceNavActive && (
         <div className={styles.voiceHelp}>
-          <p>Voice Navigation Active: {voicePrompt}</p>
+          <p>Voice Navigation Active: I'm ready to help you list your product. Just tell me about it!</p>
+          <p>Say something like "I want to sell a blue wireless headphone" and I'll ask for more details.</p>
         </div>
       )}
       <form onSubmit={handleSubmit} className={styles.form}>

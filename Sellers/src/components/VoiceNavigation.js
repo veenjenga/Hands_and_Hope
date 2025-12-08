@@ -6,7 +6,7 @@ import productNLP from '../utils/productNLP';
 import VoiceCamera from './VoiceCamera';
 import styles from './VoiceNavigation.module.css';
 
-function VoiceNavigation({ isVoiceNavigationEnabled, onProductFieldUpdate }) {
+function VoiceNavigation({ isVoiceNavigationEnabled }) {
   const history = useHistory();
   const [isSpeechSupported, setIsSpeechSupported] = useState(true);
   const [isUsingElevenLabs, setIsUsingElevenLabs] = useState(true);
@@ -24,6 +24,8 @@ function VoiceNavigation({ isVoiceNavigationEnabled, onProductFieldUpdate }) {
     image: ''
   });
   const [listingFlow, setListingFlow] = useState(false); // Track if we're in product listing flow
+  const [welcomeTour, setWelcomeTour] = useState(false); // Track if we're in welcome tour
+  const [tourStep, setTourStep] = useState(0);
   
   const messageQueue = useRef([]);
   const audioContext = useRef(null);
@@ -91,9 +93,48 @@ function VoiceNavigation({ isVoiceNavigationEnabled, onProductFieldUpdate }) {
     } else if (!annyang) {
       console.error('Annyang is not available. Voice navigation will not work.');
     }
-  }, [history, isVoiceNavigationEnabled, onProductFieldUpdate]);
+  }, [history, isVoiceNavigationEnabled]);
+
+  // Listen for welcome tour start event
+  useEffect(() => {
+    const handleStartWelcomeTour = () => {
+      setWelcomeTour(true);
+      setTourStep(0);
+      setTimeout(() => {
+        announceWelcomeTourStep(0);
+      }, 1000);
+    };
+
+    window.addEventListener('startWelcomeTour', handleStartWelcomeTour);
+    return () => {
+      window.removeEventListener('startWelcomeTour', handleStartWelcomeTour);
+    };
+  }, []);
+
+  const announceWelcomeTourStep = (step) => {
+    const tourSteps = [
+      "Welcome to Hand and Hope! Congratulations on signing up. I'm your AI assistant and I'll guide you through the platform.",
+      "This is your dashboard where you can see an overview of your products and sales.",
+      "You can navigate to different sections using voice commands.",
+      "To add a new product, say 'add new product'.",
+      "To view your existing products, say 'go to products'.",
+      "To check customer inquiries, say 'go to inquiries'.",
+      "To update your profile or change settings, say 'go to settings'.",
+      "Would you like me to continue showing you how to use voice navigation or do you have any questions?",
+    ];
+
+    if (step < tourSteps.length) {
+      announce(tourSteps[step]);
+    }
+  };
 
   const handleVoiceCommand = (command) => {
+    // If in welcome tour, handle tour navigation
+    if (welcomeTour) {
+      handleTourCommand(command);
+      return;
+    }
+
     // If in interactive mode, treat the command as an answer to a question
     if (interactiveMode && pendingQuestions.length > 0) {
       handleInteractiveAnswer(command);
@@ -127,7 +168,7 @@ function VoiceNavigation({ isVoiceNavigationEnabled, onProductFieldUpdate }) {
         // Start product listing flow when navigating to add product page
         setListingFlow(true);
         setTimeout(() => {
-          announce('What product would you like to list? Please describe it to me.');
+          announce("What product would you like to add? Please tell me the name, price, and description. Would you like me to take a picture of the product for you?");
         }, 1000);
         break;
         
@@ -154,33 +195,29 @@ function VoiceNavigation({ isVoiceNavigationEnabled, onProductFieldUpdate }) {
       // Product management commands
       case 'SET_PRODUCT_NAME':
         setProductState(prev => ({ ...prev, name: action.value }));
-        if (onProductFieldUpdate) {
-          onProductFieldUpdate('name', action.value);
-        }
+        // Dispatch event to update the field in AddProduct component
+        window.dispatchEvent(new CustomEvent('voiceFieldUpdate', { detail: { field: 'name', value: action.value } }));
         announce(`Product name set to ${action.value}`);
         break;
         
       case 'SET_PRODUCT_PRICE':
         setProductState(prev => ({ ...prev, price: action.value }));
-        if (onProductFieldUpdate) {
-          onProductFieldUpdate('price', action.value);
-        }
+        // Dispatch event to update the field in AddProduct component
+        window.dispatchEvent(new CustomEvent('voiceFieldUpdate', { detail: { field: 'price', value: action.value } }));
         announce(`Product price set to $${action.value}`);
         break;
         
       case 'SET_PRODUCT_CATEGORY':
         setProductState(prev => ({ ...prev, category: action.value }));
-        if (onProductFieldUpdate) {
-          onProductFieldUpdate('category', action.value);
-        }
+        // Dispatch event to update the field in AddProduct component
+        window.dispatchEvent(new CustomEvent('voiceFieldUpdate', { detail: { field: 'category', value: action.value } }));
         announce(`Product category set to ${action.value}`);
         break;
         
       case 'SET_PRODUCT_DESCRIPTION':
         setProductState(prev => ({ ...prev, description: action.value }));
-        if (onProductFieldUpdate) {
-          onProductFieldUpdate('description', action.value);
-        }
+        // Dispatch event to update the field in AddProduct component
+        window.dispatchEvent(new CustomEvent('voiceFieldUpdate', { detail: { field: 'description', value: action.value } }));
         announce('Product description updated');
         break;
         
@@ -257,6 +294,10 @@ function VoiceNavigation({ isVoiceNavigationEnabled, onProductFieldUpdate }) {
           setListingFlow(false);
           announce('Exited product listing mode.');
         }
+        if (welcomeTour) {
+          setWelcomeTour(false);
+          announce('Exited welcome tour.');
+        }
         announce('Action cancelled');
         break;
         
@@ -272,6 +313,9 @@ function VoiceNavigation({ isVoiceNavigationEnabled, onProductFieldUpdate }) {
         // If we're in listing flow, treat as product description
         if (listingFlow) {
           handleProductDescription(action.originalCommand);
+        } else if (welcomeTour) {
+          // In tour, treat as question
+          announce("I'm here to help. You can ask me to show you different parts of the platform or say 'continue tour' to proceed.");
         } else {
           // Try to interpret as product description
           const unknownProductInfo = productNLP.extractProductInfo(action.originalCommand);
@@ -286,6 +330,27 @@ function VoiceNavigation({ isVoiceNavigationEnabled, onProductFieldUpdate }) {
         
       default:
         announce('Command not recognized');
+    }
+  };
+
+  const handleTourCommand = (command) => {
+    const lowerCommand = command.toLowerCase();
+    
+    if (lowerCommand.includes('continue') || lowerCommand.includes('next')) {
+      if (tourStep < 7) {
+        const nextStep = tourStep + 1;
+        setTourStep(nextStep);
+        announceWelcomeTourStep(nextStep);
+      } else {
+        setWelcomeTour(false);
+        announce("That concludes the tour. Feel free to explore on your own or ask me for help anytime!");
+      }
+    } else if (lowerCommand.includes('stop') || lowerCommand.includes('exit') || lowerCommand.includes('cancel')) {
+      setWelcomeTour(false);
+      announce("Exiting tour. Feel free to ask me for help anytime!");
+    } else {
+      // Treat as a question
+      announce("I'm here to help. You can ask me to show you different parts of the platform, or say 'continue tour' to proceed with the tour.");
     }
   };
 
@@ -315,30 +380,26 @@ function VoiceNavigation({ isVoiceNavigationEnabled, onProductFieldUpdate }) {
     
     if (productInfo.name) {
       newState.name = productInfo.name;
-      if (onProductFieldUpdate) {
-        onProductFieldUpdate('name', productInfo.name);
-      }
+      // Dispatch event to update the field in AddProduct component
+      window.dispatchEvent(new CustomEvent('voiceFieldUpdate', { detail: { field: 'name', value: productInfo.name } }));
     }
     
     if (productInfo.price) {
       newState.price = productInfo.price;
-      if (onProductFieldUpdate) {
-        onProductFieldUpdate('price', productInfo.price);
-      }
+      // Dispatch event to update the field in AddProduct component
+      window.dispatchEvent(new CustomEvent('voiceFieldUpdate', { detail: { field: 'price', value: productInfo.price } }));
     }
     
     if (productInfo.category) {
       newState.category = productInfo.category;
-      if (onProductFieldUpdate) {
-        onProductFieldUpdate('category', productInfo.category);
-      }
+      // Dispatch event to update the field in AddProduct component
+      window.dispatchEvent(new CustomEvent('voiceFieldUpdate', { detail: { field: 'category', value: productInfo.category } }));
     }
     
     if (productInfo.description) {
       newState.description = productInfo.description;
-      if (onProductFieldUpdate) {
-        onProductFieldUpdate('description', productInfo.description);
-      }
+      // Dispatch event to update the field in AddProduct component
+      window.dispatchEvent(new CustomEvent('voiceFieldUpdate', { detail: { field: 'description', value: productInfo.description } }));
     }
     
     setProductState(newState);
@@ -396,32 +457,29 @@ function VoiceNavigation({ isVoiceNavigationEnabled, onProductFieldUpdate }) {
     // Map questions to fields
     if (currentQuestion.includes("name")) {
       setProductState(prev => ({ ...prev, name: answer }));
-      if (onProductFieldUpdate) {
-        onProductFieldUpdate('name', answer);
-      }
+      window.dispatchEvent(new CustomEvent('voiceFieldUpdate', { detail: { field: 'name', value: answer } }));
       fieldUpdated = true;
     } else if (currentQuestion.includes("price")) {
       // Extract numeric value from price
       const priceMatch = answer.match(/\$?(\d+(?:\.\d+)?)/);
       if (priceMatch && priceMatch[1]) {
         setProductState(prev => ({ ...prev, price: priceMatch[1] }));
-        if (onProductFieldUpdate) {
-          onProductFieldUpdate('price', priceMatch[1]);
-        }
+        window.dispatchEvent(new CustomEvent('voiceFieldUpdate', { detail: { field: 'price', value: priceMatch[1] } }));
         fieldUpdated = true;
       }
     } else if (currentQuestion.includes("category")) {
       setProductState(prev => ({ ...prev, category: answer }));
-      if (onProductFieldUpdate) {
-        onProductFieldUpdate('category', answer);
-      }
+      window.dispatchEvent(new CustomEvent('voiceFieldUpdate', { detail: { field: 'category', value: answer } }));
       fieldUpdated = true;
     } else if (currentQuestion.includes("describe") || currentQuestion.includes("detail")) {
       setProductState(prev => ({ ...prev, description: answer }));
-      if (onProductFieldUpdate) {
-        onProductFieldUpdate('description', answer);
-      }
+      window.dispatchEvent(new CustomEvent('voiceFieldUpdate', { detail: { field: 'description', value: answer } }));
       fieldUpdated = true;
+    } else if (currentQuestion.includes("picture") || currentQuestion.includes("photo")) {
+      // Open camera
+      setShowCamera(true);
+      announce('Opening camera. Point your camera at the product and say "take photo" or click the capture button.');
+      return; // Don't move to next question yet
     }
     
     if (fieldUpdated) {
@@ -446,15 +504,36 @@ function VoiceNavigation({ isVoiceNavigationEnabled, onProductFieldUpdate }) {
   const handleCameraCapture = (imageDataUrl) => {
     setShowCamera(false);
     setProductState(prev => ({ ...prev, image: imageDataUrl }));
-    if (onProductFieldUpdate) {
-      onProductFieldUpdate('image', imageDataUrl);
+    window.dispatchEvent(new CustomEvent('voiceFieldUpdate', { detail: { field: 'image', value: imageDataUrl } }));
+    announce('Photo captured and set as product image. Continuing with product details...');
+    
+    // Continue with next question if in interactive mode
+    if (interactiveMode && currentQuestionIndex < pendingQuestions.length - 1) {
+      const nextIndex = currentQuestionIndex + 1;
+      setCurrentQuestionIndex(nextIndex);
+      setTimeout(() => {
+        announce(pendingQuestions[nextIndex]);
+      }, 1000);
+    } else if (interactiveMode) {
+      // All questions answered
+      exitInteractiveMode();
+      setListingFlow(false);
+      announce("All product information has been collected. Say 'save product' to list your product.");
     }
-    announce('Photo captured and set as product image');
   };
 
   const handleCameraCancel = () => {
     setShowCamera(false);
-    announce('Camera closed');
+    announce('Camera closed. Continuing with product details...');
+    
+    // Continue with next question if in interactive mode
+    if (interactiveMode && currentQuestionIndex < pendingQuestions.length - 1) {
+      const nextIndex = currentQuestionIndex + 1;
+      setCurrentQuestionIndex(nextIndex);
+      setTimeout(() => {
+        announce(pendingQuestions[nextIndex]);
+      }, 1000);
+    }
   };
 
   const announceWithElevenLabs = async (message) => {
