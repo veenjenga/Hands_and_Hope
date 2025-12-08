@@ -73,8 +73,17 @@ function Signup({ onAutoLogin }) {
         // Auto-login after successful signup
         onAutoLogin(response.data.token, response.data.user);
         
-        // Show success message
-        alert('Registration successful! Welcome to Hand and Hope.');
+        // Show success message with Eleven Labs voice
+        if (window.annyang) {
+          // Use Eleven Labs for voice feedback
+          window.dispatchEvent(new CustomEvent('voicePrompt', { 
+            detail: { 
+              message: 'Registration successful! Welcome to Hand and Hope.' 
+            } 
+          }));
+        } else {
+          alert('Registration successful! Welcome to Hand and Hope.');
+        }
         
         // Redirect to dashboard
         history.push('/');
@@ -91,9 +100,9 @@ function Signup({ onAutoLogin }) {
   };
 
   return (
-    <div className={styles.signup}>
-      <div className={styles.signupContainer}>
-        <h2>Create Account</h2>
+    <div className={styles.signupContainer}>
+      <div className={styles.signupForm}>
+        <h2 className={styles.title}>Create Account</h2>
         <p className={styles.subtitle}>Join Hand and Hope to start selling your products</p>
         
         {errors.general && <div className={styles.errorMessage}>{errors.general}</div>}
@@ -107,7 +116,7 @@ function Signup({ onAutoLogin }) {
               name="name"
               value={formData.name}
               onChange={handleChange}
-              className={errors.name ? styles.inputError : ''}
+              className={`${styles.input} ${errors.name ? styles.inputError : ''}`}
               required
             />
             {errors.name && <span className={styles.errorText}>{errors.name}</span>}
@@ -121,7 +130,7 @@ function Signup({ onAutoLogin }) {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              className={errors.email ? styles.inputError : ''}
+              className={`${styles.input} ${errors.email ? styles.inputError : ''}`}
               required
             />
             {errors.email && <span className={styles.errorText}>{errors.email}</span>}
@@ -135,7 +144,7 @@ function Signup({ onAutoLogin }) {
               name="password"
               value={formData.password}
               onChange={handleChange}
-              className={errors.password ? styles.inputError : ''}
+              className={`${styles.input} ${errors.password ? styles.inputError : ''}`}
               required
             />
             {errors.password && <span className={styles.errorText}>{errors.password}</span>}
@@ -149,7 +158,7 @@ function Signup({ onAutoLogin }) {
               name="confirmPassword"
               value={formData.confirmPassword}
               onChange={handleChange}
-              className={errors.confirmPassword ? styles.inputError : ''}
+              className={`${styles.input} ${errors.confirmPassword ? styles.inputError : ''}`}
               required
             />
             {errors.confirmPassword && <span className={styles.errorText}>{errors.confirmPassword}</span>}

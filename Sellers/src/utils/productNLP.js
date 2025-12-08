@@ -3,25 +3,43 @@
 
 class ProductNLP {
   constructor() {
+    // Predefined categories based on buyer categories
+    this.categories = [
+      'Electronics',
+      'Furniture',
+      'Smart Home',
+      'Wearables',
+      'Gaming',
+      'Audio',
+      'Clothing',
+      'Home Decor',
+      'Accessories',
+      'Other'
+    ];
+    
     // Regex patterns for extracting product information
     this.patterns = {
       name: [
         /(?:name|called|named|titled)\s+(?:is\s+)?["']?([^"']+?)["']?(?=\s|$|\.|,)/i,
         /(?:product|item)\s+(?:is\s+)?["']?([^"']+?)["']?(?=\s|$|\.|,)/i,
-        /(?:selling|have|want)\s+(?:a\s+)?["']?([^"']+?)["']?(?=\s|$|\.|,)/i
+        /(?:selling|have|want)\s+(?:a\s+)?["']?([^"']+?)["']?(?=\s|$|\.|,)/i,
+        /(?:the\s+)?product\s+name\s+is\s+["']?([^"']+?)["']?(?=\s|$|\.|,)/i
       ],
       price: [
         /(?:costs?|price|priced|costing)\s+(?:is\s+)?\$?(\d+(?:\.\d+)?)/i,
         /(?:price|cost)\s+(?:is\s+)?\$?(\d+(?:\.\d+)?)/i,
-        /\$?(\d+(?:\.\d+)?)\s*(?:dollars?|USD)/i
+        /\$?(\d+(?:\.\d+)?)\s*(?:dollars?|USD)/i,
+        /(?:the\s+)?price\s+is\s+\$?(\d+(?:\.\d+)?)/i
       ],
       category: [
         /(?:category|type|kind)\s+(?:is\s+)?["']?([^"']+?)["']?(?=\s|$|\.|,)/i,
-        /(?:in|under|within)\s+(?:the\s+)?(?:category|section)\s+of\s+["']?([^"']+?)["']?(?=\s|$|\.|,)/i
+        /(?:in|under|within)\s+(?:the\s+)?(?:category|section)\s+of\s+["']?([^"']+?)["']?(?=\s|$|\.|,)/i,
+        /(?:the\s+)?category\s+is\s+["']?([^"']+?)["']?(?=\s|$|\.|,)/i
       ],
       description: [
         /(?:description|details|info|information)\s+(?:is\s+)?["']?([^"']+?)["']?(?=\s|$|\.)/i,
-        /(?:looks?|seems?|appears)\s+(?:like\s+)?["']?([^"']+?)["']?(?=\s|$|\.)/i
+        /(?:looks?|seems?|appears)\s+(?:like\s+)?["']?([^"']+?)["']?(?=\s|$|\.)/i,
+        /(?:the\s+)?description\s+is\s+["']?([^"']+?)["']?(?=\s|$|\.)/i
       ]
     };
   }
@@ -124,7 +142,7 @@ class ProductNLP {
     }
     
     if (!currentInfo.category) {
-      questions.push("Which category does your product belong to?");
+      questions.push("Which category does your product belong to? Available categories are: " + this.categories.join(", "));
     }
     
     if (!currentInfo.description) {
@@ -133,7 +151,40 @@ class ProductNLP {
     
     return questions;
   }
+  
+  /**
+   * Get the list of available categories
+   * @returns {Array} - Array of category names
+   */
+  getCategories() {
+    return this.categories;
+  }
+  
+  /**
+   * Match a spoken category to available categories
+   * @param {string} spokenCategory - Category mentioned by user
+   * @returns {string|null} - Matching category or null if not found
+   */
+  matchCategory(spokenCategory) {
+    if (!spokenCategory) return null;
+    
+    // Direct match
+    const exactMatch = this.categories.find(cat => 
+      cat.toLowerCase() === spokenCategory.toLowerCase()
+    );
+    
+    if (exactMatch) return exactMatch;
+    
+    // Partial match
+    const partialMatch = this.categories.find(cat => 
+      spokenCategory.toLowerCase().includes(cat.toLowerCase()) ||
+      cat.toLowerCase().includes(spokenCategory.toLowerCase())
+    );
+    
+    return partialMatch || null;
+  }
 }
 
 // Export singleton instance
-export default new ProductNLP();
+const productNLPInstance = new ProductNLP();
+export default productNLPInstance;

@@ -9,7 +9,7 @@
 
 .signupForm {
   background: white;
-  padding: 2.5rem;
+  padding: 1.5rem;
   border-radius: 0.5rem;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
   width: 100%;
@@ -21,6 +21,13 @@
   color: #1a237e;
   margin-bottom: 1.5rem;
   font-size: 1.75rem;
+}
+
+.subtitle {
+  text-align: center;
+  color: #666;
+  margin-bottom: 2rem;
+  font-size: 1rem;
 }
 
 .errorMessage {
@@ -51,6 +58,17 @@
   outline: none;
   border-color: #1a237e;
   box-shadow: 0 0 0 2px rgba(26, 35, 126, 0.2);
+}
+
+.inputError {
+  border-color: #c62828;
+}
+
+.errorText {
+  color: #c62828;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  display: block;
 }
 
 .submitButton {

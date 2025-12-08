@@ -1,15 +1,12 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useHistory } from 'react-router-dom';
-import annyang from 'annyang';
 import voiceCommandProcessor from '../utils/voiceCommandProcessor';
 import productNLP from '../utils/productNLP';
 import VoiceCamera from './VoiceCamera';
-import styles from './VoiceNavigation.module.css';
 
 function VoiceNavigation({ isVoiceNavigationEnabled }) {
   const history = useHistory();
   const [isSpeechSupported, setIsSpeechSupported] = useState(true);
-  const [isUsingElevenLabs, setIsUsingElevenLabs] = useState(true);
   const [isPlayingFeedback, setIsPlayingFeedback] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
   const [lastMessage, setLastMessage] = useState('');
@@ -29,106 +26,125 @@ function VoiceNavigation({ isVoiceNavigationEnabled }) {
   
   const messageQueue = useRef([]);
   const audioContext = useRef(null);
+  const recognitionRef = useRef(null);
 
-  useEffect(() => {
-    const isSpeechRecognitionSupported = 'SpeechRecognition' in window || 'webkitSpeechRecognition' in window;
-    if (!isSpeechRecognitionSupported) {
-      console.warn('Speech recognition is not supported in this browser. Please use a supported browser like Chrome or Edge.');
-      setIsSpeechSupported(false);
-      return;
-    }
-
-    const isSpeechSynthesisSupported = 'speechSynthesis' in window;
-    if (!isSpeechSynthesisSupported) {
-      console.warn('Speech synthesis is not supported in this browser. Announcements will not be audible.');
-    }
-
-    // Initialize audio context for better audio control
-    if (!audioContext.current) {
-      audioContext.current = new (window.AudioContext || window.webkitAudioContext)();
-    }
-
-    if (annyang && isVoiceNavigationEnabled) {
-      console.log('Annyang is loaded and starting voice navigation...');
-
-      // Set up annyang callbacks
-      annyang.addCallback('result', (phrases) => {
-        console.log('Voice command recognized:', phrases);
-        if (phrases && phrases.length > 0) {
-          handleVoiceCommand(phrases[0]);
-        }
-      });
-
-      annyang.addCallback('error', (error) => {
-        console.error('Annyang error:', error);
-        if (error.error === 'network') {
-          announce('Voice navigation error: Network issue. Please check your internet connection.');
-        } else if (error.error === 'audio-capture') {
-          announce('Voice navigation error: Microphone issue. Please check your microphone.');
-        }
-      });
-
-      annyang.addCallback('start', () => {
-        console.log('Voice navigation started');
-        // Only announce if not already announced to prevent loops
-        if (!sessionStorage.getItem('voiceNavStarted')) {
-          sessionStorage.setItem('voiceNavStarted', 'true');
-          announce('Voice navigation enabled. Say "what can I say" for a list of commands.');
-        }
-      });
-
-      annyang.setLanguage('en-US');
-      annyang.start({ autoRestart: true, continuous: true });
-
-      return () => {
-        console.log('Stopping voice navigation');
-        annyang.abort();
-        // Clean up session storage when component unmounts
-        sessionStorage.removeItem('voiceNavStarted');
-        // Close audio context
-        if (audioContext.current) {
-          audioContext.current.close();
-        }
-      };
-    } else if (!annyang) {
-      console.error('Annyang is not available. Voice navigation will not work.');
-    }
-  }, [history, isVoiceNavigationEnabled]);
-
-  // Listen for welcome tour start event
-  useEffect(() => {
-    const handleStartWelcomeTour = () => {
-      setWelcomeTour(true);
-      setTourStep(0);
-      setTimeout(() => {
-        announceWelcomeTourStep(0);
-      }, 1000);
-    };
-
-    window.addEventListener('startWelcomeTour', handleStartWelcomeTour);
-    return () => {
-      window.removeEventListener('startWelcomeTour', handleStartWelcomeTour);
-    };
+  // Memoize functions to use as dependencies
+  const announce = useCallback((message) => {
+    // Always use Eleven Labs for voice feedback
+    announceWithElevenLabs(message);
   }, []);
 
-  const announceWelcomeTourStep = (step) => {
-    const tourSteps = [
-      "Welcome to Hand and Hope! Congratulations on signing up. I'm your AI assistant and I'll guide you through the platform.",
-      "This is your dashboard where you can see an overview of your products and sales.",
-      "You can navigate to different sections using voice commands.",
-      "To add a new product, say 'add new product'.",
-      "To view your existing products, say 'go to products'.",
-      "To check customer inquiries, say 'go to inquiries'.",
-      "To update your profile or change settings, say 'go to settings'.",
-      "Would you like me to continue showing you how to use voice navigation or do you have any questions?",
-    ];
-
-    if (step < tourSteps.length) {
-      announce(tourSteps[step]);
+  const announceWithElevenLabs = useCallback(async (message) => {
+    // Prevent overlapping feedback
+    if (isPlayingFeedback) {
+      // Queue the message to be played after the current one finishes
+      messageQueue.current.push(message);
+      return;
     }
-  };
+    
+    setIsPlayingFeedback(true);
+    setLastMessage(message);
+    
+    // Cancel any ongoing speech synthesis to prevent overlap
+    if (speechSynthesis.speaking) {
+      speechSynthesis.cancel();
+    }
+    
+    try {
+      // Use Eleven Labs API for high-quality speech synthesis
+      const apiKey = process.env.REACT_APP_ELEVEN_LABS_API_KEY || 'sk_20734ae2903209818628e37d95e46a5c6f59a503a17d1eb3';
+      const response = await fetch('https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM', {
+        method: 'POST',
+        headers: {
+          'Accept': 'audio/mpeg',
+          'xi-api-key': apiKey,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          text: message,
+          model_id: 'eleven_monolingual_v1',
+          voice_settings: {
+            stability: 0.5,
+            similarity_boost: 0.5
+          }
+        })
+      });
 
-  const handleVoiceCommand = (command) => {
+      if (response.ok) {
+        const audioBlob = await response.blob();
+        const audioUrl = URL.createObjectURL(audioBlob);
+        const audio = new Audio(audioUrl);
+        
+        // Play the Eleven Labs audio
+        audio.play();
+        
+        // Reset the playing flag when audio finishes
+        audio.onended = () => {
+          setIsPlayingFeedback(false);
+          // Play next message in queue if available
+          if (messageQueue.current.length > 0) {
+            const nextMessage = messageQueue.current.shift();
+            announce(nextMessage);
+          }
+        };
+      } else {
+        console.error('Eleven Labs API error:', response.status);
+        // Even if Eleven Labs fails, we still want to provide feedback
+        fallbackToBrowserSpeech(message);
+      }
+    } catch (error) {
+      console.error('Eleven Labs API error:', error);
+      // Even if Eleven Labs fails, we still want to provide feedback
+      fallbackToBrowserSpeech(message);
+    }
+  }, [isPlayingFeedback]);
+
+  const fallbackToBrowserSpeech = useCallback((text) => {
+    // Cancel any ongoing speech synthesis to prevent overlap
+    if (speechSynthesis.speaking) {
+      speechSynthesis.cancel();
+    }
+    
+    if ('speechSynthesis' in window) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'en-US';
+      utterance.rate = 1.0;
+      utterance.pitch = 1.0;
+      utterance.volume = 1.0;
+      
+      // Reset the playing flag when speech ends
+      utterance.onend = () => {
+        setIsPlayingFeedback(false);
+        setLastMessage(text);
+        // Play next message in queue if available
+        if (messageQueue.current.length > 0) {
+          const nextMessage = messageQueue.current.shift();
+          announce(nextMessage);
+        }
+      };
+      
+      window.speechSynthesis.speak(utterance);
+    } else {
+      console.warn('Speech synthesis not supported. Falling back to ARIA live region.');
+      const liveRegion = document.createElement('div');
+      liveRegion.setAttribute('aria-live', 'polite');
+      liveRegion.setAttribute('style', 'position: absolute; left: -9999px;');
+      liveRegion.textContent = text;
+      document.body.appendChild(liveRegion);
+      setTimeout(() => {
+        document.body.removeChild(liveRegion);
+        setIsPlayingFeedback(false);
+        setLastMessage(text);
+        // Play next message in queue if available
+        if (messageQueue.current.length > 0) {
+          const nextMessage = messageQueue.current.shift();
+          announce(nextMessage);
+        }
+      }, 2000);
+    }
+  }, [announce]);
+
+  const handleVoiceCommand = useCallback((command) => {
     // If in welcome tour, handle tour navigation
     if (welcomeTour) {
       handleTourCommand(command);
@@ -331,9 +347,9 @@ function VoiceNavigation({ isVoiceNavigationEnabled }) {
       default:
         announce('Command not recognized');
     }
-  };
+  }, [history, welcomeTour, interactiveMode, pendingQuestions, listingFlow, lastMessage, announce]);
 
-  const handleTourCommand = (command) => {
+  const handleTourCommand = useCallback((command) => {
     const lowerCommand = command.toLowerCase();
     
     if (lowerCommand.includes('continue') || lowerCommand.includes('next')) {
@@ -348,34 +364,78 @@ function VoiceNavigation({ isVoiceNavigationEnabled }) {
     } else if (lowerCommand.includes('stop') || lowerCommand.includes('exit') || lowerCommand.includes('cancel')) {
       setWelcomeTour(false);
       announce("Exiting tour. Feel free to ask me for help anytime!");
+    } else if (lowerCommand.includes('yes') || lowerCommand.includes('enable') || lowerCommand.includes('continue')) {
+      setWelcomeTour(false);
+      announce("Great! Voice navigation is now enabled. Feel free to ask me for help anytime!");
     } else {
       // Treat as a question
-      announce("I'm here to help. You can ask me to show you different parts of the platform, or say 'continue tour' to proceed with the tour.");
+      announce("I'm here to help. You can ask me to show you different parts of the platform, say 'continue tour' to proceed with the tour, or say 'yes' to continue with voice navigation enabled.");
     }
-  };
+  }, [tourStep, announce]);
 
-  const handleProductDescription = (description) => {
+  const announceWelcomeTourStep = useCallback((step) => {
+    const tourSteps = [
+      "Welcome to Hand and Hope! Congratulations on signing up. I'm your AI assistant and I'll guide you through the platform.",
+      "This is your dashboard where you can see an overview of your products and sales.",
+      "You can navigate to different sections using voice commands.",
+      "To add a new product, say 'add new product'.",
+      "To view your existing products, say 'go to products'.",
+      "To check customer inquiries, say 'go to inquiries'.",
+      "To update your profile or change settings, say 'go to settings'.",
+      "Would you like to continue with voice navigation enabled?",
+    ];
+
+    if (step < tourSteps.length) {
+      announce(tourSteps[step]);
+    }
+  }, [announce]);
+
+  const handleProductDescription = useCallback((description) => {
+    // Extract product information using NLP
     const productInfo = productNLP.extractProductInfo(description);
     
     // Update product state with extracted info
     updateProductState(productInfo);
     
-    // Generate questions for missing information
-    const questions = productNLP.generateQuestions({ ...productState, ...productInfo });
+    // Check what information is missing and ask questions accordingly
+    if ((productState.name || productInfo.name) && (productState.price || productInfo.price)) {
+      // Ask for category if not provided
+      if (!productState.category && !productInfo.category) {
+        const categories = productNLP.getCategories();
+        announce(`What category should the product be in? Available categories are: ${categories.join(', ')}.`);
+        return;
+      }
+      
+      // If we have name, price, and category, ask for description
+      if (!productState.description && !productInfo.description) {
+        announce("Please provide a description for your product, or say 'skip' to skip this step.");
+        return;
+      }
+      
+      // If we have all required fields, ask for image
+      if (!productState.image && !productInfo.image) {
+        announce("Would you like to upload an image of your product? Say 'take photo' to activate the camera or 'skip' to list without an image.");
+        return;
+      }
+      
+      // All information collected
+      announce("I've collected all the information for your product. Say 'save product' to list it.");
+      return;
+    }
     
+    // If we're missing critical information, ask for it
+    const questions = productNLP.generateQuestions({ ...productState, ...productInfo });
     if (questions.length > 0) {
-      // Enter interactive mode to ask for missing details
       setInteractiveMode(true);
       setPendingQuestions(questions);
       setCurrentQuestionIndex(0);
       announce(questions[0]);
     } else {
-      // All information collected, ask to save
       announce("I've collected all the information for your product. Say 'save product' to list it.");
     }
-  };
+  }, [productState, announce]);
 
-  const updateProductState = (productInfo) => {
+  const updateProductState = useCallback((productInfo) => {
     const newState = { ...productState };
     
     if (productInfo.name) {
@@ -403,9 +463,9 @@ function VoiceNavigation({ isVoiceNavigationEnabled }) {
     }
     
     setProductState(newState);
-  };
+  }, [productState]);
 
-  const announceProductInfoSummary = (productInfo) => {
+  const announceProductInfoSummary = useCallback((productInfo) => {
     const parts = [];
     
     if (productInfo.name) {
@@ -429,9 +489,9 @@ function VoiceNavigation({ isVoiceNavigationEnabled }) {
     } else {
       announce("I couldn't extract any product information from that description. Would you like to try again or answer some questions about your product?");
     }
-  };
+  }, [announce]);
 
-  const startInteractiveMode = () => {
+  const startInteractiveMode = useCallback(() => {
     const questions = productNLP.generateQuestions(productState);
     if (questions.length > 0) {
       setInteractiveMode(true);
@@ -441,24 +501,116 @@ function VoiceNavigation({ isVoiceNavigationEnabled }) {
     } else {
       announce("All product information has been filled. Say 'save product' to save your product.");
     }
-  };
+  }, [productState, announce]);
 
-  const exitInteractiveMode = () => {
+  const exitInteractiveMode = useCallback(() => {
     setInteractiveMode(false);
     setPendingQuestions([]);
     setCurrentQuestionIndex(0);
     announce("Exited interactive mode.");
-  };
+  }, [announce]);
 
-  const handleInteractiveAnswer = (answer) => {
+  const handleInteractiveAnswer = useCallback((answer) => {
     const currentQuestion = pendingQuestions[currentQuestionIndex];
     let fieldUpdated = false;
     
-    // Map questions to fields
-    if (currentQuestion.includes("name")) {
+    // Handle natural language responses for product details
+    if (answer.toLowerCase().includes("the product name is") || answer.toLowerCase().includes("product name is")) {
+      // Extract name after "the product name is"
+      const nameMatch = answer.match(/(?:the )?product name is (.+)/i);
+      if (nameMatch && nameMatch[1]) {
+        const productName = nameMatch[1].trim();
+        setProductState(prev => ({ ...prev, name: productName }));
+        window.dispatchEvent(new CustomEvent('voiceFieldUpdate', { detail: { field: 'name', value: productName } }));
+        fieldUpdated = true;
+        announce(`Got it. Product name set to ${productName}`);
+        
+        // After setting name, ask for price
+        setTimeout(() => {
+          announce("What is the price of your product?");
+        }, 1000);
+        return;
+      }
+    } else if (answer.toLowerCase().includes("price is") || answer.toLowerCase().includes("costs")) {
+      // Extract price from various formats
+      const priceMatch = answer.match(/\$?(\d+(?:\.\d+)?)/);
+      if (priceMatch && priceMatch[1]) {
+        setProductState(prev => ({ ...prev, price: priceMatch[1] }));
+        window.dispatchEvent(new CustomEvent('voiceFieldUpdate', { detail: { field: 'price', value: priceMatch[1] } }));
+        fieldUpdated = true;
+        announce(`Got it. Price set to $${priceMatch[1]}`);
+        
+        // After setting price, ask for category
+        setTimeout(() => {
+          const categories = productNLP.getCategories();
+          announce(`What category should the product be in? Available categories are: ${categories.join(', ')}.`);
+        }, 1000);
+        return;
+      }
+    } else if (currentQuestion.includes("category") || 
+               answer.toLowerCase().includes("category") || 
+               productNLP.getCategories().some(cat => answer.toLowerCase().includes(cat.toLowerCase()))) {
+      // Handle category selection
+      const categories = productNLP.getCategories();
+      const matchedCategory = categories.find(cat => 
+        cat.toLowerCase() === answer.toLowerCase() || 
+        answer.toLowerCase().includes(cat.toLowerCase())
+      );
+      
+      if (matchedCategory) {
+        setProductState(prev => ({ ...prev, category: matchedCategory }));
+        window.dispatchEvent(new CustomEvent('voiceFieldUpdate', { detail: { field: 'category', value: matchedCategory } }));
+        fieldUpdated = true;
+        announce(`Got it. Category set to ${matchedCategory}`);
+        
+        // After setting category, ask for description
+        setTimeout(() => {
+          announce("Please provide a description for your product, or say 'skip' to skip this step.");
+        }, 1000);
+        return;
+      } else if (answer.toLowerCase() !== 'skip') {
+        announce(`I didn't recognize that category. Available categories are: ${categories.join(', ')}. Please try again.`);
+        return;
+      }
+    } else if (currentQuestion.includes("describe") || currentQuestion.includes("detail") || 
+               answer.toLowerCase().includes("description") || answer.toLowerCase().includes("it's") ||
+               answer.toLowerCase().includes("it is")) {
+      if (answer.toLowerCase() !== 'skip') {
+        setProductState(prev => ({ ...prev, description: answer }));
+        window.dispatchEvent(new CustomEvent('voiceFieldUpdate', { detail: { field: 'description', value: answer } }));
+        fieldUpdated = true;
+        announce('Got it. Description updated.');
+      } else {
+        announce('Skipping description.');
+      }
+      
+      // After setting description, ask for image
+      setTimeout(() => {
+        announce("Would you like to upload an image of your product? Say 'take photo' to activate the camera or 'skip' to list without an image.");
+      }, 1000);
+      return;
+    } else if (currentQuestion.includes("picture") || currentQuestion.includes("photo") || 
+               answer.toLowerCase().includes("take photo") || answer.toLowerCase().includes("take snap") ||
+               answer.toLowerCase().includes("upload image")) {
+      // Open camera
+      setShowCamera(true);
+      announce('Opening camera. Point your camera at the product and say "take photo" or click the capture button.');
+      return;
+    } else if (answer.toLowerCase() === 'skip') {
+      // Handle skip command
+      announce('Skipping this step.');
+      fieldUpdated = true;
+    } else if (currentQuestion.includes("name")) {
       setProductState(prev => ({ ...prev, name: answer }));
       window.dispatchEvent(new CustomEvent('voiceFieldUpdate', { detail: { field: 'name', value: answer } }));
       fieldUpdated = true;
+      announce(`Got it. Product name set to ${answer}`);
+      
+      // After setting name, ask for price
+      setTimeout(() => {
+        announce("What is the price of your product?");
+      }, 1000);
+      return;
     } else if (currentQuestion.includes("price")) {
       // Extract numeric value from price
       const priceMatch = answer.match(/\$?(\d+(?:\.\d+)?)/);
@@ -466,20 +618,15 @@ function VoiceNavigation({ isVoiceNavigationEnabled }) {
         setProductState(prev => ({ ...prev, price: priceMatch[1] }));
         window.dispatchEvent(new CustomEvent('voiceFieldUpdate', { detail: { field: 'price', value: priceMatch[1] } }));
         fieldUpdated = true;
+        announce(`Got it. Price set to $${priceMatch[1]}`);
+        
+        // After setting price, ask for category
+        setTimeout(() => {
+          const categories = productNLP.getCategories();
+          announce(`What category should the product be in? Available categories are: ${categories.join(', ')}.`);
+        }, 1000);
+        return;
       }
-    } else if (currentQuestion.includes("category")) {
-      setProductState(prev => ({ ...prev, category: answer }));
-      window.dispatchEvent(new CustomEvent('voiceFieldUpdate', { detail: { field: 'category', value: answer } }));
-      fieldUpdated = true;
-    } else if (currentQuestion.includes("describe") || currentQuestion.includes("detail")) {
-      setProductState(prev => ({ ...prev, description: answer }));
-      window.dispatchEvent(new CustomEvent('voiceFieldUpdate', { detail: { field: 'description', value: answer } }));
-      fieldUpdated = true;
-    } else if (currentQuestion.includes("picture") || currentQuestion.includes("photo")) {
-      // Open camera
-      setShowCamera(true);
-      announce('Opening camera. Point your camera at the product and say "take photo" or click the capture button.');
-      return; // Don't move to next question yet
     }
     
     if (fieldUpdated) {
@@ -499,9 +646,9 @@ function VoiceNavigation({ isVoiceNavigationEnabled }) {
       setListingFlow(false);
       announce("All product information has been collected. Say 'save product' to list your product.");
     }
-  };
+  }, [pendingQuestions, currentQuestionIndex, exitInteractiveMode, announce]);
 
-  const handleCameraCapture = (imageDataUrl) => {
+  const handleCameraCapture = useCallback((imageDataUrl) => {
     setShowCamera(false);
     setProductState(prev => ({ ...prev, image: imageDataUrl }));
     window.dispatchEvent(new CustomEvent('voiceFieldUpdate', { detail: { field: 'image', value: imageDataUrl } }));
@@ -520,9 +667,9 @@ function VoiceNavigation({ isVoiceNavigationEnabled }) {
       setListingFlow(false);
       announce("All product information has been collected. Say 'save product' to list your product.");
     }
-  };
+  }, [interactiveMode, currentQuestionIndex, pendingQuestions, exitInteractiveMode, announce]);
 
-  const handleCameraCancel = () => {
+  const handleCameraCancel = useCallback(() => {
     setShowCamera(false);
     announce('Camera closed. Continuing with product details...');
     
@@ -534,124 +681,157 @@ function VoiceNavigation({ isVoiceNavigationEnabled }) {
         announce(pendingQuestions[nextIndex]);
       }, 1000);
     }
-  };
+  }, [interactiveMode, currentQuestionIndex, pendingQuestions, announce]);
 
-  const announceWithElevenLabs = async (message) => {
-    // Prevent overlapping feedback
-    if (isPlayingFeedback) {
-      // Queue the message to be played after the current one finishes
-      messageQueue.current.push(message);
+  useEffect(() => {
+    // Check for speech recognition support
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const isSpeechRecognitionSupported = !!SpeechRecognition;
+    
+    if (!isSpeechRecognitionSupported) {
+      console.warn('Speech recognition is not supported in this browser. Please use a supported browser like Chrome or Edge.');
+      setIsSpeechSupported(false);
       return;
     }
-    
-    setIsPlayingFeedback(true);
-    setLastMessage(message);
-    
-    // Cancel any ongoing speech synthesis to prevent overlap
-    if (speechSynthesis.speaking) {
-      speechSynthesis.cancel();
-    }
-    
-    try {
-      // Use Eleven Labs API for high-quality speech synthesis
-      const response = await fetch('https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM', {
-        method: 'POST',
-        headers: {
-          'Accept': 'audio/mpeg',
-          'xi-api-key': 'sk_20734ae2903209818628e37d95e46a5c6f59a503a17d1eb3',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          text: message,
-          model_id: 'eleven_monolingual_v1',
-          voice_settings: {
-            stability: 0.5,
-            similarity_boost: 0.5
-          }
-        })
-      });
 
-      if (response.ok) {
-        const audioBlob = await response.blob();
-        const audioUrl = URL.createObjectURL(audioBlob);
-        const audio = new Audio(audioUrl);
-        
-        // Play the Eleven Labs audio
-        audio.play();
-        
-        // Reset the playing flag when audio finishes
-        audio.onended = () => {
-          setIsPlayingFeedback(false);
-          // Play next message in queue if available
-          if (messageQueue.current.length > 0) {
-            const nextMessage = messageQueue.current.shift();
-            announce(nextMessage);
-          }
-        };
-      } else {
-        console.error('Eleven Labs API error:', response.status);
-        // Even if Eleven Labs fails, we still want to provide feedback
-        announce(message); // This will use the fallback
-      }
-    } catch (error) {
-      console.error('Eleven Labs API error:', error);
-      // Even if Eleven Labs fails, we still want to provide feedback
-      announce(message); // This will use the fallback
+    const isSpeechSynthesisSupported = 'speechSynthesis' in window;
+    if (!isSpeechSynthesisSupported) {
+      console.warn('Speech synthesis is not supported in this browser. Announcements will not be audible.');
     }
-  };
 
-  const fallbackToBrowserSpeech = (text) => {
-    // Cancel any ongoing speech synthesis to prevent overlap
-    if (speechSynthesis.speaking) {
-      speechSynthesis.cancel();
+    // Initialize audio context for better audio control
+    if (!audioContext.current) {
+      audioContext.current = new (window.AudioContext || window.webkitAudioContext)();
     }
-    
-    if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'en-US';
-      utterance.rate = 1.0;
-      utterance.pitch = 1.0;
-      utterance.volume = 1.0;
+
+    // Initialize speech recognition
+    if (isVoiceNavigationEnabled) {
+      console.log('Initializing custom voice navigation...');
       
-      // Reset the playing flag when speech ends
-      utterance.onend = () => {
-        setIsPlayingFeedback(false);
-        setLastMessage(text);
-        // Play next message in queue if available
-        if (messageQueue.current.length > 0) {
-          const nextMessage = messageQueue.current.shift();
-          announce(nextMessage);
+      const recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = false;
+      recognition.lang = 'en-US';
+      
+      recognition.onresult = (event) => {
+        const transcript = Array.from(event.results)
+          .map(result => result[0])
+          .map(result => result.transcript)
+          .join('');
+          
+        console.log('Voice command recognized:', transcript);
+        handleVoiceCommand(transcript);
+      };
+      
+      recognition.onerror = (event) => {
+        console.error('Speech recognition error:', event.error);
+        if (event.error === 'network') {
+          announce('Voice navigation error: Network issue. Please check your internet connection.');
+        } else if (event.error === 'audio-capture') {
+          announce('Voice navigation error: Microphone issue. Please check your microphone.');
+        } else if (event.error !== 'aborted') {
+          // Don't announce aborted errors as they're expected during cleanup
+          announce(`Voice navigation error: ${event.error}`);
         }
       };
       
-      window.speechSynthesis.speak(utterance);
-    } else {
-      console.warn('Speech synthesis not supported. Falling back to ARIA live region.');
-      const liveRegion = document.createElement('div');
-      liveRegion.setAttribute('aria-live', 'polite');
-      liveRegion.setAttribute('style', 'position: absolute; left: -9999px;');
-      liveRegion.textContent = text;
-      document.body.appendChild(liveRegion);
-      setTimeout(() => {
-        document.body.removeChild(liveRegion);
-        setIsPlayingFeedback(false);
-        setLastMessage(text);
-        // Play next message in queue if available
-        if (messageQueue.current.length > 0) {
-          const nextMessage = messageQueue.current.shift();
-          announce(nextMessage);
+      recognition.onstart = () => {
+        console.log('Voice navigation started');
+        // Only announce if not already announced to prevent loops
+        if (!sessionStorage.getItem('voiceNavStarted')) {
+          sessionStorage.setItem('voiceNavStarted', 'true');
+          announce('Voice navigation enabled. Say "what can I say" for a list of commands.');
         }
-      }, 2000);
+      };
+      
+      recognition.onend = () => {
+        console.log('Voice navigation ended');
+        // Restart if still enabled and not manually stopped
+        if (isVoiceNavigationEnabled && recognitionRef.current) {
+          try {
+            recognition.start();
+          } catch (error) {
+            console.warn('Could not restart recognition:', error);
+          }
+        }
+      };
+      
+      recognitionRef.current = recognition;
+      
+      // Start recognition if enabled
+      if (isVoiceNavigationEnabled) {
+        try {
+          recognition.start();
+        } catch (error) {
+          console.error('Failed to start voice recognition:', error);
+        }
+      }
     }
-  };
 
-  const announce = (message) => {
-    if (isUsingElevenLabs) {
-      announceWithElevenLabs(message);
-    } else {
-      fallbackToBrowserSpeech(message);
-    }
-  };
+    return () => {
+      console.log('Cleaning up voice navigation');
+      // Clean up session storage when component unmounts
+      sessionStorage.removeItem('voiceNavStarted');
+      // Stop recognition properly
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop();
+        } catch (error) {
+          console.warn('Error stopping recognition:', error);
+        }
+        recognitionRef.current = null;
+      }
+      // Close audio context safely
+      if (audioContext.current && audioContext.current.state !== 'closed') {
+        audioContext.current.close();
+      }
+    };
+  }, [isVoiceNavigationEnabled, handleVoiceCommand, announce]);
+
+  // Listen for welcome tour start event
+  useEffect(() => {
+    const handleStartWelcomeTour = () => {
+      setWelcomeTour(true);
+      setTourStep(0);
+      setTimeout(() => {
+        announceWelcomeTourStep(0);
+      }, 1000);
+    };
+
+    window.addEventListener('startWelcomeTour', handleStartWelcomeTour);
+    return () => {
+      window.removeEventListener('startWelcomeTour', handleStartWelcomeTour);
+    };
+  }, [announceWelcomeTourStep]);
+
+  // Listen for product listing start event
+  useEffect(() => {
+    const handleStartProductListing = () => {
+      setListingFlow(true);
+      setTimeout(() => {
+        announce("What product would you like to add? Please tell me the name, price, and description. You can say something like 'The product name is iPhone 12, the price is $500'.");
+      }, 1000);
+    };
+
+    window.addEventListener('startProductListing', handleStartProductListing);
+    return () => {
+      window.removeEventListener('startProductListing', handleStartProductListing);
+    };
+  }, [announce]);
+
+  // Listen for voice prompts from other components
+  useEffect(() => {
+    const handleVoicePrompt = (event) => {
+      if (event.detail && event.detail.message) {
+        announce(event.detail.message);
+      }
+    };
+
+    window.addEventListener('voicePrompt', handleVoicePrompt);
+    return () => {
+      window.removeEventListener('voicePrompt', handleVoicePrompt);
+    };
+  }, [announce]);
 
   if (!isSpeechSupported) {
     return (

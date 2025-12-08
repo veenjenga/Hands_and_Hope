@@ -57,7 +57,7 @@ class VoiceCommandProcessor {
         captureIndex: 3
       },
       {
-        pattern: /(save|submit|create)\s+(this\s+)?product/i,
+        pattern: /(save|submit|create|add)\s+(this\s+)?(product|item)/i,
         action: 'SAVE_PRODUCT'
       },
       
@@ -75,7 +75,7 @@ class VoiceCommandProcessor {
       
       // Camera commands
       {
-        pattern: /(take|capture)\s+(a\s+)?(photo|picture|image)/i,
+        pattern: /(take|capture)\s+(a\s+)?(photo|picture|image|snap)/i,
         action: 'OPEN_CAMERA'
       },
       {
@@ -129,6 +129,16 @@ class VoiceCommandProcessor {
       {
         pattern: /repeat|say again/i,
         action: 'REPEAT_LAST_MESSAGE'
+      },
+      
+      // New commands for enhanced product listing
+      {
+        pattern: /save\s+item/i,
+        action: 'SAVE_PRODUCT'
+      },
+      {
+        pattern: /take\s+snap/i,
+        action: 'OPEN_CAMERA'
       }
     ];
   }
@@ -177,7 +187,8 @@ class VoiceCommandProcessor {
       "Product Management: 'Add new product', 'Set product name to [name]', 'Set product price to [amount]'",
       "Natural Language: 'I want to sell [product description]', 'My product is [description]'",
       "Interactive Mode: 'Ask me questions' to enter interactive mode",
-      "Camera: 'Take a photo', 'Use this image'",
+      "Camera: 'Take a photo', 'Use this image', 'Take snap'",
+      "Save Items: 'Save item', 'Save product'",
       "Settings: 'Turn on voice navigation', 'Increase font size', 'Enable voice feedback'",
       "Help: 'What can I say', 'Repeat last message'",
       "Cancel: 'Cancel', 'Never mind'"
@@ -186,4 +197,5 @@ class VoiceCommandProcessor {
 }
 
 // Export singleton instance
-export default new VoiceCommandProcessor();
+const voiceCommandProcessorInstance = new VoiceCommandProcessor();
+export default voiceCommandProcessorInstance;

@@ -1,15 +1,14 @@
 // src/components/VoiceCamera.js
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import styles from './VoiceCamera.module.css';
 
 function VoiceCamera({ onCapture, onCancel }) {
-  const [stream, setStream] = useState(null);
-  const [capturedImage, setCapturedImage] = useState(null);
-  const [error, setError] = useState('');
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
+  const [stream, setStream] = useState(null);
+  const [capturedImage, setCapturedImage] = useState(null);
+  const [error, setError] = useState(null);
 
-  // Initialize camera on component mount
   useEffect(() => {
     initCamera();
     
@@ -19,7 +18,7 @@ function VoiceCamera({ onCapture, onCancel }) {
         stream.getTracks().forEach(track => track.stop());
       }
     };
-  }, []);
+  }, [stream]); // Add stream as dependency
 
   const initCamera = async () => {
     try {
