@@ -13,6 +13,7 @@ import VoiceNavigation from './components/VoiceNavigation';
 import AccessibilityPanel from './components/AccessibilityPanel';
 import Login from './pages/Login';   // ✅ import login
 import Signup from './pages/Signup'; // ✅ import signup
+import { API_ENDPOINTS } from './config/api'; // Import API configuration
 import styles from './App.module.css';
 
 function App() {
@@ -37,7 +38,7 @@ function App() {
       const token = localStorage.getItem("token");
       if (token) {
         try {
-          const response = await fetch("http://localhost:5000/api/profile", {
+          const response = await fetch(API_ENDPOINTS.PROFILE.GET, {
             headers: {
               "Authorization": `Bearer ${token}`
             }
@@ -77,7 +78,7 @@ function App() {
       
       if (token) {
         try {
-          const response = await fetch("http://localhost:5000/api/profile", {
+          const response = await fetch(API_ENDPOINTS.PROFILE.GET, {
             headers: {
               "Authorization": `Bearer ${token}`
             }
@@ -154,7 +155,7 @@ function App() {
 
   const fetchSellerProducts = async (token) => {
     try {
-      const response = await fetch("http://localhost:5000/api/products/seller", {
+      const response = await fetch(API_ENDPOINTS.PRODUCTS.SELLER, {
         headers: {
           "Authorization": `Bearer ${token}`
         }
@@ -172,7 +173,7 @@ function App() {
   const handleAddProduct = async (newProduct) => {
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.post("http://localhost:5000/api/products", newProduct, {
+      const res = await axios.post(API_ENDPOINTS.PRODUCTS.LIST, newProduct, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setProducts([...products, res.data]);
@@ -184,7 +185,7 @@ function App() {
   const handleDeleteProduct = async (productId) => {
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`http://localhost:5000/api/products/${productId}`, {
+      await axios.delete(`${API_ENDPOINTS.PRODUCTS.LIST}/${productId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setProducts(products.filter(p => p._id !== productId));

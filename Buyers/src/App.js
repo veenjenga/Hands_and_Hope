@@ -10,6 +10,7 @@ import Settings from './pages/Settings';
 import VoiceNavigation from './components/VoiceNavigation';
 import AccessibilityPanel from './components/AccessibilityPanel';
 import { CartProvider } from './contexts/CartContext';
+import { API_ENDPOINTS } from './config/api'; // Import API configuration
 import styles from './App.module.css';
 
 function App() {
@@ -174,8 +175,25 @@ function App() {
     setIsAccessibilityPanelOpen(!isAccessibilityPanelOpen);
   };
 
-  const handleRegister = (formData) => {
-    console.log('Registration successful! Form Data:', formData);
+  const handleRegister = async (formData) => {
+    try {
+      const response = await fetch(API_ENDPOINTS.AUTH.SIGNUP, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        console.log('Registration successful!');
+        // Here you would typically redirect the user or show a success message
+      } else {
+        console.error('Registration failed');
+      }
+    } catch (error) {
+      console.error('Error during registration:', error);
+    }
   };
 
   const handleModeSelect = (mode) => {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useHistory } from "react-router-dom";   // ✅ Import Link and useHistory
 import VoiceNavigationPopup from '../components/VoiceNavigationPopup';
+import { API_ENDPOINTS } from '../config/api'; // Import API configuration
 import styles from './Login.module.css';
 
 function Login({ onLogin }) {
@@ -35,7 +36,7 @@ function Login({ onLogin }) {
     setError("");
     
     try {
-      const res = await fetch("http://localhost:5000/api/auth/login", {
+      const res = await fetch(API_ENDPOINTS.AUTH.LOGIN, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),

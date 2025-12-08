@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useHistory, Link } from 'react-router-dom';
 import axios from 'axios';
+import { API_ENDPOINTS } from '../config/api'; // Import API configuration
 import styles from './Signup.module.css';
 
 function Signup({ onAutoLogin }) {
@@ -98,7 +99,7 @@ function Signup({ onAutoLogin }) {
     setIsLoading(true);
     
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/signup', formData);
+      const response = await axios.post(API_ENDPOINTS.AUTH.SIGNUP, formData);
       
       if (response.data.token) {
         // Auto-login after successful signup
