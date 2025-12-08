@@ -2,16 +2,20 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useHistory } from 'react-router-dom';
 import annyang from 'annyang';
 import voiceCommandProcessor from '../utils/voiceCommandProcessor';
+import productNLP from '../utils/productNLP';
 import VoiceCamera from './VoiceCamera';
 import styles from './VoiceNavigation.module.css';
 
-function VoiceNavigation({ isVoiceNavigationEnabled, onProductFieldUpdate, currentProductFields }) {
+function VoiceNavigation({ isVoiceNavigationEnabled, onProductFieldUpdate }) {
   const history = useHistory();
   const [isSpeechSupported, setIsSpeechSupported] = useState(true);
   const [isUsingElevenLabs, setIsUsingElevenLabs] = useState(true);
   const [isPlayingFeedback, setIsPlayingFeedback] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
   const [lastMessage, setLastMessage] = useState('');
+  const [interactiveMode, setInteractiveMode] = useState(false);
+  const [pendingQuestions, setPendingQuestions] = useState([]);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [productState, setProductState] = useState({
     name: '',
     price: '',
@@ -19,8 +23,10 @@ function VoiceNavigation({ isVoiceNavigationEnabled, onProductFieldUpdate, curre
     description: '',
     image: ''
   });
+  const [listingFlow, setListingFlow] = useState(false); // Track if we're in product listing flow
   
   const messageQueue = useRef([]);
+  const audioContext = useRef(null);
 
   useEffect(() => {
     const isSpeechRecognitionSupported = 'SpeechRecognition' in window || 'webkitSpeechRecognition' in window;
@@ -33,6 +39,11 @@ function VoiceNavigation({ isVoiceNavigationEnabled, onProductFieldUpdate, curre
     const isSpeechSynthesisSupported = 'speechSynthesis' in window;
     if (!isSpeechSynthesisSupported) {
       console.warn('Speech synthesis is not supported in this browser. Announcements will not be audible.');
+    }
+
+    // Initialize audio context for better audio control
+    if (!audioContext.current) {
+      audioContext.current = new (window.AudioContext || window.webkitAudioContext)();
     }
 
     if (annyang && isVoiceNavigationEnabled) {
@@ -72,13 +83,29 @@ function VoiceNavigation({ isVoiceNavigationEnabled, onProductFieldUpdate, curre
         annyang.abort();
         // Clean up session storage when component unmounts
         sessionStorage.removeItem('voiceNavStarted');
+        // Close audio context
+        if (audioContext.current) {
+          audioContext.current.close();
+        }
       };
     } else if (!annyang) {
       console.error('Annyang is not available. Voice navigation will not work.');
     }
-  }, [history, isVoiceNavigationEnabled, onProductFieldUpdate, currentProductFields]);
+  }, [history, isVoiceNavigationEnabled, onProductFieldUpdate]);
 
   const handleVoiceCommand = (command) => {
+    // If in interactive mode, treat the command as an answer to a question
+    if (interactiveMode && pendingQuestions.length > 0) {
+      handleInteractiveAnswer(command);
+      return;
+    }
+
+    // If in product listing flow, process product description
+    if (listingFlow) {
+      handleProductDescription(command);
+      return;
+    }
+
     // Process the command using our NLP processor
     const action = voiceCommandProcessor.processCommand(command);
     console.log('Processed action:', action);
@@ -97,7 +124,11 @@ function VoiceNavigation({ isVoiceNavigationEnabled, onProductFieldUpdate, curre
         
       case 'NAVIGATE_ADD_PRODUCT':
         history.push('/add-product');
-        announce('Navigating to add product page. You can now set product details.');
+        // Start product listing flow when navigating to add product page
+        setListingFlow(true);
+        setTimeout(() => {
+          announce('What product would you like to list? Please describe it to me.');
+        }, 1000);
         break;
         
       case 'NAVIGATE_INQUIRIES':
@@ -153,10 +184,18 @@ function VoiceNavigation({ isVoiceNavigationEnabled, onProductFieldUpdate, curre
         announce('Product description updated');
         break;
         
+      // New: Process natural language product description
       case 'SAVE_PRODUCT':
         // This would trigger the actual product save in the parent component
         announce('Saving product. Please wait...');
         // In a real implementation, we would call a function to save the product
+        break;
+        
+      // New: Handle natural language product description
+      case 'SET_PRODUCT_DETAILS':
+        const extractedProductInfo = productNLP.extractProductInfo(action.originalCommand);
+        updateProductState(extractedProductInfo);
+        announceProductInfoSummary(extractedProductInfo);
         break;
         
       // Camera commands
@@ -204,8 +243,20 @@ function VoiceNavigation({ isVoiceNavigationEnabled, onProductFieldUpdate, curre
         announce('Available commands: ' + commandsList.join('. ') + '.');
         break;
         
+      // Interactive mode commands
+      case 'START_INTERACTIVE_MODE':
+        startInteractiveMode();
+        break;
+        
       // Generic commands
       case 'CANCEL_ACTION':
+        if (interactiveMode) {
+          exitInteractiveMode();
+        }
+        if (listingFlow) {
+          setListingFlow(false);
+          announce('Exited product listing mode.');
+        }
         announce('Action cancelled');
         break;
         
@@ -218,11 +269,177 @@ function VoiceNavigation({ isVoiceNavigationEnabled, onProductFieldUpdate, curre
         break;
         
       case 'UNKNOWN_COMMAND':
-        announce(`Sorry, I didn't understand "${action.originalCommand}". Say "what can I say" for a list of commands.`);
+        // If we're in listing flow, treat as product description
+        if (listingFlow) {
+          handleProductDescription(action.originalCommand);
+        } else {
+          // Try to interpret as product description
+          const unknownProductInfo = productNLP.extractProductInfo(action.originalCommand);
+          if (unknownProductInfo.name || unknownProductInfo.price || unknownProductInfo.category || unknownProductInfo.description) {
+            updateProductState(unknownProductInfo);
+            announceProductInfoSummary(unknownProductInfo);
+          } else {
+            announce(`Sorry, I didn't understand "${action.originalCommand}". Say "what can I say" for a list of commands.`);
+          }
+        }
         break;
         
       default:
         announce('Command not recognized');
+    }
+  };
+
+  const handleProductDescription = (description) => {
+    const productInfo = productNLP.extractProductInfo(description);
+    
+    // Update product state with extracted info
+    updateProductState(productInfo);
+    
+    // Generate questions for missing information
+    const questions = productNLP.generateQuestions({ ...productState, ...productInfo });
+    
+    if (questions.length > 0) {
+      // Enter interactive mode to ask for missing details
+      setInteractiveMode(true);
+      setPendingQuestions(questions);
+      setCurrentQuestionIndex(0);
+      announce(questions[0]);
+    } else {
+      // All information collected, ask to save
+      announce("I've collected all the information for your product. Say 'save product' to list it.");
+    }
+  };
+
+  const updateProductState = (productInfo) => {
+    const newState = { ...productState };
+    
+    if (productInfo.name) {
+      newState.name = productInfo.name;
+      if (onProductFieldUpdate) {
+        onProductFieldUpdate('name', productInfo.name);
+      }
+    }
+    
+    if (productInfo.price) {
+      newState.price = productInfo.price;
+      if (onProductFieldUpdate) {
+        onProductFieldUpdate('price', productInfo.price);
+      }
+    }
+    
+    if (productInfo.category) {
+      newState.category = productInfo.category;
+      if (onProductFieldUpdate) {
+        onProductFieldUpdate('category', productInfo.category);
+      }
+    }
+    
+    if (productInfo.description) {
+      newState.description = productInfo.description;
+      if (onProductFieldUpdate) {
+        onProductFieldUpdate('description', productInfo.description);
+      }
+    }
+    
+    setProductState(newState);
+  };
+
+  const announceProductInfoSummary = (productInfo) => {
+    const parts = [];
+    
+    if (productInfo.name) {
+      parts.push(`Product name: ${productInfo.name}`);
+    }
+    
+    if (productInfo.price) {
+      parts.push(`Price: $${productInfo.price}`);
+    }
+    
+    if (productInfo.category) {
+      parts.push(`Category: ${productInfo.category}`);
+    }
+    
+    if (productInfo.description) {
+      parts.push(`Description: ${productInfo.description.substring(0, 50)}${productInfo.description.length > 50 ? '...' : ''}`);
+    }
+    
+    if (parts.length > 0) {
+      announce(`I've extracted the following information: ${parts.join(', ')}.`);
+    } else {
+      announce("I couldn't extract any product information from that description. Would you like to try again or answer some questions about your product?");
+    }
+  };
+
+  const startInteractiveMode = () => {
+    const questions = productNLP.generateQuestions(productState);
+    if (questions.length > 0) {
+      setInteractiveMode(true);
+      setPendingQuestions(questions);
+      setCurrentQuestionIndex(0);
+      announce(questions[0]);
+    } else {
+      announce("All product information has been filled. Say 'save product' to save your product.");
+    }
+  };
+
+  const exitInteractiveMode = () => {
+    setInteractiveMode(false);
+    setPendingQuestions([]);
+    setCurrentQuestionIndex(0);
+    announce("Exited interactive mode.");
+  };
+
+  const handleInteractiveAnswer = (answer) => {
+    const currentQuestion = pendingQuestions[currentQuestionIndex];
+    let fieldUpdated = false;
+    
+    // Map questions to fields
+    if (currentQuestion.includes("name")) {
+      setProductState(prev => ({ ...prev, name: answer }));
+      if (onProductFieldUpdate) {
+        onProductFieldUpdate('name', answer);
+      }
+      fieldUpdated = true;
+    } else if (currentQuestion.includes("price")) {
+      // Extract numeric value from price
+      const priceMatch = answer.match(/\$?(\d+(?:\.\d+)?)/);
+      if (priceMatch && priceMatch[1]) {
+        setProductState(prev => ({ ...prev, price: priceMatch[1] }));
+        if (onProductFieldUpdate) {
+          onProductFieldUpdate('price', priceMatch[1]);
+        }
+        fieldUpdated = true;
+      }
+    } else if (currentQuestion.includes("category")) {
+      setProductState(prev => ({ ...prev, category: answer }));
+      if (onProductFieldUpdate) {
+        onProductFieldUpdate('category', answer);
+      }
+      fieldUpdated = true;
+    } else if (currentQuestion.includes("describe") || currentQuestion.includes("detail")) {
+      setProductState(prev => ({ ...prev, description: answer }));
+      if (onProductFieldUpdate) {
+        onProductFieldUpdate('description', answer);
+      }
+      fieldUpdated = true;
+    }
+    
+    if (fieldUpdated) {
+      announce(`Got it. ${answer}`);
+    }
+    
+    // Move to next question or exit interactive mode
+    if (currentQuestionIndex < pendingQuestions.length - 1) {
+      const nextIndex = currentQuestionIndex + 1;
+      setCurrentQuestionIndex(nextIndex);
+      setTimeout(() => {
+        announce(pendingQuestions[nextIndex]);
+      }, 1000);
+    } else {
+      // All questions answered
+      exitInteractiveMode();
+      setListingFlow(false);
+      announce("All product information has been collected. Say 'save product' to list your product.");
     }
   };
 
@@ -293,13 +510,14 @@ function VoiceNavigation({ isVoiceNavigationEnabled, onProductFieldUpdate, curre
           }
         };
       } else {
-        // Fallback to browser speech synthesis if Eleven Labs fails
-        fallbackToBrowserSpeech(message);
+        console.error('Eleven Labs API error:', response.status);
+        // Even if Eleven Labs fails, we still want to provide feedback
+        announce(message); // This will use the fallback
       }
     } catch (error) {
       console.error('Eleven Labs API error:', error);
-      // Fallback to browser speech synthesis if Eleven Labs fails
-      fallbackToBrowserSpeech(message);
+      // Even if Eleven Labs fails, we still want to provide feedback
+      announce(message); // This will use the fallback
     }
   };
 

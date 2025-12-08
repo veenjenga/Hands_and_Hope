@@ -12,11 +12,17 @@ function AddProduct({ onAddProduct }) {
   const [description, setDescription] = useState('');
   const [isVoiceNavActive, setIsVoiceNavActive] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [voicePrompt, setVoicePrompt] = useState('');
 
   // Check if voice navigation is enabled
   useEffect(() => {
     const voiceNavPref = localStorage.getItem('voiceNavigationPreference');
     setIsVoiceNavActive(voiceNavPref === 'enabled');
+    
+    // When component mounts and voice nav is active, prompt user
+    if (voiceNavPref === 'enabled') {
+      setVoicePrompt('What product would you like to list? Please describe it to me.');
+    }
   }, []);
 
   // Handle voice command updates
@@ -95,8 +101,7 @@ function AddProduct({ onAddProduct }) {
       <h2>Add New Product</h2>
       {isVoiceNavActive && (
         <div className={styles.voiceHelp}>
-          <p>Voice Navigation Active: You can use natural language commands like "set product name to [name]", "set product price to [amount]", "take a photo", etc.</p>
-          <p>Say "what can I say" for a full list of commands.</p>
+          <p>Voice Navigation Active: {voicePrompt}</p>
         </div>
       )}
       <form onSubmit={handleSubmit} className={styles.form}>
@@ -158,8 +163,8 @@ function AddProduct({ onAddProduct }) {
               onClick={() => {
                 // This would trigger the voice command to open camera
                 if (window.annyang) {
-                  // In a real implementation, we would dispatch a custom event or call a function
-                  console.log('Voice command: open camera');
+                  // Simulate voice command
+                  window.annyang.trigger('take a photo');
                 }
               }}
             >

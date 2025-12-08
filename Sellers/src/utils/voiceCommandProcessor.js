@@ -61,6 +61,18 @@ class VoiceCommandProcessor {
         action: 'SAVE_PRODUCT'
       },
       
+      // Natural language product description
+      {
+        pattern: /(i want to sell|i'm selling|selling|have a product|product is)\s+(.+)/i,
+        action: 'SET_PRODUCT_DETAILS',
+        captureIndex: 2
+      },
+      {
+        pattern: /(my product|the item)\s+(is|looks like|seems like)\s+(.+)/i,
+        action: 'SET_PRODUCT_DETAILS',
+        captureIndex: 3
+      },
+      
       // Camera commands
       {
         pattern: /(take|capture)\s+(a\s+)?(photo|picture|image)/i,
@@ -95,6 +107,12 @@ class VoiceCommandProcessor {
       {
         pattern: /(decrease|make)\s+(font|text)\s+(smaller)/i,
         action: 'DECREASE_FONT_SIZE'
+      },
+      
+      // Interactive mode commands
+      {
+        pattern: /(ask me questions|interactive mode|question mode)/i,
+        action: 'START_INTERACTIVE_MODE'
       },
       
       // Help commands
@@ -157,6 +175,8 @@ class VoiceCommandProcessor {
     return [
       "Navigate: 'Go to dashboard', 'Open products', 'Show inquiries'",
       "Product Management: 'Add new product', 'Set product name to [name]', 'Set product price to [amount]'",
+      "Natural Language: 'I want to sell [product description]', 'My product is [description]'",
+      "Interactive Mode: 'Ask me questions' to enter interactive mode",
       "Camera: 'Take a photo', 'Use this image'",
       "Settings: 'Turn on voice navigation', 'Increase font size', 'Enable voice feedback'",
       "Help: 'What can I say', 'Repeat last message'",
