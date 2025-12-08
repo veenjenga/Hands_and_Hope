@@ -4,52 +4,71 @@
   align-items: center;
   min-height: 100vh;
   background: linear-gradient(135deg, #1a237e 0%, #303f9f 100%);
-  padding: 1rem;
+  padding: 0.5rem;
 }
 
 .signupForm {
   background: white;
-  padding: 1.5rem;
+  padding: 1.25rem;
   border-radius: 0.5rem;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
   width: 100%;
-  max-width: 500px;
+  max-width: 380px;
 }
 
 .title {
   text-align: center;
   color: #1a237e;
-  margin-bottom: 1.5rem;
-  font-size: 1.75rem;
+  margin-bottom: 0.75rem;
+  font-size: 1.3rem;
 }
 
 .subtitle {
   text-align: center;
   color: #666;
-  margin-bottom: 2rem;
-  font-size: 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.8rem;
 }
 
 .errorMessage {
   background: #ffebee;
   color: #c62828;
-  padding: 0.75rem;
+  padding: 0.5rem;
   border-radius: 0.25rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
   text-align: center;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
+}
+
+.welcomeMessage {
+  text-align: center;
+  padding: 1rem;
+  background: #e8f5e9;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.welcomeMessage h3 {
+  color: #2e7d32;
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.welcomeMessage p {
+  color: #388e3c;
+  font-size: 0.85rem;
 }
 
 .formGroup {
-  margin-bottom: 1.25rem;
+  margin-bottom: 0.6rem;
 }
 
 .input {
   width: 100%;
-  padding: 0.75rem;
+  padding: 0.45rem;
   border: 1px solid #ddd;
   border-radius: 0.25rem;
-  font-size: 1rem;
+  font-size: 0.85rem;
   transition: border-color 0.3s;
   box-sizing: border-box;
 }
@@ -66,22 +85,114 @@
 
 .errorText {
   color: #c62828;
-  font-size: 0.875rem;
-  margin-top: 0.25rem;
+  font-size: 0.7rem;
+  margin-top: 0.2rem;
   display: block;
+}
+
+label {
+  font-size: 0.8rem;
+  margin-bottom: 0.2rem;
+  display: block;
+  color: #333;
+}
+
+.voiceAssistantSection {
+  margin: 0.8rem 0;
+  padding: 0.6rem;
+  border: 1px dashed #1a237e;
+  border-radius: 0.5rem;
+  background-color: #f5f7ff;
+}
+
+.voiceButton {
+  width: 100%;
+  background: #1a237e;
+  color: white;
+  padding: 0.45rem;
+  border: none;
+  border-radius: 0.25rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.3s;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.voiceButton:hover:not(:disabled) {
+  background: #2c357e;
+}
+
+.voiceButton:disabled {
+  background: #bbb;
+  cursor: not-allowed;
+}
+
+.listeningIndicator {
+  text-align: center;
+  margin: 0.6rem 0;
+}
+
+.listeningIndicator p {
+  font-size: 0.8rem;
+  margin: 0.3rem 0;
+}
+
+.pulse {
+  width: 12px;
+  height: 12px;
+  background-color: #1a237e;
+  border-radius: 50%;
+  margin: 0 auto 0.3rem;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.9);
+    opacity: 0.7;
+  }
+}
+
+.transcript {
+  background: #e8f4f8;
+  padding: 0.45rem;
+  border-radius: 0.25rem;
+  margin: 0.6rem 0;
+  font-size: 0.75rem;
+}
+
+.voiceHint {
+  font-size: 0.65rem;
+  color: #666;
+  margin-top: 0.4rem;
+  font-style: italic;
+  text-align: center;
 }
 
 .submitButton {
   width: 100%;
   background: #1a237e;
   color: white;
-  padding: 0.75rem;
+  padding: 0.5rem;
   border: none;
   border-radius: 0.25rem;
-  font-size: 1rem;
+  font-size: 0.9rem;
   cursor: pointer;
   transition: background 0.3s;
   font-weight: 500;
+  margin-top: 0.3rem;
 }
 
 .submitButton:hover:not(:disabled) {
@@ -95,8 +206,9 @@
 
 .loginLink {
   text-align: center;
-  margin-top: 1.5rem;
+  margin-top: 0.8rem;
   color: #666;
+  font-size: 0.8rem;
 }
 
 .loginLink a {
@@ -111,6 +223,34 @@
 
 @media (max-width: 480px) {
   .signupForm {
-    padding: 1.5rem;
+    padding: 1rem;
+    max-width: 350px;
+  }
+  
+  .title {
+    font-size: 1.1rem;
+  }
+  
+  .subtitle {
+    font-size: 0.7rem;
+  }
+  
+  .input {
+    padding: 0.4rem;
+    font-size: 0.8rem;
+  }
+  
+  .voiceButton {
+    padding: 0.4rem;
+    font-size: 0.8rem;
+  }
+  
+  .submitButton {
+    padding: 0.45rem;
+    font-size: 0.85rem;
+  }
+  
+  .listeningIndicator p {
+    font-size: 0.75rem;
   }
 }

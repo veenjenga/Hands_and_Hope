@@ -4,7 +4,7 @@ import voiceCommandProcessor from '../utils/voiceCommandProcessor';
 import productNLP from '../utils/productNLP';
 import VoiceCamera from './VoiceCamera';
 
-function VoiceNavigation({ isVoiceNavigationEnabled }) {
+function VoiceNavigation({ isVoiceNavigationEnabled, isNewUser, setIsNewUser }) {
   const history = useHistory();
   const [isSpeechSupported, setIsSpeechSupported] = useState(true);
   const [isPlayingFeedback, setIsPlayingFeedback] = useState(false);
@@ -803,6 +803,20 @@ function VoiceNavigation({ isVoiceNavigationEnabled }) {
       window.removeEventListener('startWelcomeTour', handleStartWelcomeTour);
     };
   }, [announceWelcomeTourStep]);
+
+  // Start welcome tour for new users
+  useEffect(() => {
+    if (isNewUser && isVoiceNavigationEnabled) {
+      // Start the welcome tour after a short delay
+      setTimeout(() => {
+        setWelcomeTour(true);
+        setTourStep(0);
+        announceWelcomeTourStep(0);
+        // Mark user as no longer new
+        setIsNewUser(false);
+      }, 2000);
+    }
+  }, [isNewUser, isVoiceNavigationEnabled, setIsNewUser, announceWelcomeTourStep]);
 
   // Listen for product listing start event
   useEffect(() => {

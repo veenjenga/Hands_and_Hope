@@ -25,6 +25,7 @@ function App() {
   const [isAccessibilityPanelOpen, setIsAccessibilityPanelOpen] = useState(false);
   const [isVoiceNavigationEnabled, setIsVoiceNavigationEnabled] = useState(false);
   const [voiceFeedback, setVoiceFeedback] = useState(false);
+  const [isNewUser, setIsNewUser] = useState(false); // Track if user is new (just signed up)
 
   // ✅ track authentication
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem("token"));
@@ -142,6 +143,7 @@ function App() {
       setCurrentUser(userData);
     }
     setIsAuthenticated(true);
+    setIsNewUser(true); // Mark as new user
     
     // Fetch products for the authenticated seller
     fetchSellerProducts(token);
@@ -294,6 +296,8 @@ function App() {
               {isVoiceNavigationEnabled && (
                 <VoiceNavigation 
                   isVoiceNavigationEnabled={isVoiceNavigationEnabled}
+                  isNewUser={isNewUser}
+                  setIsNewUser={setIsNewUser}
                 />
               )}
             </>

@@ -158,6 +158,12 @@ function Login({ onLogin }) {
     localStorage.setItem('voiceNavigationPreference', 'enabled');
     // This would typically update app state to enable voice navigation
     console.log('Voice navigation enabled');
+    
+    // Start the welcome tour for first-time users
+    setTimeout(() => {
+      // Dispatch event to start the welcome tour
+      window.dispatchEvent(new CustomEvent('startWelcomeTour'));
+    }, 1000);
   };
 
   const handleDisableVoice = () => {
