@@ -1,0 +1,135 @@
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.popup {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  position: relative;
+}
+
+.title {
+  color: #111827;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.message {
+  color: #6b7280;
+  font-size: 1rem;
+  line-height: 1.5;
+  margin-bottom: 1.5rem;
+}
+
+.listeningIndicator {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  background-color: #f3f4f6;
+  border-radius: 8px;
+}
+
+.pulse {
+  width: 20px;
+  height: 20px;
+  background-color: #3b82f6;
+  border-radius: 50%;
+  margin: 0 auto 1rem;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.9);
+    opacity: 0.7;
+  }
+}
+
+.listeningText {
+  color: #4b5563;
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.recognizedText {
+  color: #3b82f6;
+  font-weight: 500;
+}
+
+.buttonGroup {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.button {
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+.yesButton {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.yesButton:hover {
+  background-color: #2563eb;
+  transform: translateY(-2px);
+}
+
+.noButton {
+  background-color: #e5e7eb;
+  color: #6b7280;
+}
+
+.noButton:hover {
+  background-color: #d1d5db;
+  transform: translateY(-2px);
+}
+
+/* High contrast mode */
+.popupHighContrast {
+  background: #000;
+  border: 2px solid #fff;
+  color: #fff;
+}
+
+.titleHighContrast {
+  color: #fff;
+}
+
+.messageHighContrast {
+  color: #fff;
+}
+
+.buttonHighContrast {
+  background: #fff;
+  color: #000;
+}

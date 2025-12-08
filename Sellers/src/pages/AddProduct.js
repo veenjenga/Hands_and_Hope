@@ -1,5 +1,5 @@
 // src/pages/AddProduct.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
 import styles from './AddProduct.module.css';
 
@@ -9,24 +9,96 @@ function AddProduct({ onAddProduct }) {
   const [price, setPrice] = useState('');
   const [category, setCategory] = useState('');
   const [image, setImage] = useState('');
+  const [description, setDescription] = useState('');
+  const [isVoiceNavActive, setIsVoiceNavActive] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
-  const handleSubmit = (e) => {
+  // Check if voice navigation is enabled
+  useEffect(() => {
+    const voiceNavPref = localStorage.getItem('voiceNavigationPreference');
+    setIsVoiceNavActive(voiceNavPref === 'enabled');
+  }, []);
+
+  // Handle voice command updates
+  const handleVoiceFieldUpdate = (field, value) => {
+    switch (field) {
+      case 'name':
+        setName(value);
+        break;
+      case 'price':
+        setPrice(value);
+        break;
+      case 'category':
+        setCategory(value);
+        break;
+      case 'description':
+        setDescription(value);
+        break;
+      case 'image':
+        setImage(value);
+        break;
+      default:
+        break;
+    }
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const newProduct = {
-      id: Date.now(),
+    setIsSaving(true);
+    
+    // Prepare product data
+    const productData = {
       name,
-      price: `$${parseFloat(price).toFixed(2)}`,
-      status: 'Active',
+      price: parseFloat(price),
       category,
       image: image || 'https://via.placeholder.com/300x200',
+      description
     };
-    onAddProduct(newProduct);
-    history.push('/products');
+    
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('Authentication required. Please log in.');
+        setIsSaving(false);
+        return;
+      }
+      
+      const response = await fetch('http://localhost:5000/api/products', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(productData)
+      });
+      
+      if (response.ok) {
+        const newProduct = await response.json();
+        // onAddProduct callback for any additional handling
+        onAddProduct(newProduct);
+        // Navigate to products page
+        history.push('/products');
+      } else {
+        const errorData = await response.json();
+        alert(`Error: ${errorData.error || 'Failed to add product'}`);
+      }
+    } catch (error) {
+      console.error('Error adding product:', error);
+      alert('Network error. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
     <div className={styles.addProduct}>
       <h2>Add New Product</h2>
+      {isVoiceNavActive && (
+        <div className={styles.voiceHelp}>
+          <p>Voice Navigation Active: You can use natural language commands like "set product name to [name]", "set product price to [amount]", "take a photo", etc.</p>
+          <p>Say "what can I say" for a full list of commands.</p>
+        </div>
+      )}
       <form onSubmit={handleSubmit} className={styles.form}>
         <div className={styles.formGroup}>
           <label htmlFor="name">Product Name</label>
@@ -60,6 +132,17 @@ function AddProduct({ onAddProduct }) {
           />
         </div>
         <div className={styles.formGroup}>
+          <label htmlFor="description">Description</label>
+          <textarea
+            id="description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            required
+            rows="4"
+            className={styles.textarea}
+          />
+        </div>
+        <div className={styles.formGroup}>
           <label htmlFor="image">Image URL</label>
           <input
             type="url"
@@ -68,9 +151,28 @@ function AddProduct({ onAddProduct }) {
             onChange={(e) => setImage(e.target.value)}
             placeholder="https://example.com/image.jpg"
           />
+          {isVoiceNavActive && (
+            <button 
+              type="button" 
+              className={styles.voiceCameraButton}
+              onClick={() => {
+                // This would trigger the voice command to open camera
+                if (window.annyang) {
+                  // In a real implementation, we would dispatch a custom event or call a function
+                  console.log('Voice command: open camera');
+                }
+              }}
+            >
+              Take Photo with Voice
+            </button>
+          )}
         </div>
-        <button type="submit" className={styles.submit}>
-          Add Product
+        <button 
+          type="submit" 
+          className={styles.submit}
+          disabled={isSaving}
+        >
+          {isSaving ? 'Adding Product...' : 'Add Product'}
         </button>
       </form>
     </div>

@@ -1,0 +1,160 @@
+/* src/components/VoiceCamera.module.css */
+.cameraOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+}
+
+.cameraContainer {
+  width: 90%;
+  max-width: 500px;
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+.title {
+  text-align: center;
+  margin-top: 0;
+  color: #111827;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.cameraView {
+  position: relative;
+  width: 100%;
+  padding-top: 75%; /* 4:3 Aspect Ratio */
+  background: #000;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.videoFeed {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.capturedImage {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.controls {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.captureButton {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid #e5e7eb;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.captureButton:hover {
+  background: #f9fafb;
+  transform: scale(1.05);
+}
+
+.captureCircle {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: #ef4444;
+}
+
+.useButton, .retakeButton, .cancelButton, .retryButton {
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+.useButton {
+  background: #10b981;
+  color: white;
+}
+
+.useButton:hover {
+  background: #059669;
+  transform: translateY(-2px);
+}
+
+.retakeButton {
+  background: #3b82f6;
+  color: white;
+}
+
+.retakeButton:hover {
+  background: #2563eb;
+  transform: translateY(-2px);
+}
+
+.cancelButton, .retryButton {
+  background: #ef4444;
+  color: white;
+}
+
+.cancelButton:hover, .retryButton:hover {
+  background: #dc2626;
+  transform: translateY(-2px);
+}
+
+.error {
+  text-align: center;
+  padding: 20px;
+}
+
+.error p {
+  color: #ef4444;
+  margin-bottom: 20px;
+  font-size: 1.1rem;
+}
+
+/* High contrast mode */
+.cameraContainerHighContrast {
+  background: #000;
+  border: 2px solid #fff;
+  color: #fff;
+}
+
+.titleHighContrast {
+  color: #fff;
+}
+
+.useButtonHighContrast,
+.retakeButtonHighContrast,
+.cancelButtonHighContrast,
+.retryButtonHighContrast {
+  background: #fff;
+  color: #000;
+}

@@ -18,7 +18,7 @@ import styles from './App.module.css';
 function App() {
   const [activeNavItem, setActiveNavItem] = useState('Dashboard');
   const [highContrastMode, setHighContrastMode] = useState(false);
-  const [fontSize, setFontSize] = useState(1);
+  const [fontSize, setFontSize] = useState(16);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedStatus, setSelectedStatus] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
@@ -111,6 +111,26 @@ function App() {
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
+  // Listen for high contrast toggle event from Settings
+  useEffect(() => {
+    const handleToggleHighContrast = (event) => {
+      setHighContrastMode(event.detail);
+    };
+
+    window.addEventListener('toggleHighContrast', handleToggleHighContrast);
+    return () => window.removeEventListener('toggleHighContrast', handleToggleHighContrast);
+  }, []);
+
+  // Check voice navigation preference on app load
+  useEffect(() => {
+    const storedVoicePref = localStorage.getItem('voiceNavigationPreference');
+    if (storedVoicePref === 'enabled') {
+      setIsVoiceNavigationEnabled(true);
+    } else if (storedVoicePref === 'disabled') {
+      setIsVoiceNavigationEnabled(false);
+    }
+  }, []);
+
   // Function to handle auto-login after signup
   const handleAutoLogin = (token, userData) => {
     localStorage.setItem("token", token);
@@ -156,19 +176,26 @@ function App() {
 
   const handleNavItemClick = (item) => setActiveNavItem(item);
   const toggleHighContrastMode = () => setHighContrastMode(!highContrastMode);
-  const increaseFontSize = () => fontSize < 1.5 && setFontSize((prev) => prev + 0.1);
-  const decreaseFontSize = () => fontSize > 0.8 && setFontSize((prev) => prev - 0.1);
-  const toggleVoiceNavigation = () => setIsVoiceNavigationEnabled(!isVoiceNavigationEnabled);
+  const increaseFontSize = () => fontSize < 24 && setFontSize((prev) => prev + 2);
+  const decreaseFontSize = () => fontSize > 14 && setFontSize((prev) => prev - 2);
+  const toggleVoiceNavigation = () => {
+    const newVoiceNavState = !isVoiceNavigationEnabled;
+    setIsVoiceNavigationEnabled(newVoiceNavState);
+    // Save preference to localStorage
+    localStorage.setItem('voiceNavigationPreference', newVoiceNavState ? 'enabled' : 'disabled');
+  };
   const resetAccessibilitySettings = () => {
     setHighContrastMode(false);
-    setFontSize(1);
+    setFontSize(16);
     setIsVoiceNavigationEnabled(false);
     setVoiceFeedback(false);
+    // Save preference to localStorage
+    localStorage.setItem('voiceNavigationPreference', 'disabled');
   };
 
   return (
     <Router>
-      <div className={styles.appContainer} style={{ fontSize: `${fontSize}rem` }}>
+      <div className={styles.appContainer} style={{ fontSize: `${fontSize}px` }}>
         <Switch>
           {/* Public Routes */}
           <Route path="/login">
@@ -220,8 +247,8 @@ function App() {
                   <Route path="/settings">
                     <Settings
                       highContrastMode={highContrastMode}
-                      fontSize={fontSize * 16}
-                      setFontSize={(newSize) => setFontSize(newSize / 16)}
+                      fontSize={fontSize}
+                      setFontSize={setFontSize}
                       isVoiceNavigationEnabled={isVoiceNavigationEnabled}
                       setIsVoiceNavigationEnabled={setIsVoiceNavigationEnabled}
                       voiceFeedback={voiceFeedback}
@@ -248,7 +275,9 @@ function App() {
               />
 
               {isVoiceNavigationEnabled && (
-                <VoiceNavigation isVoiceNavigationEnabled={isVoiceNavigationEnabled} />
+                <VoiceNavigation 
+                  isVoiceNavigationEnabled={isVoiceNavigationEnabled}
+                />
               )}
             </>
           ) : (

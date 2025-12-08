@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styles from "./Settings.module.css";
 
 function Settings({
@@ -10,13 +10,58 @@ function Settings({
   voiceFeedback,
   setVoiceFeedback,
 }) {
-  const [navigationMode, setNavigationMode] = useState("Screen"); // Default to Screen mode
+  const [navigationMode, setNavigationMode] = useState(isVoiceNavigationEnabled ? "Voice" : "Screen");
   const [profile, setProfile] = useState({
-    fullName: "John Doe",
-    businessName: "JD Electronics",
-    email: "john.doe@example.com",
-    phoneNumber: "+1 (555) 123-4567",
+    fullName: "",
+    businessName: "",
+    email: "",
+    phoneNumber: "",
   });
+  const [loading, setLoading] = useState(true);
+  const [isPlayingFeedback, setIsPlayingFeedback] = useState(false); // Prevent overlapping feedback
+
+  // Fetch user data from backend on component mount
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          console.error("No authentication token found");
+          setLoading(false);
+          return;
+        }
+
+        const response = await fetch("http://localhost:5000/api/profile", {
+          headers: {
+            "Authorization": `Bearer ${token}`,
+          },
+        });
+
+        if (response.ok) {
+          const userData = await response.json();
+          setProfile({
+            fullName: userData.name || "",
+            businessName: userData.businessName || "",
+            email: userData.email || "",
+            phoneNumber: userData.phone || "",
+          });
+        } else {
+          console.error("Failed to fetch user profile");
+        }
+      } catch (error) {
+        console.error("Error fetching user profile:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserProfile();
+  }, []);
+
+  // Update navigation mode when isVoiceNavigationEnabled changes
+  useEffect(() => {
+    setNavigationMode(isVoiceNavigationEnabled ? "Voice" : "Screen");
+  }, [isVoiceNavigationEnabled]);
 
   const increaseFontSize = () => {
     if (fontSize < 24) setFontSize(fontSize + 2);
@@ -26,38 +71,42 @@ function Settings({
     if (fontSize > 14) setFontSize(fontSize - 2);
   };
 
-  const toggleHighContrast = () => {
-    // This should be handled in App.js, but kept here for reference
-  };
-
   const handleProfileChange = (e) => {
     const { name, value } = e.target;
     setProfile((prev) => ({ ...prev, [name]: value }));
   };
 
-  // 🔹 Save profile to backend
+  // Save profile to backend
   const saveSettings = async () => {
     try {
-      const response = await fetch("/api/sellers/profile", {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("Authentication required. Please log in again.");
+        return;
+      }
+
+      const response = await fetch("http://localhost:5000/api/profile", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`, // JWT token
+          "Authorization": `Bearer ${token}`,
         },
-        body: JSON.stringify(profile),
+        body: JSON.stringify({
+          name: profile.fullName,
+          businessName: profile.businessName,
+          email: profile.email,
+          phone: profile.phoneNumber,
+        }),
       });
 
       const data = await response.json();
       if (response.ok) {
         if (voiceFeedback) {
-          const utterance = new SpeechSynthesisUtterance(
-            "Settings saved successfully"
-          );
-          window.speechSynthesis.speak(utterance);
+          playVoiceFeedback("Settings saved successfully");
         }
         alert("Profile updated successfully");
       } else {
-        alert(data.message || "Error updating profile");
+        alert(data.error || "Error updating profile");
       }
     } catch (error) {
       console.error("Error:", error);
@@ -65,12 +114,122 @@ function Settings({
     }
   };
 
-  // 🔹 Deactivate account
+  const playVoiceFeedback = async (message) => {
+    // Prevent overlapping feedback
+    if (isPlayingFeedback) return;
+    
+    setIsPlayingFeedback(true);
+    
+    try {
+      // Use Eleven Labs API for high-quality speech synthesis
+      const response = await fetch('https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM', {
+        method: 'POST',
+        headers: {
+          'Accept': 'audio/mpeg',
+          'xi-api-key': 'sk_20734ae2903209818628e37d95e46a5c6f59a503a17d1eb3',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          text: message,
+          model_id: 'eleven_monolingual_v1',
+          voice_settings: {
+            stability: 0.5,
+            similarity_boost: 0.5
+          }
+        })
+      });
+      
+      if (response.ok) {
+        const audioBlob = await response.blob();
+        const audioUrl = URL.createObjectURL(audioBlob);
+        const audio = new Audio(audioUrl);
+        
+        // Play the Eleven Labs audio
+        audio.play();
+        
+        // Reset the playing flag when audio finishes
+        audio.onended = () => {
+          setIsPlayingFeedback(false);
+        };
+      } else {
+        // Fallback to browser speech synthesis if Eleven Labs fails
+        fallbackToBrowserSpeech(message);
+      }
+    } catch (error) {
+      console.error('Eleven Labs API error:', error);
+      // Fallback to browser speech synthesis if Eleven Labs fails
+      fallbackToBrowserSpeech(message);
+    }
+  };
+
+  const fallbackToBrowserSpeech = (text) => {
+    // Cancel any ongoing speech synthesis to prevent overlap
+    if (speechSynthesis.speaking) {
+      speechSynthesis.cancel();
+    }
+    
+    if ('speechSynthesis' in window) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 1.0;
+      utterance.pitch = 1.0;
+      utterance.volume = 1.0;
+      
+      // Reset the playing flag when speech ends
+      utterance.onend = () => {
+        setIsPlayingFeedback(false);
+      };
+      
+      window.speechSynthesis.speak(utterance);
+    } else {
+      // Reset the playing flag if no speech synthesis available
+      setIsPlayingFeedback(false);
+    }
+  };
+
+  // Toggle voice navigation
+  const toggleVoiceNavigation = () => {
+    const newState = !isVoiceNavigationEnabled;
+    setIsVoiceNavigationEnabled(newState);
+    setNavigationMode(newState ? "Voice" : "Screen");
+    // Save preference to localStorage
+    localStorage.setItem('voiceNavigationPreference', newState ? 'enabled' : 'disabled');
+    
+    // Provide voice feedback (only if not already playing)
+    if (!isPlayingFeedback) {
+      if (newState) {
+        playVoiceFeedback("Voice navigation is now enabled");
+      } else {
+        playVoiceFeedback("Voice navigation is now disabled");
+      }
+    }
+  };
+
+  // Toggle voice feedback
+  const toggleVoiceFeedback = () => {
+    const newState = !voiceFeedback;
+    setVoiceFeedback(newState);
+    
+    // Provide voice feedback (only if not already playing)
+    if (!isPlayingFeedback) {
+      playVoiceFeedback(newState ? "Voice feedback is now enabled" : "Voice feedback is now disabled");
+    }
+  };
+
+  // Deactivate account
   const deactivateAccount = async () => {
     try {
-      await fetch("/api/sellers/deactivate", {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("Authentication required. Please log in again.");
+        return;
+      }
+
+      await fetch("http://localhost:5000/api/sellers/deactivate", {
         method: "PUT",
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        headers: { 
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
       });
       alert("Account deactivated");
     } catch (err) {
@@ -79,15 +238,25 @@ function Settings({
     }
   };
 
-  // 🔹 Delete account
+  // Delete account
   const deleteAccount = async () => {
     if (window.confirm("Are you sure? This cannot be undone!")) {
       try {
-        await fetch("/api/sellers/delete", {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          alert("Authentication required. Please log in again.");
+          return;
+        }
+
+        await fetch("http://localhost:5000/api/sellers/delete", {
           method: "DELETE",
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+          headers: { 
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+          },
         });
         localStorage.removeItem("token");
+        localStorage.removeItem("user");
         window.location.href = "/login";
       } catch (err) {
         console.error(err);
@@ -95,6 +264,19 @@ function Settings({
       }
     }
   };
+
+  if (loading) {
+    return (
+      <main
+        className={`${styles.main} ${highContrastMode ? styles.highContrast : ""}`}
+      >
+        <div className={styles.container}>
+          <h1 className={styles.title}>Settings</h1>
+          <p>Loading user data...</p>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main
@@ -135,7 +317,7 @@ function Settings({
             />
           </div>
           <div className={styles.formGroup}>
-            <label className={styles.label}>Email Address</label>
+            <label className={styles.label}>Email</label>
             <input
               type="email"
               name="email"
@@ -158,6 +340,14 @@ function Settings({
               }`}
             />
           </div>
+          <button
+            onClick={saveSettings}
+            className={`${styles.saveButton} ${
+              highContrastMode ? styles.saveButtonHighContrast : ""
+            }`}
+          >
+            Save Changes
+          </button>
         </section>
 
         {/* Accessibility Settings */}
@@ -166,294 +356,135 @@ function Settings({
             highContrastMode ? styles.sectionHighContrast : ""
           }`}
         >
-          <div className={styles.sectionHeader}>
-            <h2 className={styles.sectionTitle}>Accessibility Preferences</h2>
-            <div
-              className={`${styles.badge} ${
-                highContrastMode ? styles.badgeHighContrast : ""
-              }`}
-            >
-              Personalized
+          <h2 className={styles.sectionTitle}>Accessibility Settings</h2>
+          
+          {/* Font Size Controls */}
+          <div className={styles.settingRow}>
+            <span className={styles.settingLabel}>Font Size</span>
+            <div className={styles.fontSizeControls}>
+              <button
+                onClick={decreaseFontSize}
+                disabled={fontSize <= 14}
+                className={`${styles.fontSizeButton} ${
+                  highContrastMode ? styles.fontSizeButtonHighContrast : ""
+                }`}
+                aria-label="Decrease font size"
+              >
+                -
+              </button>
+              <span
+                className={`${styles.fontSizeValue} ${
+                  highContrastMode ? styles.fontSizeValueHighContrast : ""
+                }`}
+              >
+                {fontSize}px
+              </span>
+              <button
+                onClick={increaseFontSize}
+                disabled={fontSize >= 24}
+                className={`${styles.fontSizeButton} ${
+                  highContrastMode ? styles.fontSizeButtonHighContrast : ""
+                }`}
+                aria-label="Increase font size"
+              >
+                +
+              </button>
             </div>
           </div>
-          <div className={styles.formGroup}>
-            <label className={styles.label}>Navigation Mode</label>
-            <div className={styles.buttonGroup}>
+
+          {/* Navigation Mode */}
+          <div className={styles.settingRow}>
+            <span className={styles.settingLabel}>Navigation Mode</span>
+            <div className={styles.toggleContainer}>
               <button
-                type="button"
-                className={`${styles.navButton} ${
-                  navigationMode === "Screen"
-                    ? highContrastMode
-                      ? styles.navButtonActiveHighContrast
-                      : styles.navButtonActive
-                    : ""
-                }`}
                 onClick={() => {
                   setNavigationMode("Screen");
                   setIsVoiceNavigationEnabled(false);
-                }}
-              >
-                <i className="fa fa-mouse-pointer mr-2"></i>Screen
-              </button>
-              <button
-                type="button"
-                className={`${styles.navButton} ${
-                  navigationMode === "Voice"
-                    ? highContrastMode
-                      ? styles.navButtonActiveHighContrast
-                      : styles.navButtonActive
-                    : ""
-                }`}
-                onClick={() => {
-                  setNavigationMode("Voice");
-                  setIsVoiceNavigationEnabled(true);
-                }}
-              >
-                <i className="fa fa-microphone mr-2"></i>Voice
-              </button>
-              <button
-                type="button"
-                className={`${styles.navButton} ${
-                  navigationMode === "Hybrid"
-                    ? highContrastMode
-                      ? styles.navButtonActiveHighContrast
-                      : styles.navButtonActive
-                    : ""
-                }`}
-                onClick={() => {
-                  setNavigationMode("Hybrid");
-                  setIsVoiceNavigationEnabled(true);
-                }}
-              >
-                <i className="fa fa-random mr-2"></i>Hybrid
-              </button>
-            </div>
-          </div>
-          <div className={styles.formGroup}>
-            <label className={styles.label}>Font Size</label>
-            <div className={styles.fontSizeControl}>
-              <button
-                type="button"
-                onClick={decreaseFontSize}
-                className={styles.controlButton}
-              >
-                <i className="fa fa-minus"></i>
-              </button>
-              <span className={styles.fontSizeValue}>{fontSize}px</span>
-              <button
-                type="button"
-                onClick={increaseFontSize}
-                className={styles.controlButton}
-              >
-                <i className="fa fa-plus"></i>
-              </button>
-            </div>
-          </div>
-          <div className={styles.formGroup}>
-            <label className={styles.label}>Display Mode</label>
-            <button
-              type="button"
-              onClick={toggleHighContrast}
-              className={`${styles.modeButton} ${
-                highContrastMode ? styles.modeButtonHighContrast : ""
-              }`}
-            >
-              <i className="fa fa-adjust mr-2"></i>
-              {highContrastMode ? "High Contrast Mode" : "Normal Mode"}
-            </button>
-          </div>
-          <div className={styles.formGroup}>
-            <label className={styles.label}>Voice Feedback</label>
-            <label className={styles.toggleContainer}>
-              <input
-                type="checkbox"
-                id="voiceFeedbackToggle"
-                className={styles.toggleInput}
-                checked={voiceFeedback}
-                onChange={(e) => {
-                  setVoiceFeedback(e.target.checked);
-                  if (e.target.checked) {
-                    const utterance = new SpeechSynthesisUtterance(
-                      "Voice feedback enabled"
-                    );
-                    window.speechSynthesis.speak(utterance);
+                  localStorage.setItem('voiceNavigationPreference', 'disabled');
+                  if (!isPlayingFeedback) {
+                    playVoiceFeedback("Screen navigation mode selected");
                   }
                 }}
-              />
-              <span className={styles.toggleSlider}></span>
-              <span className={styles.toggleLabel}>
-                Enable voice feedback
-              </span>
-            </label>
-          </div>
-        </section>
-
-        {/* Notification Settings */}
-        <section
-          className={`${styles.section} ${
-            highContrastMode ? styles.sectionHighContrast : ""
-          }`}
-        >
-          <div className={styles.sectionHeader}>
-            <h2 className={styles.sectionTitle}>Notification Settings</h2>
-            <div
-              className={`${styles.badge} ${
-                highContrastMode ? styles.badgeHighContrast : ""
-              } ${styles.badgeActive}`}
-            >
-              Active
-            </div>
-          </div>
-          <div className={styles.formGroup}>
-            <div className={styles.notificationItem}>
-              <div>
-                <h3 className={styles.notificationTitle}>Email Notifications</h3>
-                <p
-                  className={`${styles.notificationDescription} ${
-                    highContrastMode
-                      ? styles.notificationDescriptionHighContrast
-                      : ""
-                  }`}
-                >
-                  Receive updates about your account via email
-                </p>
-              </div>
-              <label className={styles.toggleContainer}>
-                <input
-                  type="checkbox"
-                  className={styles.toggleInput}
-                  defaultChecked
-                />
-                <span className={styles.toggleSlider}></span>
-              </label>
-            </div>
-            <div className={styles.notificationItem}>
-              <div>
-                <h3 className={styles.notificationTitle}>Audio Alerts</h3>
-                <p
-                  className={`${styles.notificationDescription} ${
-                    highContrastMode
-                      ? styles.notificationDescriptionHighContrast
-                      : ""
-                  }`}
-                >
-                  Play sound when receiving new messages
-                </p>
-              </div>
-              <label className={styles.toggleContainer}>
-                <input type="checkbox" className={styles.toggleInput} />
-                <span className={styles.toggleSlider}></span>
-              </label>
-            </div>
-          </div>
-        </section>
-
-        {/* Account Settings */}
-        <section
-          className={`${styles.section} ${
-            highContrastMode ? styles.sectionHighContrast : ""
-          }`}
-        >
-          <div className={styles.sectionHeader}>
-            <h2 className={styles.sectionTitle}>Account Settings</h2>
-            <div
-              className={`${styles.badge} ${
-                highContrastMode ? styles.badgeHighContrast : ""
-              } ${styles.badgeCaution}`}
-            >
-              Caution
-            </div>
-          </div>
-          <div className={styles.formGroup}>
-            <div
-              className={`${styles.warningCard} ${
-                highContrastMode ? styles.warningCardHighContrast : ""
-              }`}
-            >
-              <div className={styles.warningContent}>
-                <i
-                  className={`fa fa-exclamation-triangle ${
-                    highContrastMode ? "text-yellow-400" : "text-yellow-600"
-                  } mt-1`}
-                ></i>
-                <div className={styles.warningText}>
-                  <h3
-                    className={`${styles.warningTitle} ${
-                      highContrastMode ? styles.warningTitleHighContrast : ""
-                    }`}
-                  >
-                    Account Deactivation
-                  </h3>
-                  <p
-                    className={`${styles.warningDescription} ${
-                      highContrastMode
-                        ? styles.warningDescriptionHighContrast
-                        : ""
-                    }`}
-                  >
-                    Temporarily disable your account. You can reactivate it
-                    anytime.
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={deactivateAccount}
-                className={`${styles.warningButton} ${
-                  highContrastMode ? styles.warningButtonHighContrast : ""
-                }`}
+                className={`${styles.toggleButton} ${
+                  navigationMode === "Screen"
+                    ? styles.activeToggleButton
+                    : ""
+                } ${highContrastMode ? styles.toggleButtonHighContrast : ""}`}
               >
-                Deactivate Account
+                Screen
+              </button>
+              <button
+                onClick={toggleVoiceNavigation}
+                className={`${styles.toggleButton} ${
+                  navigationMode === "Voice"
+                    ? styles.activeToggleButton
+                    : ""
+                } ${highContrastMode ? styles.toggleButtonHighContrast : ""}`}
+              >
+                Voice
               </button>
             </div>
-            <div
-              className={`${styles.dangerCard} ${
-                highContrastMode ? styles.dangerCardHighContrast : ""
-              }`}
-            >
-              <div className={styles.warningContent}>
-                <i
-                  className={`fa fa-trash-alt ${
-                    highContrastMode ? "text-red-400" : "text-red-600"
-                  } mt-1`}
-                ></i>
-                <div className={styles.warningText}>
-                  <h3
-                    className={`${styles.warningTitle} ${
-                      highContrastMode ? styles.warningTitleHighContrast : ""
-                    }`}
-                  >
-                    Delete Account
-                  </h3>
-                  <p
-                    className={`${styles.warningDescription} ${
-                      highContrastMode
-                        ? styles.warningDescriptionHighContrast
-                        : ""
-                    }`}
-                  >
-                    Permanently remove your account and all data. This action
-                    cannot be undone.
-                  </p>
-                </div>
-              </div>
+          </div>
+
+          {/* Voice Feedback */}
+          <div className={styles.settingRow}>
+            <span className={styles.settingLabel}>Voice Feedback</span>
+            <div className={styles.toggleContainer}>
               <button
-                onClick={deleteAccount}
-                className={`${styles.dangerButton} ${
-                  highContrastMode ? styles.dangerButtonHighContrast : ""
-                }`}
+                onClick={() => {
+                  setVoiceFeedback(false);
+                  if (!isPlayingFeedback) {
+                    playVoiceFeedback("Voice feedback disabled");
+                  }
+                }}
+                className={`${styles.toggleButton} ${
+                  !voiceFeedback
+                    ? styles.activeToggleButton
+                    : ""
+                } ${highContrastMode ? styles.toggleButtonHighContrast : ""}`}
               >
-                Delete Account
+                Off
+              </button>
+              <button
+                onClick={toggleVoiceFeedback}
+                className={`${styles.toggleButton} ${
+                  voiceFeedback
+                    ? styles.activeToggleButton
+                    : ""
+                } ${highContrastMode ? styles.toggleButtonHighContrast : ""}`}
+              >
+                On
               </button>
             </div>
           </div>
         </section>
 
-        {/* Save Button */}
-        <div className={styles.saveButtonContainer}>
-          <button onClick={saveSettings} className={styles.saveButton}>
-            <i className="fa fa-save mr-2"></i>Save Changes
-          </button>
-        </div>
+        {/* Account Management */}
+        <section
+          className={`${styles.section} ${
+            highContrastMode ? styles.sectionHighContrast : ""
+          }`}
+        >
+          <h2 className={styles.sectionTitle}>Account Management</h2>
+          <div className={styles.accountActions}>
+            <button
+              onClick={deactivateAccount}
+              className={`${styles.actionButton} ${
+                highContrastMode ? styles.actionButtonHighContrast : ""
+              }`}
+            >
+              Deactivate Account
+            </button>
+            <button
+              onClick={deleteAccount}
+              className={`${styles.deleteButton} ${
+                highContrastMode ? styles.deleteButtonHighContrast : ""
+              }`}
+            >
+              Delete Account
+            </button>
+          </div>
+        </section>
       </div>
     </main>
   );

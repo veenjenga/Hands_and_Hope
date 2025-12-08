@@ -34,6 +34,45 @@
   font-size: 14px;
 }
 
+.formGroup textarea {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.voiceHelp {
+  background: #e3f2fd;
+  border: 1px solid #2196f3;
+  border-radius: 4px;
+  padding: 12px;
+  margin-bottom: 20px;
+}
+
+.voiceHelp p {
+  margin: 0;
+  color: #0d47a1;
+  font-size: 14px;
+}
+
+.voiceCameraButton {
+  margin-top: 10px;
+  padding: 8px 16px;
+  background: #2196f3;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+
+.voiceCameraButton:hover {
+  background: #1976d2;
+}
+
 .submit {
   padding: 10px 20px;
   background: #388e3c;
@@ -42,8 +81,14 @@
   border-radius: 4px;
   cursor: pointer;
   align-self: flex-start;
+  transition: background 0.2s;
 }
 
-.submit:hover {
+.submit:hover:not(:disabled) {
   background: #2e7d32;
+}
+
+.submit:disabled {
+  background: #cccccc;
+  cursor: not-allowed;
 }

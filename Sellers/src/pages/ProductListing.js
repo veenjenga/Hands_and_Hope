@@ -1,5 +1,5 @@
 // src/pages/ProductListing.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styles from './ProductListing.module.css';
 
 function ProductListing({
@@ -18,6 +18,13 @@ function ProductListing({
 
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
+  const [isVoiceNavActive, setIsVoiceNavActive] = useState(false);
+
+  // Check if voice navigation is enabled
+  useEffect(() => {
+    const voiceNavPref = localStorage.getItem('voiceNavigationPreference');
+    setIsVoiceNavActive(voiceNavPref === 'enabled');
+  }, []);
 
   const filteredProducts = products.filter(product => {
     const matchesCategory = selectedCategory === 'All' || product.category === selectedCategory;
@@ -32,6 +39,11 @@ function ProductListing({
       <div className={styles.headerSection}>
         <h1 className={styles.title}>Your Products</h1>
         <p className={styles.subtitle}>Manage and organize your product listings</p>
+        {isVoiceNavActive && (
+          <div className={styles.voiceHelp}>
+            <p>Voice Navigation Active: Say "add new product" to add a product, or use filters with voice commands</p>
+          </div>
+        )}
       </div>
 
       {/* Filters and Search Section */}
@@ -129,7 +141,7 @@ function ProductListing({
       {/* Products Grid */}
       <div className={styles.productGrid}>
         {filteredProducts.map((product) => (
-          <div key={product.id} className={styles.productCard}>
+          <div key={product._id} className={styles.productCard}>
             <div className={styles.productImageContainer}>
               <img
                 src={product.image}
@@ -145,7 +157,7 @@ function ProductListing({
                 </span>
               </div>
               <p className={styles.category}>{product.category}</p>
-              <p className={styles.price}>{product.price}</p>
+              <p className={styles.price}>${product.price.toFixed(2)}</p>
               <div className={styles.actions}>
                 <button className={styles.editButton}>
                   <i className="fa fa-edit"></i>
@@ -153,7 +165,7 @@ function ProductListing({
                 </button>
                 <button
                   className={styles.deleteButton}
-                  onClick={() => onDelete(product.id)}
+                  onClick={() => onDelete(product._id)}
                 >
                   <i className="fa fa-trash"></i>
                   Delete

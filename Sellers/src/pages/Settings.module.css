@@ -179,10 +179,194 @@
     color: #fff;
   }
   
-  .toggleContainer {
+  /* New accessibility settings styles */
+  .settingRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 0;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  
+  .settingRow:last-child {
+    border-bottom: none;
+  }
+  
+  .sectionHighContrast .settingRow {
+    border-bottom: 1px solid #4b5563;
+  }
+  
+  .settingLabel {
+    font-weight: 500;
+    color: #111827;
+  }
+  
+  .sectionHighContrast .settingLabel {
+    color: #fff;
+  }
+  
+  .fontSizeControls {
     display: flex;
     align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .fontSizeButton {
+    width: 2.5rem;
+    height: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.5rem;
+    background: #f3f4f6;
+    border: none;
     cursor: pointer;
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: #111827;
+  }
+  
+  .fontSizeButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  .fontSizeButtonHighContrast {
+    background: #4b5563;
+    color: #fff;
+  }
+  
+  .fontSizeValue {
+    min-width: 3rem;
+    text-align: center;
+    font-weight: 500;
+    color: #111827;
+  }
+  
+  .fontSizeValueHighContrast {
+    color: #fff;
+  }
+  
+  .toggleContainer {
+    display: flex;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  }
+  
+  .sectionHighContrast .toggleContainer {
+    box-shadow: 0 0 0 1px #fff;
+  }
+  
+  .toggleButton {
+    padding: 0.5rem 1rem;
+    background: #f3f4f6;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    color: #6b7280;
+    transition: all 0.2s ease;
+  }
+  
+  .toggleButton:hover {
+    background: #e5e7eb;
+  }
+  
+  .toggleButtonHighContrast {
+    background: #4b5563;
+    color: #d1d5db;
+  }
+  
+  .toggleButtonHighContrast:hover {
+    background: #6b7280;
+  }
+  
+  .activeToggleButton {
+    background: #3b82f6;
+    color: #fff;
+  }
+  
+  .activeToggleButton:hover {
+    background: #2563eb;
+  }
+  
+  .activeToggleButtonHighContrast {
+    background: #fff;
+    color: #000;
+  }
+  
+  .accountActions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  
+  .actionButton {
+    padding: 0.75rem 1.5rem;
+    background: #f3f4f6;
+    color: #111827;
+    border-radius: 0.5rem;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease;
+  }
+  
+  .actionButton:hover {
+    background: #e5e7eb;
+  }
+  
+  .actionButtonHighContrast {
+    background: #4b5563;
+    color: #fff;
+  }
+  
+  .actionButtonHighContrast:hover {
+    background: #6b7280;
+  }
+  
+  .deleteButton {
+    padding: 0.75rem 1.5rem;
+    background: #fee2e2;
+    color: #b91c1c;
+    border-radius: 0.5rem;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease;
+  }
+  
+  .deleteButton:hover {
+    background: #fecaca;
+  }
+  
+  .deleteButtonHighContrast {
+    background: #7f1d1d;
+    color: #fff;
+  }
+  
+  .saveButton {
+    padding: 0.75rem 1.5rem;
+    background: #1e3a8a;
+    color: #fff;
+    border-radius: 0.5rem;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease;
+  }
+  
+  .saveButton:hover {
+    background: #1e40af;
+  }
+  
+  .saveButtonHighContrast {
+    background: #fff;
+    color: #000;
+  }
+  
+  .saveButtonHighContrast:hover {
+    background: #e5e7eb;
   }
   
   .toggleInput {
@@ -334,14 +518,4 @@
   .saveButtonContainer {
     display: flex;
     justify-content: flex-end;
-  }
-  
-  .saveButton {
-    padding: 0.75rem 1.5rem;
-    background: #1e3a8a;
-    color: #fff;
-    border-radius: 0.5rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
   }

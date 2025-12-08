@@ -1,5 +1,5 @@
 // src/pages/Inquiries.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styles from './Inquiries.module.css';
 
 function Inquiries({ highContrastMode }) {
@@ -47,6 +47,14 @@ function Inquiries({ highContrastMode }) {
       status: "Contacted"
     }
   ]);
+  
+  const [isVoiceNavActive, setIsVoiceNavActive] = useState(false);
+
+  // Check if voice navigation is enabled
+  useEffect(() => {
+    const voiceNavPref = localStorage.getItem('voiceNavigationPreference');
+    setIsVoiceNavActive(voiceNavPref === 'enabled');
+  }, []);
 
   const markAsContacted = (id) => {
     setInquiries(inquiries.map(inquiry => 
@@ -79,6 +87,11 @@ function Inquiries({ highContrastMode }) {
         <span className={styles.inquiryCount}>
           {inquiries.length} Total
         </span>
+        {isVoiceNavActive && (
+          <div className={styles.voiceHelp}>
+            <p>Voice Navigation Active: Say "mark inquiry as contacted" or "delete inquiry" to manage inquiries</p>
+          </div>
+        )}
       </div>
 
       {/* Inquiries Grid */}
