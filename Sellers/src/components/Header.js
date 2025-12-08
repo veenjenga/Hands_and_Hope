@@ -12,21 +12,47 @@ function Header({ highContrastMode, currentUser }) {
     setUser(currentUser);
   }, [currentUser]);
 
-  // Listen for storage changes to update user data
+  // Listen for storage changes and fetch user data from API
   useEffect(() => {
-    const handleStorageChange = () => {
-      const storedUser = localStorage.getItem('user');
-      if (storedUser) {
+    const handleStorageChange = async () => {
+      const token = localStorage.getItem('token');
+      if (token) {
         try {
-          const userData = JSON.parse(storedUser);
-          setUser(userData);
+          const response = await fetch('http://localhost:5000/api/profile', {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          
+          if (response.ok) {
+            const userData = await response.json();
+            setUser(userData);
+          } else {
+            // Fallback to localStorage if API fails
+            const storedUser = localStorage.getItem('user');
+            if (storedUser) {
+              setUser(JSON.parse(storedUser));
+            }
+          }
         } catch (error) {
-          console.error('Error parsing user data:', error);
+          console.error('Error fetching user profile:', error);
+          // Fallback to localStorage if API fails
+          const storedUser = localStorage.getItem('user');
+          if (storedUser) {
+            setUser(JSON.parse(storedUser));
+          }
         }
+      } else {
+        // Clear user data if no token
+        setUser(null);
       }
     };
 
     window.addEventListener('storage', handleStorageChange);
+    
+    // Also fetch user data on component mount
+    handleStorageChange();
+    
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 

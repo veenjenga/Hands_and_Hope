@@ -16,24 +16,64 @@ function Profile() {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [showScrollBottom, setShowScrollBottom] = useState(false);
 
-  // Load user data from localStorage on component mount
+  // Load user data from localStorage/API on component mount
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
+    const fetchUserProfile = async () => {
       try {
-        const userData = JSON.parse(storedUser);
-        setUser({
-          name: userData.name || '',
-          email: userData.email || '',
-          businessName: userData.businessName || '',
-          phone: userData.phone || '',
-          profilePicture: userData.profilePicture || ''
+        const token = localStorage.getItem('token');
+        if (!token) {
+          history.push('/login');
+          return;
+        }
+
+        const response = await fetch('http://localhost:5000/api/profile', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
         });
+
+        if (response.ok) {
+          const userData = await response.json();
+          setUser({
+            name: userData.name || '',
+            email: userData.email || '',
+            businessName: userData.businessName || '',
+            phone: userData.phone || '',
+            profilePicture: userData.profilePicture || ''
+          });
+        } else {
+          // Fallback to localStorage if API fails
+          const storedUser = localStorage.getItem('user');
+          if (storedUser) {
+            const userData = JSON.parse(storedUser);
+            setUser({
+              name: userData.name || '',
+              email: userData.email || '',
+              businessName: userData.businessName || '',
+              phone: userData.phone || '',
+              profilePicture: userData.profilePicture || ''
+            });
+          }
+        }
       } catch (error) {
-        console.error('Error parsing user data:', error);
+        console.error('Error fetching user profile:', error);
+        // Fallback to localStorage if API fails
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+          const userData = JSON.parse(storedUser);
+          setUser({
+            name: userData.name || '',
+            email: userData.email || '',
+            businessName: userData.businessName || '',
+            phone: userData.phone || '',
+            profilePicture: userData.profilePicture || ''
+          });
+        }
       }
-    }
-  }, []);
+    };
+
+    fetchUserProfile();
+  }, [history]);
 
   // Handle scroll events to show/hide scroll buttons
   useEffect(() => {
@@ -62,40 +102,107 @@ function Profile() {
     }));
   };
 
+  // Function to play audio feedback using Eleven Labs
+  const playAudioFeedback = async (message) => {
+    try {
+      // Use Eleven Labs API for high-quality speech synthesis
+      const response = await fetch('https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM', {
+        method: 'POST',
+        headers: {
+          'Accept': 'audio/mpeg',
+          'xi-api-key': 'sk_20734ae2903209818628e37d95e46a5c6f59a503a17d1eb3',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          text: message,
+          model_id: 'eleven_monolingual_v1',
+          voice_settings: {
+            stability: 0.5,
+            similarity_boost: 0.5
+          }
+        })
+      });
+
+      if (response.ok) {
+        const audioBlob = await response.blob();
+        const audioUrl = URL.createObjectURL(audioBlob);
+        const audio = new Audio(audioUrl);
+        audio.play();
+      } else {
+        // Fallback to browser speech synthesis if Eleven Labs fails
+        fallbackToBrowserSpeech(message);
+      }
+    } catch (error) {
+      console.error('Eleven Labs API error:', error);
+      // Fallback to browser speech synthesis if Eleven Labs fails
+      fallbackToBrowserSpeech(message);
+    }
+  };
+
+  // Fallback to browser speech synthesis
+  const fallbackToBrowserSpeech = (text) => {
+    if ('speechSynthesis' in window) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 1.0;
+      utterance.pitch = 1.0;
+      utterance.volume = 1.0;
+      speechSynthesis.speak(utterance);
+    }
+  };
+
   const handleSave = async (e) => {
     e.preventDefault();
     setLoading(true);
     setMessage('');
     
     try {
-      // In a real application, you would send this data to your backend
-      // For now, we'll just update localStorage
-      const storedUser = localStorage.getItem('user');
-      if (storedUser) {
-        const userData = JSON.parse(storedUser);
-        const updatedUser = {
-          ...userData,
-          name: user.name,
-          email: user.email,
-          businessName: user.businessName,
-          phone: user.phone,
-          profilePicture: user.profilePicture
-        };
-        
-        localStorage.setItem('user', JSON.stringify(updatedUser));
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setMessage('Authentication required. Please log in again.');
+        setLoading(false);
+        return;
+      }
+
+      // Send data to backend
+      const response = await fetch('http://localhost:5000/api/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(user)
+      });
+
+      if (response.ok) {
+        const updatedUser = await response.json();
         setMessage('Profile updated successfully!');
         
-        // Also update in App state by triggering a storage event
+        // Play audio feedback
+        playAudioFeedback("Your profile has been successfully updated.");
+        
+        // Update localStorage as well for immediate UI updates
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        
+        // Dispatch storage event to notify other components
         window.dispatchEvent(new Event('storage'));
         
         // Show success message for 3 seconds then clear it
         setTimeout(() => {
           setMessage('');
         }, 3000);
+      } else {
+        const errorData = await response.json();
+        setMessage(`Error: ${errorData.error || 'Failed to update profile'}`);
+        
+        // Play error audio feedback
+        playAudioFeedback("Sorry, there was an error updating your profile. Please try again.");
       }
     } catch (error) {
       console.error('Error updating profile:', error);
       setMessage('Error updating profile. Please try again.');
+      
+      // Play error audio feedback
+      playAudioFeedback("Sorry, there was an error updating your profile. Please try again.");
     } finally {
       setLoading(false);
     }

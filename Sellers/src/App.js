@@ -28,17 +28,83 @@ function App() {
 
   // ✅ track authentication
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem("token"));
-  const [currentUser, setCurrentUser] = useState(() => {
-    const user = localStorage.getItem("user");
-    return user ? JSON.parse(user) : null;
-  });
+  const [currentUser, setCurrentUser] = useState(null);
+
+  // Fetch user data from API or localStorage
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const token = localStorage.getItem("token");
+      if (token) {
+        try {
+          const response = await fetch("http://localhost:5000/api/profile", {
+            headers: {
+              "Authorization": `Bearer ${token}`
+            }
+          });
+          
+          if (response.ok) {
+            const userData = await response.json();
+            setCurrentUser(userData);
+            // Also update localStorage for immediate access
+            localStorage.setItem("user", JSON.stringify(userData));
+          } else {
+            // Fallback to localStorage if API fails
+            const storedUser = localStorage.getItem("user");
+            if (storedUser) {
+              setCurrentUser(JSON.parse(storedUser));
+            }
+          }
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+          // Fallback to localStorage if API fails
+          const storedUser = localStorage.getItem("user");
+          if (storedUser) {
+            setCurrentUser(JSON.parse(storedUser));
+          }
+        }
+      }
+    };
+
+    fetchUserData();
+  }, [isAuthenticated]);
 
   // Listen for authentication changes
   useEffect(() => {
-    const handleStorageChange = () => {
-      setIsAuthenticated(!!localStorage.getItem("token"));
-      const user = localStorage.getItem("user");
-      setCurrentUser(user ? JSON.parse(user) : null);
+    const handleStorageChange = async () => {
+      const token = localStorage.getItem("token");
+      setIsAuthenticated(!!token);
+      
+      if (token) {
+        try {
+          const response = await fetch("http://localhost:5000/api/profile", {
+            headers: {
+              "Authorization": `Bearer ${token}`
+            }
+          });
+          
+          if (response.ok) {
+            const userData = await response.json();
+            setCurrentUser(userData);
+            // Also update localStorage for immediate access
+            localStorage.setItem("user", JSON.stringify(userData));
+          } else {
+            // Fallback to localStorage if API fails
+            const storedUser = localStorage.getItem("user");
+            if (storedUser) {
+              setCurrentUser(JSON.parse(storedUser));
+            }
+          }
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+          // Fallback to localStorage if API fails
+          const storedUser = localStorage.getItem("user");
+          if (storedUser) {
+            setCurrentUser(JSON.parse(storedUser));
+          }
+        }
+      } else {
+        setCurrentUser(null);
+      }
     };
 
     window.addEventListener('storage', handleStorageChange);
