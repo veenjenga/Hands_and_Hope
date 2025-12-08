@@ -1,6 +1,7 @@
 import express from "express";
 const router = express.Router();   // initialize router
 import Product from "../models/Product.js";
+import Activity from "../models/Activity.js";
 import authMiddleware from "../middleware/authMiddleware.js";
 
 // ==============================
@@ -14,6 +15,20 @@ router.get("/", async (req, res) => {
     res.json(products);
   } catch (err) {
     res.status(500).json({ message: "Error fetching products", error: err.message });
+  }
+});
+
+// ==============================
+// @desc    Get products by seller ID
+// @route   GET /api/products/seller
+// @access  Private (seller only)
+// ==============================
+router.get("/seller", authMiddleware, async (req, res) => {
+  try {
+    const products = await Product.find({ sellerId: req.user.id });
+    res.json(products);
+  } catch (err) {
+    res.status(500).json({ message: "Error fetching seller products", error: err.message });
   }
 });
 
@@ -40,6 +55,16 @@ router.post("/", authMiddleware, async (req, res) => {
     });
 
     const savedProduct = await newProduct.save();
+    
+    // Log activity
+    const activity = new Activity({
+      userId: req.user.id,
+      type: 'product_added',
+      description: `Added new product: ${savedProduct.name}`,
+      productId: savedProduct._id
+    });
+    await activity.save();
+
     res.status(201).json(savedProduct);
   } catch (err) {
     res.status(500).json({ message: "Error adding product", error: err.message });
@@ -65,6 +90,16 @@ router.delete("/:id", authMiddleware, async (req, res) => {
     }
 
     await product.deleteOne();
+    
+    // Log activity
+    const activity = new Activity({
+      userId: req.user.id,
+      type: 'product_deleted',
+      description: `Deleted product: ${product.name}`,
+      productId: product._id
+    });
+    await activity.save();
+
     res.json({ message: "Product removed" });
   } catch (err) {
     res.status(500).json({ message: "Error deleting product", error: err.message });
@@ -97,6 +132,16 @@ router.put("/:id", authMiddleware, async (req, res) => {
     product.image = image || product.image;
 
     const updatedProduct = await product.save();
+    
+    // Log activity
+    const activity = new Activity({
+      userId: req.user.id,
+      type: 'product_updated',
+      description: `Updated product: ${updatedProduct.name}`,
+      productId: updatedProduct._id
+    });
+    await activity.save();
+
     res.json(updatedProduct);
   } catch (err) {
     res.status(500).json({ message: "Error updating product", error: err.message });

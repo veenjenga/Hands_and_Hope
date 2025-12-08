@@ -8,6 +8,8 @@ import authRoutes from "./routes/authRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
 import sellerRoutes from "./routes/sellerRoutes.js";
 import buyerRoutes from "./routes/buyerRoutes.js";   // ✅ Added buyer routes
+import profileRoutes from "./routes/profileRoutes.js"; // ✅ Added profile routes
+import activityRoutes from "./routes/activityRoutes.js"; // ✅ Added activity routes
 
 dotenv.config();
 
@@ -22,6 +24,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/sellers", sellerRoutes);
 app.use("/api/buyers", buyerRoutes);   // ✅ Added this line
+app.use("/api", profileRoutes); // ✅ Added profile routes
+app.use("/api/activity", activityRoutes); // ✅ Added activity routes
 
 // ✅ MongoDB connection and server start
 mongoose.connect(process.env.MONGO_URI)

@@ -7,6 +7,7 @@ const userSchema = mongoose.Schema({
   password: String,
   businessName: String,
   phone: String,
+  profilePicture: { type: String, default: "" }, // Add profile picture field
   role: { type: String, enum: ["seller", "admin"], default: "seller" },
   active: { type: Boolean, default: true }, // for deactivate
 }, { timestamps: true });
