@@ -16,6 +16,13 @@ services:
       - key: PORT
         value: 5000
 
+  - type: worker
+    name: hands-and-hope-root
+    env: node
+    rootDir: .
+    buildCommand: npm install
+    startCommand: npm start
+
   - type: web
     name: hands-and-hope-buyers
     env: static
