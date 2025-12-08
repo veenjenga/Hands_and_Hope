@@ -3,9 +3,8 @@ services:
     name: hands-and-hope-backend
     env: node
     plan: free
-    rootDir: backend
-    buildCommand: npm install
-    startCommand: npm start
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && npm start
     envVars:
       - key: NODE_ENV
         value: production
@@ -19,8 +18,7 @@ services:
   - type: web
     name: hands-and-hope-buyers
     env: static
-    rootDir: Buyers
-    buildCommand: npm install && npm run build
+    buildCommand: cd Buyers && npm install && npm run build
     staticPublishPath: build
     envVars:
       - key: REACT_APP_BACKEND_URL
@@ -35,8 +33,7 @@ services:
   - type: web
     name: hands-and-hope-sellers
     env: static
-    rootDir: Sellers
-    buildCommand: npm install && npm run build
+    buildCommand: cd Sellers && npm install && npm run build
     staticPublishPath: build
     envVars:
       - key: REACT_APP_BACKEND_URL

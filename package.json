@@ -5,6 +5,6 @@
   "private": true,
   "scripts": {
     "postinstall": "echo \"Root package installed\"",
-    "start": "echo \"Root package - services started individually\""
+    "start": "sleep infinity"
   }
 }
