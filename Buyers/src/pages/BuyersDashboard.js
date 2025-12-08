@@ -1,7 +1,10 @@
 import React from 'react';
+import { useCart } from '../contexts/CartContext';
 import styles from './BuyersDashboard.module.css';
 
 function BuyersDashboard({ highContrastMode, fontSize, products, filters }) {
+  const { addToCart } = useCart();
+  
   const filteredProducts = products.filter((product) => {
     const matchesCategory =
       filters.categories.length === 0 || filters.categories.includes(product.category);
@@ -21,6 +24,11 @@ function BuyersDashboard({ highContrastMode, fontSize, products, filters }) {
     "Gaming",
     "Audio"
   ];
+
+  const handleAddToCart = (product) => {
+    addToCart(product);
+    // Optional: Show a notification or feedback to the user
+  };
 
   return (
     <main className={`${styles.main} ${highContrastMode ? styles.highContrast : ''}`}>
@@ -72,8 +80,11 @@ function BuyersDashboard({ highContrastMode, fontSize, products, filters }) {
                   </div>
                   <div className={styles.productPrice}>{product.price.toLocaleString('en-KE')} Ksh</div>
                 </div>
-                <button className={styles.contactButton}>
-                  <i className="fas fa-envelope mr-2"></i>Contact Seller
+                <button 
+                  className={styles.contactButton}
+                  onClick={() => handleAddToCart(product)}
+                >
+                  <i className="fas fa-shopping-cart mr-2"></i>Add to Cart
                 </button>
               </div>
             </div>

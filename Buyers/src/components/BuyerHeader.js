@@ -1,8 +1,12 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { useCart } from '../contexts/CartContext';
 import styles from "./BuyerHeader.module.css";
 
 function BuyerHeader({ highContrastMode, searchQuery, onSearchQueryChange }) {
+  const { getCartItemCount } = useCart();
+  const itemCount = getCartItemCount();
+  
   return (
     <header className={`${styles.header} ${highContrastMode ? styles.highContrast : ""}`}>
       <div className={styles.headerContent}>
@@ -26,6 +30,16 @@ function BuyerHeader({ highContrastMode, searchQuery, onSearchQueryChange }) {
           </button>
         </div>
         <div className={styles.headerRight}>
+          <Link
+            to='/cart'
+            className={`${styles.cartIcon} ${highContrastMode ? styles.iconHighContrast : ""}`}
+            aria-label='Shopping Cart'
+          >
+            <i className='fas fa-shopping-cart'></i>
+            {itemCount > 0 && (
+              <span className={styles.cartBadge}>{itemCount}</span>
+            )}
+          </Link>
           <Link
             to='/register'
             className={`${styles.registerButton} ${highContrastMode ? styles.buttonHighContrast : ""}`}

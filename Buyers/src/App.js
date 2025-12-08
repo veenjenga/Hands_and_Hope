@@ -3,11 +3,13 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import BuyerSidebar from './components/BuyerSidebar';
 import BuyerHeader from './components/BuyerHeader';
 import BuyersDashboard from './pages/BuyersDashboard';
+import Cart from './pages/Cart';
 import Register from './pages/Register';
 import RegisterModeSelection from './components/RegisterModeSelection';
 import Settings from './pages/Settings';
 import VoiceNavigation from './components/VoiceNavigation';
 import AccessibilityPanel from './components/AccessibilityPanel';
+import { CartProvider } from './contexts/CartContext';
 import styles from './App.module.css';
 
 function App() {
@@ -182,88 +184,94 @@ function App() {
 
   return (
     <Router>
-      <div
-        className={`${styles.appContainer} ${highContrastMode ? styles.highContrast : ''}`}
-        style={{ fontFamily: 'Lexend, sans-serif', fontSize: `${fontSize}px` }}
-      >
-        <BuyerSidebar
-          highContrastMode={highContrastMode}
-          onFilterChange={handleFilterChange}
-        />
-        <div className={styles.mainContent}>
-          <BuyerHeader
+      <CartProvider>
+        <div
+          className={`${styles.appContainer} ${highContrastMode ? styles.highContrast : ''}`}
+          style={{ fontFamily: 'Lexend, sans-serif', fontSize: `${fontSize}px` }}
+        >
+          <BuyerSidebar
             highContrastMode={highContrastMode}
-            searchQuery={searchQuery}
-            onSearchQueryChange={handleSearchQueryChange}
+            onFilterChange={handleFilterChange}
           />
-          <button
-            onClick={toggleAccessibilityPanel}
-            className={styles.accessibilityToggleButton}
-            aria-label="Toggle accessibility settings"
-          >
-            <i className="fas fa-wheelchair"></i>
-          </button>
-          {isAccessibilityPanelOpen && (
-            <AccessibilityPanel
+          <div className={styles.mainContent}>
+            <BuyerHeader
               highContrastMode={highContrastMode}
-              toggleHighContrastMode={toggleHighContrastMode}
-              fontSize={fontSize}
-              increaseFontSize={increaseFontSize}
-              decreaseFontSize={decreaseFontSize}
-              isVoiceNavigationEnabled={isVoiceNavigationEnabled}
-              toggleVoiceNavigation={toggleVoiceNavigation}
-              resetAccessibilitySettings={resetAccessibilitySettings}
-              isOpen={isAccessibilityPanelOpen}
-              setIsOpen={setIsAccessibilityPanelOpen}
+              searchQuery={searchQuery}
+              onSearchQueryChange={handleSearchQueryChange}
             />
-          )}
-          <Routes>
-            <Route
-              path="/"
-              element={
-                <BuyersDashboard
-                  highContrastMode={highContrastMode}
-                  fontSize={fontSize}
-                  products={products}
-                  filters={filters}
-                  searchQuery={searchQuery}
-                />
-              }
-            />
-            <Route
-              path="/register"
-              element={<RegisterModeSelection onModeSelect={handleModeSelect} />}
-            />
-            <Route
-              path="/register-form"
-              element={<Register onRegister={handleRegister} selectedMode={selectedMode} />}
-            />
-            <Route
-              path="/settings"
-              element={
-                <Settings
-                  highContrastMode={highContrastMode}
-                  fontSize={fontSize}
-                  setFontSize={setFontSize}
-                  isVoiceNavigationEnabled={isVoiceNavigationEnabled}
-                  setIsVoiceNavigationEnabled={setIsVoiceNavigationEnabled}
-                  voiceFeedback={voiceFeedback}
-                  setVoiceFeedback={setVoiceFeedback}
-                />
-              }
-            />
-            <Route
-              path="*"
-              element={<div>404 - Page Not Found</div>}
-            />
-          </Routes>
+            <button
+              onClick={toggleAccessibilityPanel}
+              className={styles.accessibilityToggleButton}
+              aria-label="Toggle accessibility settings"
+            >
+              <i className="fas fa-wheelchair"></i>
+            </button>
+            {isAccessibilityPanelOpen && (
+              <AccessibilityPanel
+                highContrastMode={highContrastMode}
+                toggleHighContrastMode={toggleHighContrastMode}
+                fontSize={fontSize}
+                increaseFontSize={increaseFontSize}
+                decreaseFontSize={decreaseFontSize}
+                isVoiceNavigationEnabled={isVoiceNavigationEnabled}
+                toggleVoiceNavigation={toggleVoiceNavigation}
+                resetAccessibilitySettings={resetAccessibilitySettings}
+                isOpen={isAccessibilityPanelOpen}
+                setIsOpen={setIsAccessibilityPanelOpen}
+              />
+            )}
+            <Routes>
+              <Route
+                path="/"
+                element={
+                  <BuyersDashboard
+                    highContrastMode={highContrastMode}
+                    fontSize={fontSize}
+                    products={products}
+                    filters={filters}
+                    searchQuery={searchQuery}
+                  />
+                }
+              />
+              <Route
+                path="/cart"
+                element={<Cart />}
+              />
+              <Route
+                path="/register"
+                element={<RegisterModeSelection onModeSelect={handleModeSelect} />}
+              />
+              <Route
+                path="/register-form"
+                element={<Register onRegister={handleRegister} selectedMode={selectedMode} />}
+              />
+              <Route
+                path="/settings"
+                element={
+                  <Settings
+                    highContrastMode={highContrastMode}
+                    fontSize={fontSize}
+                    setFontSize={setFontSize}
+                    isVoiceNavigationEnabled={isVoiceNavigationEnabled}
+                    setIsVoiceNavigationEnabled={setIsVoiceNavigationEnabled}
+                    voiceFeedback={voiceFeedback}
+                    setVoiceFeedback={setVoiceFeedback}
+                  />
+                }
+              />
+              <Route
+                path="*"
+                element={<div>404 - Page Not Found</div>}
+              />
+            </Routes>
+          </div>
         </div>
-      </div>
-      {isVoiceNavigationEnabled && (
-        <VoiceNavigation
-          isVoiceNavigationEnabled={isVoiceNavigationEnabled}
-        />
-      )}
+        {isVoiceNavigationEnabled && (
+          <VoiceNavigation
+            isVoiceNavigationEnabled={isVoiceNavigationEnabled}
+          />
+        )}
+      </CartProvider>
     </Router>
   );
 }
