@@ -22,7 +22,7 @@ services:
     rootDir: Buyers
     buildCommand: npm install && npm run build
     startCommand: npx serve -s build
-    staticPublishPath: ./build
+    staticPublishPath: build
     envVars:
       - key: REACT_APP_BACKEND_URL
         value: https://handsandhope.onrender.com
@@ -39,7 +39,7 @@ services:
     rootDir: Sellers
     buildCommand: npm install && npm run build
     startCommand: npx serve -s build
-    staticPublishPath: ./build
+    staticPublishPath: build
     envVars:
       - key: REACT_APP_BACKEND_URL
         value: https://handsandhope.onrender.com
