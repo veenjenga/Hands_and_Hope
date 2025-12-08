@@ -5,6 +5,6 @@
   "private": true,
   "scripts": {
     "postinstall": "echo \"Root package installed\"",
-    "start": "sleep infinity"
+    "start": "echo \">>> No start required\" && exit 0"
   }
 }
