@@ -1,6 +1,6 @@
 // src/components/Header.js
 import React, { useEffect, useState } from 'react';
-import { useHistory } from 'react-router-dom';
+import { useHistory, Link } from 'react-router-dom';
 import styles from './Header.module.css';
 
 function Header({ highContrastMode, currentUser }) {
@@ -96,6 +96,18 @@ function Header({ highContrastMode, currentUser }) {
         </div>
 
         <div className={styles.userActions}>
+          <Link 
+            to="/login"
+            className={`${styles.loginButton} ${highContrastMode ? styles.loginButtonHighContrast : ''}`}
+          >
+            Login
+          </Link>
+          <Link 
+            to="/register"
+            className={`${styles.registerButton} ${highContrastMode ? styles.registerButtonHighContrast : ''}`}
+          >
+            Register
+          </Link>
           <button
             onClick={handleAddProduct}
             className={`${styles.addButton} ${

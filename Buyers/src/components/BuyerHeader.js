@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useCart } from '../contexts/CartContext';
 import styles from "./BuyerHeader.module.css";
 
-function BuyerHeader({ highContrastMode, searchQuery, onSearchQueryChange }) {
+function BuyerHeader({ highContrastMode, searchQuery, onSearchQueryChange, isAuthenticated, currentUser, onLogout }) {
   const { getCartItemCount } = useCart();
   const itemCount = getCartItemCount();
   
@@ -40,18 +40,41 @@ function BuyerHeader({ highContrastMode, searchQuery, onSearchQueryChange }) {
               <span className={styles.cartBadge}>{itemCount}</span>
             )}
           </Link>
-          <Link
-            to='/login'
-            className={`${styles.loginButton} ${highContrastMode ? styles.buttonHighContrast : ""}`}
-          >
-            Login
-          </Link>
-          <Link
-            to='/register'
-            className={`${styles.registerButton} ${highContrastMode ? styles.buttonHighContrast : ""}`}
-          >
-            Register
-          </Link>
+          {isAuthenticated ? (
+            <div className={styles.userMenu}>
+              <div className={styles.userProfile}>
+                <img 
+                  src={currentUser?.profilePicture || "https://public.readdy.ai/ai/img_res/d148673ac06fcc36bc7ff4b04964af63.jpg"} 
+                  alt="User Profile" 
+                  className={styles.userAvatar}
+                />
+                <span className={`${styles.userName} ${highContrastMode ? styles.userNameHighContrast : ""}`}>
+                  {currentUser?.businessName || currentUser?.name || 'User'}
+                </span>
+              </div>
+              <button
+                onClick={onLogout}
+                className={`${styles.logoutButton} ${highContrastMode ? styles.buttonHighContrast : ""}`}
+              >
+                Logout
+              </button>
+            </div>
+          ) : (
+            <>
+              <Link
+                to='/login'
+                className={`${styles.loginButton} ${highContrastMode ? styles.buttonHighContrast : ""}`}
+              >
+                Login
+              </Link>
+              <Link
+                to='/register'
+                className={`${styles.registerButton} ${highContrastMode ? styles.buttonHighContrast : ""}`}
+              >
+                Register
+              </Link>
+            </>
+          )}
           <Link
             to='/settings'
             className={`${styles.settingsIcon} ${highContrastMode ? styles.iconHighContrast : ""}`}

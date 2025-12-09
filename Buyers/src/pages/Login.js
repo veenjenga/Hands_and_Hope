@@ -16,11 +16,11 @@ function Login({ onLogin }) {
 
   useEffect(() => {
     // Check if redirected from signup
-    const locationState = location.state;
-    if (locationState?.message) {
-      setSuccess(locationState.message);
-      // Clear the state so message doesn't persist
-      navigate(location.pathname, { replace: true, state: {} });
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('registered') === 'true') {
+      setSuccess('Registration successful! Please log in with your credentials.');
+      // Remove the query parameter from the URL
+      window.history.replaceState({}, document.title, window.location.pathname);
     }
     
     // Check user's last voice navigation preference
@@ -28,7 +28,7 @@ function Login({ onLogin }) {
     if (storedVoicePref) {
       setUserVoicePreference(storedVoicePref === 'enabled');
     }
-  }, [history]);
+  }, []);
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 

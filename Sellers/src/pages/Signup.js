@@ -4,7 +4,7 @@ import axios from 'axios';
 import { API_ENDPOINTS } from '../config/api'; // Import API configuration
 import styles from './Signup.module.css';
 
-function Signup({ onAutoLogin }) {
+function Signup() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -102,22 +102,8 @@ function Signup({ onAutoLogin }) {
       const response = await axios.post(API_ENDPOINTS.AUTH.SIGNUP, formData);
       
       if (response.data.token) {
-        // Auto-login after successful signup
-        onAutoLogin(response.data.token, response.data.user);
-        
-        // Show welcome message and start voice navigation tour
-        setShowWelcomeMessage(true);
-        
-        // Start the voice navigation tour after a short delay
-        setTimeout(() => {
-          // Dispatch event to start the welcome tour
-          window.dispatchEvent(new CustomEvent('startWelcomeTour'));
-        }, 2000);
-        
-        // Redirect to dashboard after welcome message
-        setTimeout(() => {
-          history.push('/');
-        }, 3000);
+        // Redirect to login page with success message
+        history.push('/login?registered=true');
       }
     } catch (error) {
       if (error.response && error.response.data) {

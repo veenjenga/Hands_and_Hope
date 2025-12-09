@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useHistory } from "react-router-dom";   // ✅ Import Link and useHistory
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import VoiceNavigationPopup from '../components/VoiceNavigationPopup';
 import { API_ENDPOINTS } from '../config/api'; // Import API configuration
 import styles from './Login.module.css';
@@ -11,15 +11,16 @@ function Login({ onLogin }) {
   const [showVoicePopup, setShowVoicePopup] = useState(false);
   const [userVoicePreference, setUserVoicePreference] = useState(null);
   const [isPlayingFeedback, setIsPlayingFeedback] = useState(false); // Prevent overlapping feedback
-  const history = useHistory();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     // Check if redirected from signup
-    const locationState = history.location?.state;
-    if (locationState?.message) {
-      setSuccess(locationState.message);
-      // Clear the state so message doesn't persist
-      history.replace({ ...history.location, state: {} });
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('registered') === 'true') {
+      setSuccess('Registration successful! Please log in with your credentials.');
+      // Remove the query parameter from the URL
+      window.history.replaceState({}, document.title, window.location.pathname);
     }
     
     // Check user's last voice navigation preference
@@ -61,12 +62,12 @@ function Login({ onLogin }) {
           }, 1000);
           // Add a small delay before redirecting
           setTimeout(() => {
-            history.push("/");
+            navigate("/");
           }, 3000);
         } else if (storedVoicePref === 'disabled') {
           // Add a small delay before redirecting
           setTimeout(() => {
-            history.push("/");
+            navigate("/");
           }, 1500);
         } else {
           // No preference set, show popup
@@ -177,7 +178,7 @@ function Login({ onLogin }) {
   const handleClosePopup = () => {
     setShowVoicePopup(false);
     // Redirect to dashboard after closing popup
-    history.push("/");
+    navigate("/");
   };
 
   return (

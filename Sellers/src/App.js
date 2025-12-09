@@ -136,15 +136,15 @@ function App() {
     }
   }, []);
 
-  // Function to handle auto-login after signup
-  const handleAutoLogin = (token, userData) => {
+  // Function to handle login
+  const handleLogin = (token, userData) => {
     localStorage.setItem("token", token);
     if (userData) {
       localStorage.setItem("user", JSON.stringify(userData));
       setCurrentUser(userData);
     }
     setIsAuthenticated(true);
-    setIsNewUser(true); // Mark as new user
+    setIsNewUser(false); // Not a new user when logging in
     
     // Fetch products for the authenticated seller
     fetchSellerProducts(token);
@@ -219,10 +219,10 @@ function App() {
         <Switch>
           {/* Public Routes */}
           <Route path="/login">
-            <Login onLogin={handleAutoLogin} />
+            <Login onLogin={handleLogin} />
           </Route>
           <Route path="/signup">
-            <Signup onAutoLogin={(token, userData) => handleAutoLogin(token, userData)} />
+            <Signup />
           </Route>
 
           {/* Protected Routes */}

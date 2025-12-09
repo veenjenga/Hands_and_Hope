@@ -89,6 +89,23 @@
   flex: 0 0 auto;
 }
 
+.loginButton {
+  background: #1a237e;
+  color: #fff;
+  padding: 0.75rem 1.5rem; /* Increased padding */
+  border-radius: 0.25rem;
+  text-decoration: none;
+  transition: background 0.3s;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 1rem;
+}
+
+.loginButton:hover {
+  background: #2c357e;
+}
+
 .registerButton {
   background: #ffeb3b;
   color: #1a237e;
@@ -96,6 +113,10 @@
   border-radius: 0.25rem;
   text-decoration: none;
   transition: background 0.3s;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 1rem;
 }
 
 .registerButton:hover {
@@ -119,6 +140,60 @@
 
 .iconHighContrast {
   color: #fff;
+}
+
+/* User Menu Styles */
+.userMenu {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.userProfile {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.userAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.userName {
+  font-weight: 500;
+  color: #1a237e;
+}
+
+.userNameHighContrast {
+  color: #fff;
+}
+
+.logoutButton {
+  background: #dc3545;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 1rem;
+  transition: background 0.3s;
+}
+
+.logoutButton:hover {
+  background: #c82333;
+}
+
+.logoutButtonHighContrast {
+  background: #fff;
+  color: #000;
+}
+
+.logoutButtonHighContrast:hover {
+  background: #ccc;
 }
 
 .settingsIcon:hover {

@@ -63,6 +63,46 @@
   gap: 1rem;
 }
 
+.loginButton {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  text-decoration: none;
+  font-family: inherit;
+}
+
+.loginButtonHighContrast {
+  background-color: #007bff;
+  color: white;
+}
+
+.registerButton {
+  background-color: #ffeb3b;
+  color: #1a237e;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  text-decoration: none;
+  font-family: inherit;
+}
+
+.registerButtonHighContrast {
+  background-color: #ffeb3b;
+  color: #1a237e;
+}
+
 .addButton {
   background-color: #007bff;
   color: white;

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useCart } from '../contexts/CartContext';
 import { Link, useNavigate } from 'react-router-dom';
 import styles from './Cart.module.css';
@@ -6,14 +6,27 @@ import styles from './Cart.module.css';
 function Cart() {
   const { cartItems, removeFromCart, updateQuantity, getCartTotal } = useCart();
   const navigate = useNavigate();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    // Check if user is authenticated
+    const token = localStorage.getItem('token');
+    setIsAuthenticated(!!token);
+  }, []);
 
   const handleQuantityChange = (productId, newQuantity) => {
     updateQuantity(productId, parseInt(newQuantity));
   };
 
   const handleCheckout = () => {
-    // Redirect to registration/login page
-    navigate('/register');
+    // Check if user is authenticated
+    if (isAuthenticated) {
+      // Redirect to payment selection page
+      navigate('/payment');
+    } else {
+      // Redirect to login page
+      navigate('/login');
+    }
   };
 
   if (cartItems.length === 0) {

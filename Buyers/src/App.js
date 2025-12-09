@@ -1,13 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import BuyerSidebar from './components/BuyerSidebar';
 import BuyerHeader from './components/BuyerHeader';
 import BuyersDashboard from './pages/BuyersDashboard';
 import Cart from './pages/Cart';
+import Payment from './pages/Payment';
+import Receipt from './pages/Receipt';
 import Register from './pages/Register';
 import Login from './pages/Login';
 import RegisterModeSelection from './components/RegisterModeSelection';
 import Settings from './pages/Settings';
+import AboutUs from './pages/AboutUs';  // Added import
+import HowItWorks from './pages/HowItWorks';  // Added import
+import SafetyTips from './pages/SafetyTips';  // Added import
 import VoiceNavigation from './components/VoiceNavigation';
 import AccessibilityPanel from './components/AccessibilityPanel';
 import { CartProvider } from './contexts/CartContext';
@@ -27,6 +32,8 @@ function App() {
   const [isAccessibilityPanelOpen, setIsAccessibilityPanelOpen] = useState(false);
   const [selectedMode, setSelectedMode] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
+  const [currentUser, setCurrentUser] = useState(null);
 
   const initialProducts = [
     {
@@ -176,6 +183,20 @@ function App() {
     setIsAccessibilityPanelOpen(!isAccessibilityPanelOpen);
   };
 
+  // Check authentication status on app load
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const user = localStorage.getItem('user');
+    if (token && user) {
+      setIsAuthenticated(true);
+      try {
+        setCurrentUser(JSON.parse(user));
+      } catch (e) {
+        console.error('Error parsing user data:', e);
+      }
+    }
+  }, []);
+
   const handleRegister = async (formData) => {
     try {
       const response = await fetch(API_ENDPOINTS.AUTH.SIGNUP, {
@@ -188,23 +209,43 @@ function App() {
 
       if (response.ok) {
         console.log('Registration successful!');
-        // Here you would typically redirect the user or show a success message
+        // Redirect to login page with success message
+        window.location.href = '/login?registered=true';
       } else {
         console.error('Registration failed');
+        const errorData = await response.json();
+        alert(errorData.error || 'Registration failed. Please try again.');
       }
     } catch (error) {
       console.error('Error during registration:', error);
+      alert('Network error. Please try again.');
     }
   };
 
   const handleLogin = async (token, user) => {
     // Handle login logic here
     console.log('User logged in:', user);
-    // You might want to set some state or redirect the user
+    // Set authentication state
+    localStorage.setItem('token', token);
+    localStorage.setItem('user', JSON.stringify(user));
+    setIsAuthenticated(true);
+    setCurrentUser(user);
+    // Redirect to dashboard
+    window.location.href = '/';
   };
 
   const handleModeSelect = (mode) => {
     setSelectedMode(mode);
+  };
+
+  const handleLogout = () => {
+    // Clear authentication state
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setIsAuthenticated(false);
+    setCurrentUser(null);
+    // Redirect to login page
+    window.location.href = '/login';
   };
 
   return (
@@ -223,6 +264,9 @@ function App() {
               highContrastMode={highContrastMode}
               searchQuery={searchQuery}
               onSearchQueryChange={handleSearchQueryChange}
+              isAuthenticated={isAuthenticated}
+              currentUser={currentUser}
+              onLogout={handleLogout}
             />
             <button
               onClick={toggleAccessibilityPanel}
@@ -263,6 +307,14 @@ function App() {
                 element={<Cart />}
               />
               <Route
+                path="/payment"
+                element={<Payment />}
+              />
+              <Route
+                path="/receipt"
+                element={<Receipt />}
+              />
+              <Route
                 path="/login"
                 element={<Login onLogin={handleLogin} />}
               />
@@ -287,6 +339,19 @@ function App() {
                     setVoiceFeedback={setVoiceFeedback}
                   />
                 }
+              />
+              {/* Added new routes */}
+              <Route
+                path="/about"
+                element={<AboutUs highContrastMode={highContrastMode} />}
+              />
+              <Route
+                path="/how-it-works"
+                element={<HowItWorks highContrastMode={highContrastMode} />}
+              />
+              <Route
+                path="/safety-tips"
+                element={<SafetyTips highContrastMode={highContrastMode} />}
               />
               <Route
                 path="*"
