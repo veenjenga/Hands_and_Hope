@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
 import styles from './Dashboard.module.css';
+import voiceFeedback from '../utils/voiceFeedback';
+import { API_ENDPOINTS } from '../config/api';
 
 function Dashboard({ highContrastMode }) {
   const history = useHistory();
@@ -27,6 +29,9 @@ function Dashboard({ highContrastMode }) {
     // Check if voice navigation is enabled
     const voiceNavPref = localStorage.getItem('voiceNavigationPreference');
     setIsVoiceNavEnabled(voiceNavPref === 'enabled');
+    
+    // Provide voice feedback when entering dashboard
+    voiceFeedback.announce("You are in dashboard");
   }, []);
 
   // Fetch seller products and calculate stats
@@ -37,7 +42,7 @@ function Dashboard({ highContrastMode }) {
         if (!token) return;
         
         // Fetch products
-        const productsResponse = await fetch('http://localhost:5000/api/products/seller', {
+        const productsResponse = await fetch(API_ENDPOINTS.PRODUCTS.SELLER, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -53,7 +58,7 @@ function Dashboard({ highContrastMode }) {
           const pendingOrders = productsData.filter(p => p.status === 'Pending').length;
           const totalRevenue = productsData
             .filter(p => p.status === 'Sold')
-            .reduce((sum, product) => sum + product.price, 0);
+            .reduce((sum, product) => sum + (product.price || 0), 0);
           
           setStats({
             totalProducts,
@@ -64,7 +69,7 @@ function Dashboard({ highContrastMode }) {
         }
         
         // Fetch recent activity
-        const activityResponse = await fetch('http://localhost:5000/api/activity/recent', {
+        const activityResponse = await fetch(API_ENDPOINTS.ACTIVITIES.RECENT, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -124,15 +129,19 @@ function Dashboard({ highContrastMode }) {
     switch (statType) {
       case 'totalProducts':
         history.push('/products');
+        voiceFeedback.announce("Navigating to products page");
         break;
       case 'activeListings':
         history.push('/products?status=Active');
+        voiceFeedback.announce("Showing active listings");
         break;
       case 'pendingOrders':
         history.push('/inquiries');
+        voiceFeedback.announce("Navigating to inquiries page");
         break;
       case 'totalRevenue':
         // Could navigate to a revenue report page if implemented
+        voiceFeedback.announce("Showing total revenue");
         break;
       default:
         break;

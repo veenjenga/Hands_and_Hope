@@ -129,7 +129,14 @@ function Signup() {
     
     try {
       // Use Eleven Labs API for high-quality speech synthesis
-      const apiKey = process.env.REACT_APP_ELEVEN_LABS_API_KEY || 'sk_20734ae2903209818628e37d95e46a5c6f59a503a17d1eb3';
+      const apiKey = process.env.REACT_APP_ELEVEN_LABS_API_KEY;
+      
+      // If no API key is available, fall back to browser speech
+      if (!apiKey) {
+        console.warn('Eleven Labs API key not found, falling back to browser speech');
+        setIsSystemSpeaking(false);
+        return;
+      }
       const response = await fetch('https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM', {
         method: 'POST',
         headers: {

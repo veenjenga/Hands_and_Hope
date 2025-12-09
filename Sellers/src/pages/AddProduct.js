@@ -1,15 +1,16 @@
-// src/pages/AddProduct.js
 import React, { useState, useEffect, useRef } from 'react';
 import { useHistory } from 'react-router-dom';
 import productNLP from '../utils/productNLP';
 import VoiceCamera from '../components/VoiceCamera';
 import styles from './AddProduct.module.css';
+import voiceFeedback from '../utils/voiceFeedback';
 
 function AddProduct({ onAddProduct }) {
   const history = useHistory();
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');
   const [category, setCategory] = useState('');
+  const [color, setColor] = useState(''); // Add color state
   const [image, setImage] = useState('');
   const [description, setDescription] = useState('');
   const [isVoiceNavActive, setIsVoiceNavActive] = useState(false);
@@ -72,6 +73,9 @@ function AddProduct({ onAddProduct }) {
             setCategory(matchedCategory);
           }
           break;
+        case 'color':
+          setColor(value);
+          break;
         case 'description':
           setDescription(value);
           break;
@@ -106,15 +110,26 @@ function AddProduct({ onAddProduct }) {
         const matchedCategory = productNLP.matchCategory(value);
         if (matchedCategory) {
           setCategory(matchedCategory);
-          // After setting category, ask for description
+          // After setting category, ask for color
           setTimeout(() => {
             window.dispatchEvent(new CustomEvent('voicePrompt', { 
               detail: { 
-                message: "Please provide a description for your product, or say 'skip' to skip this step." 
+                message: "What color is the product? Or say 'skip' to skip this step." 
               } 
             }));
           }, 1000);
         }
+        break;
+      case 'color':
+        setColor(value);
+        // After setting color, ask for description
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('voicePrompt', { 
+            detail: { 
+              message: "Please provide a description for your product, or say 'skip' to skip this step." 
+            } 
+          }));
+        }, 1000);
         break;
       case 'description':
         setDescription(value);
@@ -141,12 +156,14 @@ function AddProduct({ onAddProduct }) {
       // Check file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
         alert('Image size should be less than 5MB');
+        voiceFeedback.announce("Image size should be less than 5MB");
         return;
       }
       
       // Check file type
       if (!file.type.startsWith('image/')) {
         alert('Please select an image file');
+        voiceFeedback.announce("Please select an image file");
         return;
       }
       
@@ -154,6 +171,7 @@ function AddProduct({ onAddProduct }) {
       reader.onload = (event) => {
         setImage(event.target.result);
         setPreviewImage(event.target.result);
+        voiceFeedback.announce("Image uploaded successfully");
       };
       reader.readAsDataURL(file);
     }
@@ -164,18 +182,13 @@ function AddProduct({ onAddProduct }) {
     setPreviewImage(imageDataUrl);
     setShowCamera(false);
     
-    // Announce success with voice if enabled
-    if (isVoiceNavActive) {
-      window.dispatchEvent(new CustomEvent('voicePrompt', { 
-        detail: { 
-          message: "Photo captured successfully. You can continue filling out the product details." 
-        } 
-      }));
-    }
+    // Also provide general voice feedback
+    voiceFeedback.announce("Photo captured successfully");
   };
 
   const handleCameraCancel = () => {
     setShowCamera(false);
+    voiceFeedback.announce("Camera cancelled");
   };
 
   const handleSubmit = async (e) => {
@@ -185,6 +198,7 @@ function AddProduct({ onAddProduct }) {
     // Validation
     if (!name || !price || !category || !description) {
       alert('Please fill in all required fields.');
+      voiceFeedback.announce("Please fill in all required fields.");
       setIsSaving(false);
       return;
     }
@@ -194,6 +208,7 @@ function AddProduct({ onAddProduct }) {
       name,
       price: parseFloat(price),
       category,
+      color, // Include color in product data
       image: image || 'https://via.placeholder.com/300x200',
       description
     };
@@ -202,6 +217,7 @@ function AddProduct({ onAddProduct }) {
       const token = localStorage.getItem('token');
       if (!token) {
         alert('Authentication required. Please log in.');
+        voiceFeedback.announce("Authentication required. Please log in.");
         setIsSaving(false);
         return;
       }
@@ -222,39 +238,21 @@ function AddProduct({ onAddProduct }) {
         // Navigate to products page
         history.push('/products');
         
-        // Announce success with voice if enabled
-        if (isVoiceNavActive) {
-          window.dispatchEvent(new CustomEvent('voicePrompt', { 
-            detail: { 
-              message: `Successfully added product ${name} for $${price}.` 
-            } 
-          }));
-        }
+        // Announce success with voice
+        voiceFeedback.announce(`Successfully added product ${name} for $${price}.`);
       } else {
         const errorData = await response.json();
         alert(`Error: ${errorData.error || 'Failed to add product'}`);
         
-        // Announce error with voice if enabled
-        if (isVoiceNavActive) {
-          window.dispatchEvent(new CustomEvent('voicePrompt', { 
-            detail: { 
-              message: `Error adding product: ${errorData.error || 'Failed to add product'}.` 
-            } 
-          }));
-        }
+        // Announce error with voice
+        voiceFeedback.announce(`Error adding product: ${errorData.error || 'Failed to add product'}.`);
       }
     } catch (error) {
       console.error('Error adding product:', error);
       alert('Network error. Please try again.');
       
-      // Announce error with voice if enabled
-      if (isVoiceNavActive) {
-        window.dispatchEvent(new CustomEvent('voicePrompt', { 
-          detail: { 
-            message: "Network error. Please try again." 
-          } 
-        }));
-      }
+      // Announce error with voice
+      voiceFeedback.announce("Network error. Please try again.");
     } finally {
       setIsSaving(false);
     }
@@ -330,6 +328,21 @@ function AddProduct({ onAddProduct }) {
           </div>
           
           <div className={styles.formGroup}>
+            <label htmlFor="color">Color</label>
+            <input
+              type="text"
+              id="color"
+              value={color}
+              onChange={(e) => setColor(e.target.value)}
+              placeholder="Enter product color"
+              className={styles.inputField}
+            />
+            <div className={styles.fieldHint}>
+              <small>Enter the color of your product (optional)</small>
+            </div>
+          </div>
+          
+          <div className={styles.formGroup}>
             <label htmlFor="description">Description *</label>
             <textarea
               id="description"
@@ -338,7 +351,7 @@ function AddProduct({ onAddProduct }) {
               required
               rows="4"
               placeholder="Describe your product in detail..."
-              className={styles.textarea}
+              className={styles.descriptionField}
             />
             <div className={styles.fieldHint}>
               <small>Include key features, condition, and any other important details</small>
@@ -405,19 +418,18 @@ function AddProduct({ onAddProduct }) {
             >
               <i className="fas fa-times"></i> Cancel
             </button>
-            
             <button 
               type="submit" 
-              className={styles.submit}
+              className={styles.submitButton}
               disabled={isSaving}
             >
               {isSaving ? (
                 <>
-                  <i className="fas fa-spinner fa-spin"></i> Adding...
+                  <i className="fas fa-spinner fa-spin"></i> Saving...
                 </>
               ) : (
                 <>
-                  <i className="fas fa-plus-circle"></i> Add Product
+                  <i className="fas fa-plus"></i> Add Product
                 </>
               )}
             </button>

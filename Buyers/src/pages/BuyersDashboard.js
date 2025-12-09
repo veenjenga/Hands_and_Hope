@@ -3,7 +3,7 @@ import { useCart } from '../contexts/CartContext';
 import styles from './BuyersDashboard.module.css';
 import { API_ENDPOINTS } from '../config/api'; // Import API configuration
 
-function BuyersDashboard({ highContrastMode, fontSize, products, filters }) {
+function BuyersDashboard({ highContrastMode, fontSize, products, filters, searchQuery }) {
   const { addToCart } = useCart();
   const [categories, setCategories] = useState([]);
   
@@ -40,7 +40,9 @@ function BuyersDashboard({ highContrastMode, fontSize, products, filters }) {
     const matchesColor =
       filters.colors.length === 0 || filters.colors.includes(product.color);
     const matchesStatus = product.status === 'Active'; // Added status filter
-    return matchesCategory && matchesPrice && matchesColor && matchesStatus;
+    const matchesSearch = 
+      searchQuery === '' || product.name.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCategory && matchesPrice && matchesColor && matchesStatus && matchesSearch;
   });
 
   const handleAddToCart = (product) => {

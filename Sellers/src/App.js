@@ -15,6 +15,7 @@ import Login from './pages/Login';   // ✅ import login
 import Signup from './pages/Signup'; // ✅ import signup
 import { API_ENDPOINTS } from './config/api'; // Import API configuration
 import styles from './App.module.css';
+import voiceFeedback from './utils/voiceFeedback';
 
 function App() {
   const [activeNavItem, setActiveNavItem] = useState('Dashboard');
@@ -25,7 +26,7 @@ function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isAccessibilityPanelOpen, setIsAccessibilityPanelOpen] = useState(false);
   const [isVoiceNavigationEnabled, setIsVoiceNavigationEnabled] = useState(false);
-  const [voiceFeedback, setVoiceFeedback] = useState(false);
+  const [voiceFeedbackEnabled, setVoiceFeedbackEnabled] = useState(false);
   const [isNewUser, setIsNewUser] = useState(false); // Track if user is new (just signed up)
 
   // ✅ track authentication
@@ -134,6 +135,14 @@ function App() {
     } else if (storedVoicePref === 'disabled') {
       setIsVoiceNavigationEnabled(false);
     }
+    
+    // Check voice feedback preference on app load
+    const storedVoiceFeedbackPref = localStorage.getItem('voiceFeedback');
+    if (storedVoiceFeedbackPref === 'enabled') {
+      setVoiceFeedbackEnabled(true);
+    } else if (storedVoiceFeedbackPref === 'disabled') {
+      setVoiceFeedbackEnabled(false);
+    }
   }, []);
 
   // Function to handle login
@@ -208,9 +217,10 @@ function App() {
     setHighContrastMode(false);
     setFontSize(16);
     setIsVoiceNavigationEnabled(false);
-    setVoiceFeedback(false);
+    setVoiceFeedbackEnabled(false);
     // Save preference to localStorage
     localStorage.setItem('voiceNavigationPreference', 'disabled');
+    localStorage.setItem('voiceFeedback', 'disabled');
   };
 
   return (
@@ -271,8 +281,8 @@ function App() {
                       setFontSize={setFontSize}
                       isVoiceNavigationEnabled={isVoiceNavigationEnabled}
                       setIsVoiceNavigationEnabled={setIsVoiceNavigationEnabled}
-                      voiceFeedback={voiceFeedback}
-                      setVoiceFeedback={setVoiceFeedback}
+                      voiceFeedback={voiceFeedbackEnabled}
+                      setVoiceFeedback={setVoiceFeedbackEnabled}
                     />
                   </Route>
                   <Route path="/profile">

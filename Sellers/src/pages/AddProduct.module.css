@@ -45,6 +45,7 @@
 
 .formRow {
   display: flex;
+  height: fit-content;
   gap: 20px;
 }
 
@@ -76,7 +77,7 @@
 .textarea,
 .selectInput,
 .urlInput {
-  padding: 12px 15px;
+  padding: 8px 15px;
   border: 1px solid #ddd;
   border-radius: 6px;
   font-size: 15px;
@@ -94,10 +95,28 @@
   background: #fff;
 }
 
-.formGroup textarea {
-  font-family: inherit;
-  resize: vertical;
-  min-height: 120px;
+
+
+.descriptionField {
+  min-height: 65px;
+  max-height: 150px;
+  overflow: auto;
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 8px 15px;
+  font-size: 15px;
+  background: #fafafa;
+  transition: all 0.3s ease;
+  margin-top: 1px; /* Move up by 5 pixels to prevent exceeding top card */
+}
+
+.descriptionField:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+  background: #fff;
 }
 
 .selectInput {
@@ -141,7 +160,6 @@
   justify-content: center;
   overflow: hidden;
   background: #f8f9fa;
-  position: relative;
 }
 
 .previewImage {
@@ -304,6 +322,10 @@
   .imageUploadButtons {
     flex-direction: column;
   }
+  
+  .descriptionField {
+    max-height: 120px; /* Reduced from 180px */
+  }
 }
 
 @media (max-width: 480px) {
@@ -313,5 +335,13 @@
   
   .formContainer {
     padding: 15px;
+  }
+  
+  .descriptionField {
+    max-height: 100px; /* Reduced from 130px */
+  }
+  
+  .imagePreview {
+    height: 150px;
   }
 }

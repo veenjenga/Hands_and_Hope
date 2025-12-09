@@ -12,6 +12,9 @@ export const API_ENDPOINTS = {
   },
   PROFILE: {
     GET: `${API_BASE_URL}/api/profile`
+  },
+  ACTIVITIES: {
+    RECENT: `${API_BASE_URL}/api/activities/recent`
   }
 };
 

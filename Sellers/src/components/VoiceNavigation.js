@@ -3,11 +3,11 @@ import { useHistory } from 'react-router-dom';
 import voiceCommandProcessor from '../utils/voiceCommandProcessor';
 import productNLP from '../utils/productNLP';
 import VoiceCamera from './VoiceCamera';
+import voiceFeedback from '../utils/voiceFeedback';
 
 function VoiceNavigation({ isVoiceNavigationEnabled, isNewUser, setIsNewUser }) {
   const history = useHistory();
   const [isSpeechSupported, setIsSpeechSupported] = useState(true);
-  const [isPlayingFeedback, setIsPlayingFeedback] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
   const [lastMessage, setLastMessage] = useState('');
   const [interactiveMode, setInteractiveMode] = useState(false);
@@ -31,126 +31,8 @@ function VoiceNavigation({ isVoiceNavigationEnabled, isNewUser, setIsNewUser }) 
   // Memoize functions to use as dependencies
   const announce = useCallback((message) => {
     // Always use Eleven Labs for voice feedback
-    announceWithElevenLabs(message);
+    voiceFeedback.announce(message);
   }, []);
-
-  const announceWithElevenLabs = useCallback(async (message) => {
-    // Prevent overlapping feedback
-    if (isPlayingFeedback) {
-      // Queue the message to be played after the current one finishes
-      messageQueue.current.push(message);
-      return;
-    }
-    
-    setIsPlayingFeedback(true);
-    setLastMessage(message);
-    
-    // Cancel any ongoing speech synthesis to prevent overlap
-    if (speechSynthesis.speaking) {
-      speechSynthesis.cancel();
-    }
-    
-    try {
-      // Use Eleven Labs API for high-quality speech synthesis
-      const apiKey = process.env.REACT_APP_ELEVEN_LABS_API_KEY;
-      
-      // If no API key is available, fall back to browser speech
-      if (!apiKey) {
-        console.warn('Eleven Labs API key not found, falling back to browser speech');
-        fallbackToBrowserSpeech(message);
-        return;
-      }
-      
-      const response = await fetch('https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM', {
-        method: 'POST',
-        headers: {
-          'Accept': 'audio/mpeg',
-          'xi-api-key': apiKey,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          text: message,
-          model_id: 'eleven_monolingual_v1',
-          voice_settings: {
-            stability: 0.5,
-            similarity_boost: 0.5
-          }
-        })
-      });
-
-      if (response.ok) {
-        const audioBlob = await response.blob();
-        const audioUrl = URL.createObjectURL(audioBlob);
-        const audio = new Audio(audioUrl);
-        
-        // Play the Eleven Labs audio
-        audio.play();
-        
-        // Reset the playing flag when audio finishes
-        audio.onended = () => {
-          setIsPlayingFeedback(false);
-          // Play next message in queue if available
-          if (messageQueue.current.length > 0) {
-            const nextMessage = messageQueue.current.shift();
-            announce(nextMessage);
-          }
-        };
-      } else {
-        console.error('Eleven Labs API error:', response.status);
-        // Even if Eleven Labs fails, we still want to provide feedback
-        fallbackToBrowserSpeech(message);
-      }
-    } catch (error) {
-      console.error('Eleven Labs API error:', error);
-      // Even if Eleven Labs fails, we still want to provide feedback
-      fallbackToBrowserSpeech(message);
-    }
-  }, [isPlayingFeedback]);
-
-  const fallbackToBrowserSpeech = useCallback((text) => {
-    // Cancel any ongoing speech synthesis to prevent overlap
-    if (speechSynthesis.speaking) {
-      speechSynthesis.cancel();
-    }
-    
-    if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'en-US';
-      utterance.rate = 1.0;
-      utterance.pitch = 1.0;
-      utterance.volume = 1.0;
-      
-      // Reset the playing flag when speech ends
-      utterance.onend = () => {
-        setIsPlayingFeedback(false);
-        setLastMessage(text);
-        // Play next message in queue if available
-        if (messageQueue.current.length > 0) {
-          const nextMessage = messageQueue.current.shift();
-          announce(nextMessage);
-        }
-      };
-      
-      window.speechSynthesis.speak(utterance);
-    } else {
-      console.warn('Speech synthesis not supported. Falling back to ARIA live region.');
-      const liveRegion = document.createElement('div');
-      liveRegion.setAttribute('aria-live', 'polite');
-      liveRegion.setAttribute('style', 'position: absolute; left: -9999px;');
-      liveRegion.textContent = text;
-      document.body.appendChild(liveRegion);
-      setTimeout(() => {
-        document.body.removeChild(liveRegion);
-        setIsPlayingFeedback(false);
-        setLastMessage(text);
-        // Play next message in queue if available
-        if (messageQueue.current.length > 0) {
-          const nextMessage = messageQueue.current.shift();
-          announce(nextMessage);
-        }
-      }, 2000);
-    }
-  }, [announce]);
 
   const handleVoiceCommand = useCallback((command) => {
     // Prevent processing if voice navigation is disabled
@@ -711,10 +593,11 @@ function VoiceNavigation({ isVoiceNavigationEnabled, isNewUser, setIsNewUser }) 
     }
   }, [interactiveMode, currentQuestionIndex, pendingQuestions, announce]);
 
+  // Initialize speech recognition
   useEffect(() => {
     // Check for speech recognition support
+    const isSpeechRecognitionSupported = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    const isSpeechRecognitionSupported = !!SpeechRecognition;
     
     if (!isSpeechRecognitionSupported) {
       console.warn('Speech recognition is not supported in this browser. Please use a supported browser like Chrome or Edge.');
@@ -768,12 +651,12 @@ function VoiceNavigation({ isVoiceNavigationEnabled, isNewUser, setIsNewUser }) 
         // Only announce errors if voice navigation is still enabled
         if (isVoiceNavigationEnabled) {
           if (event.error === 'network') {
-            announce('Voice navigation error: Network issue. Please check your internet connection.');
+            voiceFeedback.announce('Voice navigation error: Network issue. Please check your internet connection.');
           } else if (event.error === 'audio-capture') {
-            announce('Voice navigation error: Microphone issue. Please check your microphone.');
+            voiceFeedback.announce('Voice navigation error: Microphone issue. Please check your microphone.');
           } else if (event.error !== 'aborted' && event.error !== 'no-speech') {
             // Don't announce aborted or no-speech errors as they're expected
-            announce(`Voice navigation error: ${event.error}`);
+            voiceFeedback.announce(`Voice navigation error: ${event.error}`);
           }
         }
       };
@@ -783,7 +666,7 @@ function VoiceNavigation({ isVoiceNavigationEnabled, isNewUser, setIsNewUser }) 
         // Only announce if not already announced to prevent loops and only if enabled
         if (isVoiceNavigationEnabled && !sessionStorage.getItem('voiceNavStarted')) {
           sessionStorage.setItem('voiceNavStarted', 'true');
-          announce('Voice navigation enabled. Say "what can I say" for a list of commands.');
+          voiceFeedback.announce('Voice navigation enabled. Say "what can I say" for a list of commands.');
         }
       };
       
@@ -834,7 +717,7 @@ function VoiceNavigation({ isVoiceNavigationEnabled, isNewUser, setIsNewUser }) 
         audioContext.current.close();
       }
     };
-  }, [isVoiceNavigationEnabled, handleVoiceCommand, announce]);
+  }, [isVoiceNavigationEnabled, handleVoiceCommand]);
 
   // Listen for welcome tour start event
   useEffect(() => {
@@ -885,7 +768,7 @@ function VoiceNavigation({ isVoiceNavigationEnabled, isNewUser, setIsNewUser }) 
   useEffect(() => {
     const handleVoicePrompt = (event) => {
       if (event.detail && event.detail.message) {
-        announce(event.detail.message);
+        voiceFeedback.announce(event.detail.message);
       }
     };
 
@@ -893,7 +776,7 @@ function VoiceNavigation({ isVoiceNavigationEnabled, isNewUser, setIsNewUser }) 
     return () => {
       window.removeEventListener('voicePrompt', handleVoicePrompt);
     };
-  }, [announce]);
+  }, []);
 
   if (!isSpeechSupported) {
     return (

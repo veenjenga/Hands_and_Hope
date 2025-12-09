@@ -37,23 +37,24 @@ function CategoryPage({ highContrastMode, fontSize }) {
   useEffect(() => {
     if (products.length > 0) {
       const filtered = products.filter(product => 
-        product.category.toLowerCase() === decodedCategory.toLowerCase()
+        product.category && 
+        product.category.toLowerCase() === decodedCategory.toLowerCase() &&
+        product.status === 'Active'
       );
       setFilteredProducts(filtered);
       setLoading(false);
     }
-  }, [category, products, decodedCategory]);
+  }, [products, decodedCategory]);
 
   const handleAddToCart = (product) => {
     addToCart(product);
-    // Optional: Show a notification or feedback to the user
   };
 
   if (loading) {
     return (
       <main className={`${styles.main} ${highContrastMode ? styles.highContrast : ''}`}>
         <div className={styles.container}>
-          <h1 className={styles.sectionTitle}>Loading...</h1>
+          <h1>Loading products...</h1>
         </div>
       </main>
     );
@@ -62,47 +63,27 @@ function CategoryPage({ highContrastMode, fontSize }) {
   return (
     <main className={`${styles.main} ${highContrastMode ? styles.highContrast : ''}`}>
       <div className={styles.container}>
-        <h1 className={styles.sectionTitle}>{decodedCategory} Products</h1>
+        <h1 className={styles.pageTitle}>{decodedCategory} Products</h1>
+        
         {filteredProducts.length === 0 ? (
-          <div style={{ 
-            background: '#fff', 
-            padding: '2rem', 
-            borderRadius: '0.5rem', 
-            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-            textAlign: 'center'
-          }}>
-            <h2>No products found in this category</h2>
-            <p>Check back later for new products in the {decodedCategory} category.</p>
-          </div>
+          <p>No products found in this category.</p>
         ) : (
-          <div className={styles.productGrid}>
+          <div className={styles.productsGrid}>
             {filteredProducts.map((product) => (
-              <div
-                key={product._id}
-                className={`${styles.productCard} ${highContrastMode ? styles.cardHighContrast : ''}`}
-              >
-                <div className={styles.productImageWrapper}>
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className={styles.productImage}
-                  />
-                </div>
-                <div className={styles.productDetails}>
-                  <div className={styles.productInfo}>
-                    <div>
-                      <h3 className={styles.productName}>{product.name}</h3>
-                      <p className={`${styles.productCategory} ${highContrastMode ? styles.textHighContrast : ''}`}>
-                        {product.category}
-                      </p>
-                    </div>
-                    <div className={styles.productPrice}>{product.price.toLocaleString('en-KE')} Ksh</div>
-                  </div>
+              <div key={product._id} className={styles.productCard}>
+                <img 
+                  src={product.image} 
+                  alt={product.name} 
+                  className={styles.productImage}
+                />
+                <div className={styles.productInfo}>
+                  <h3 className={styles.productName}>{product.name}</h3>
+                  <p className={styles.productPrice}>Ksh {product.price.toLocaleString()}</p>
                   <button 
-                    className={styles.contactButton}
+                    className={styles.addToCartButton}
                     onClick={() => handleAddToCart(product)}
                   >
-                    <i className="fas fa-shopping-cart mr-2"></i>Add to Cart
+                    Add to Cart
                   </button>
                 </div>
               </div>

@@ -85,7 +85,7 @@ function Settings({
         return;
       }
 
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000'}/api/profile`, {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL || 'https://handsandhope.onrender.com'}/api/profile`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -219,6 +219,9 @@ function Settings({
     const newState = !voiceFeedback;
     setVoiceFeedback(newState);
     
+    // Save preference to localStorage
+    localStorage.setItem('voiceFeedback', newState ? 'enabled' : 'disabled');
+    
     // Provide voice feedback (only if not already playing)
     if (!isPlayingFeedback) {
       playVoiceFeedback(newState ? "Voice feedback is now enabled" : "Voice feedback is now disabled");
@@ -234,7 +237,7 @@ function Settings({
         return;
       }
 
-      await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000'}/api/sellers/deactivate`, {
+      await fetch(`${process.env.REACT_APP_BACKEND_URL || 'https://handsandhope.onrender.com'}/api/sellers/deactivate`, {
         method: "PUT",
         headers: { 
           "Authorization": `Bearer ${token}`,
@@ -258,7 +261,7 @@ function Settings({
           return;
         }
 
-        await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000'}/api/sellers/delete`, {
+        await fetch(`${process.env.REACT_APP_BACKEND_URL || 'https://handsandhope.onrender.com'}/api/sellers/delete`, {
           method: "DELETE",
           headers: { 
             "Authorization": `Bearer ${token}`,

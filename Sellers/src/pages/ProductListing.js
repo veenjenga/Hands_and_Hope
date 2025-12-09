@@ -1,6 +1,7 @@
 // src/pages/ProductListing.js
 import React, { useState, useEffect } from 'react';
 import styles from './ProductListing.module.css';
+import voiceFeedback from '../utils/voiceFeedback';
 
 function ProductListing({
   highContrastMode,
@@ -24,6 +25,9 @@ function ProductListing({
   useEffect(() => {
     const voiceNavPref = localStorage.getItem('voiceNavigationPreference');
     setIsVoiceNavActive(voiceNavPref === 'enabled');
+    
+    // Provide voice feedback when entering products page
+    voiceFeedback.announce("You are in products");
   }, []);
 
   const filteredProducts = products.filter(product => {
@@ -55,6 +59,32 @@ function ProductListing({
     } catch (error) {
       console.error('Error updating product status:', error);
     }
+  };
+
+  // Handle category selection
+  const handleCategorySelect = (category) => {
+    setSelectedCategory(category);
+    setIsCategoryDropdownOpen(false);
+    voiceFeedback.announce(`Filtering by category: ${category}`);
+  };
+
+  // Handle status selection
+  const handleStatusSelect = (status) => {
+    setSelectedStatus(status);
+    setIsStatusDropdownOpen(false);
+    voiceFeedback.announce(`Filtering by status: ${status}`);
+  };
+
+  // Handle add product button click
+  const handleAddProductClick = () => {
+    window.location.href = '/add-product';
+    voiceFeedback.announce("Navigating to add product page");
+  };
+
+  // Handle delete product
+  const handleDeleteProduct = (productId, productName) => {
+    onDelete(productId);
+    voiceFeedback.announce(`Product ${productName} has been deleted`);
   };
 
   return (
@@ -94,10 +124,7 @@ function ProductListing({
                   <button
                     key={category}
                     className={styles.dropdownItem}
-                    onClick={() => {
-                      setSelectedCategory(category);
-                      setIsCategoryDropdownOpen(false);
-                    }}
+                    onClick={() => handleCategorySelect(category)}
                   >
                     {category}
                   </button>
@@ -124,10 +151,7 @@ function ProductListing({
                   <button
                     key={status}
                     className={styles.dropdownItem}
-                    onClick={() => {
-                      setSelectedStatus(status);
-                      setIsStatusDropdownOpen(false);
-                    }}
+                    onClick={() => handleStatusSelect(status)}
                   >
                     {status}
                   </button>
@@ -153,7 +177,7 @@ function ProductListing({
             {/* Add Product Button */}
             <button
               className={styles.addProductButton}
-              onClick={() => window.location.href = '/add-product'}
+              onClick={handleAddProductClick}
             >
               <i className="fa fa-plus"></i>
               Add Product
@@ -181,6 +205,9 @@ function ProductListing({
                 </span>
               </div>
               <p className={styles.category}>{product.category}</p>
+              {product.color && (
+                <p className={styles.color}>Color: {product.color}</p>
+              )}
               <p className={styles.price}>${product.price.toFixed(2)}</p>
               
               {/* Status Change Dropdown */}
@@ -205,7 +232,7 @@ function ProductListing({
                 </button>
                 <button
                   className={styles.deleteButton}
-                  onClick={() => onDelete(product._id)}
+                  onClick={() => handleDeleteProduct(product._id, product.name)}
                 >
                   <i className="fa fa-trash"></i>
                   Delete
