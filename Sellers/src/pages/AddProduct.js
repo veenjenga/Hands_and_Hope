@@ -1,7 +1,8 @@
 // src/pages/AddProduct.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useHistory } from 'react-router-dom';
 import productNLP from '../utils/productNLP';
+import VoiceCamera from '../components/VoiceCamera';
 import styles from './AddProduct.module.css';
 
 function AddProduct({ onAddProduct }) {
@@ -13,6 +14,9 @@ function AddProduct({ onAddProduct }) {
   const [description, setDescription] = useState('');
   const [isVoiceNavActive, setIsVoiceNavActive] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [showCamera, setShowCamera] = useState(false);
+  const [previewImage, setPreviewImage] = useState('');
+  const formRef = useRef(null);
 
   // Get categories from productNLP utility
   const categories = productNLP.getCategories();
@@ -43,6 +47,13 @@ function AddProduct({ onAddProduct }) {
       window.removeEventListener('voiceFieldUpdate', handleVoiceUpdate);
     };
   }, []);
+
+  // Handle image preview
+  useEffect(() => {
+    if (image) {
+      setPreviewImage(image);
+    }
+  }, [image]);
 
   const handleVoiceFieldUpdate = (field, value) => {
     switch (field) {
@@ -96,9 +107,47 @@ function AddProduct({ onAddProduct }) {
     }
   };
 
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setImage(event.target.result);
+        setPreviewImage(event.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleCameraCapture = (imageDataUrl) => {
+    setImage(imageDataUrl);
+    setPreviewImage(imageDataUrl);
+    setShowCamera(false);
+    
+    // Announce success with voice if enabled
+    if (isVoiceNavActive) {
+      window.dispatchEvent(new CustomEvent('voicePrompt', { 
+        detail: { 
+          message: "Photo captured successfully. You can continue filling out the product details." 
+        } 
+      }));
+    }
+  };
+
+  const handleCameraCancel = () => {
+    setShowCamera(false);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSaving(true);
+    
+    // Validation
+    if (!name || !price || !category || !description) {
+      alert('Please fill in all required fields.');
+      setIsSaving(false);
+      return;
+    }
     
     // Prepare product data
     const productData = {
@@ -172,100 +221,159 @@ function AddProduct({ onAddProduct }) {
   };
 
   return (
-    <div className={styles.addProduct}>
+    <div className={styles.addProduct} ref={formRef}>
       <div className={styles.formContainer}>
         <h2>Add New Product</h2>
         {isVoiceNavActive && (
           <div className={styles.voiceHelp}>
-            <p>Voice Navigation Active: I'm ready to help you list your product. Just tell me about it!</p>
+            <p><i className="fas fa-microphone-alt"></i> Voice Navigation Active: I'm ready to help you list your product. Just tell me about it!</p>
             <p>Say something like "I want to sell a blue wireless headphone" and I'll ask for more details.</p>
           </div>
         )}
         <form onSubmit={handleSubmit} className={styles.form}>
           <div className={styles.formGroup}>
-            <label htmlFor="name">Product Name</label>
+            <label htmlFor="name">Product Name *</label>
             <input
               type="text"
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
+              placeholder="Enter product name"
+              className={styles.inputField}
             />
           </div>
-          <div className={styles.formGroup}>
-            <label htmlFor="price">Price ($)</label>
-            <input
-              type="number"
-              id="price"
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
-              required
-              step="0.01"
-              min="0"
-            />
+          
+          <div className={styles.formRow}>
+            <div className={styles.formGroupHalf}>
+              <label htmlFor="price">Price ($) *</label>
+              <input
+                type="number"
+                id="price"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                required
+                step="0.01"
+                min="0"
+                placeholder="0.00"
+                className={styles.inputField}
+              />
+            </div>
+            
+            <div className={styles.formGroupHalf}>
+              <label htmlFor="category">Category *</label>
+              <select
+                id="category"
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                required
+                className={styles.selectInput}
+              >
+                <option value="">Select a category</option>
+                {categories.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
+          
           <div className={styles.formGroup}>
-            <label htmlFor="category">Category</label>
-            <select
-              id="category"
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              required
-              className={styles.selectInput}
-            >
-              <option value="">Select a category</option>
-              {categories.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className={styles.formGroup}>
-            <label htmlFor="description">Description</label>
+            <label htmlFor="description">Description *</label>
             <textarea
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               required
               rows="4"
+              placeholder="Describe your product in detail..."
               className={styles.textarea}
             />
           </div>
+          
           <div className={styles.formGroup}>
-            <label htmlFor="image">Image URL</label>
-            <input
-              type="url"
-              id="image"
-              value={image}
-              onChange={(e) => setImage(e.target.value)}
-              placeholder="https://example.com/image.jpg"
-            />
-            {isVoiceNavActive && (
-              <button 
-                type="button" 
-                className={styles.voiceCameraButton}
-                onClick={() => {
-                  // This would trigger the voice command to open camera
-                  if (window.annyang) {
-                    // Simulate voice command
-                    window.annyang.trigger('take a photo');
-                  }
+            <label htmlFor="image">Product Image</label>
+            <div className={styles.imageUploadContainer}>
+              <div className={styles.imagePreview}>
+                {previewImage ? (
+                  <img src={previewImage} alt="Preview" className={styles.previewImage} />
+                ) : (
+                  <div className={styles.placeholderImage}>
+                    <i className="fas fa-camera"></i>
+                    <p>No image uploaded</p>
+                  </div>
+                )}
+              </div>
+              
+              <div className={styles.imageUploadButtons}>
+                <label className={styles.uploadButton}>
+                  <i className="fas fa-upload"></i> Upload Image
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className={styles.fileInput}
+                  />
+                </label>
+                
+                <button 
+                  type="button" 
+                  className={styles.cameraButton}
+                  onClick={() => setShowCamera(true)}
+                >
+                  <i className="fas fa-camera"></i> Take Photo
+                </button>
+              </div>
+              
+              <input
+                type="url"
+                id="image"
+                value={image}
+                onChange={(e) => {
+                  setImage(e.target.value);
+                  setPreviewImage(e.target.value);
                 }}
-              >
-                Take Photo with Voice
-              </button>
-            )}
+                placeholder="Or paste image URL"
+                className={styles.urlInput}
+              />
+            </div>
           </div>
-          <button 
-            type="submit" 
-            className={styles.submit}
-            disabled={isSaving}
-          >
-            {isSaving ? 'Adding Product...' : 'Add Product'}
-          </button>
+          
+          <div className={styles.buttonGroup}>
+            <button 
+              type="button"
+              className={styles.cancelButton}
+              onClick={() => history.push('/products')}
+            >
+              <i className="fas fa-times"></i> Cancel
+            </button>
+            
+            <button 
+              type="submit" 
+              className={styles.submit}
+              disabled={isSaving}
+            >
+              {isSaving ? (
+                <>
+                  <i className="fas fa-spinner fa-spin"></i> Adding...
+                </>
+              ) : (
+                <>
+                  <i className="fas fa-plus-circle"></i> Add Product
+                </>
+              )}
+            </button>
+          </div>
         </form>
       </div>
+      
+      {showCamera && (
+        <VoiceCamera 
+          onCapture={handleCameraCapture}
+          onCancel={handleCameraCancel}
+        />
+      )}
     </div>
   );
 }

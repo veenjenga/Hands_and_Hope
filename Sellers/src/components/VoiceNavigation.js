@@ -145,6 +145,25 @@ function VoiceNavigation({ isVoiceNavigationEnabled, isNewUser, setIsNewUser }) 
   }, [announce]);
 
   const handleVoiceCommand = useCallback((command) => {
+    // Prevent processing empty or repeated commands
+    if (!command || command.trim().length === 0) {
+      return;
+    }
+    
+    // Prevent processing the same command repeatedly (loop prevention)
+    const lastCommand = sessionStorage.getItem('lastVoiceCommand');
+    const lastCommandTime = sessionStorage.getItem('lastVoiceCommandTime');
+    const currentTime = Date.now();
+    
+    if (lastCommand === command && lastCommandTime && (currentTime - parseInt(lastCommandTime)) < 2000) {
+      console.log('Preventing duplicate command processing:', command);
+      return;
+    }
+    
+    // Store the command to prevent duplicates
+    sessionStorage.setItem('lastVoiceCommand', command);
+    sessionStorage.setItem('lastVoiceCommandTime', currentTime.toString());
+    
     // If in welcome tour, handle tour navigation
     if (welcomeTour) {
       handleTourCommand(command);
@@ -347,7 +366,7 @@ function VoiceNavigation({ isVoiceNavigationEnabled, isNewUser, setIsNewUser }) 
       default:
         announce('Command not recognized');
     }
-  }, [history, welcomeTour, interactiveMode, pendingQuestions, listingFlow, lastMessage, announce]);
+  }, [history, welcomeTour, interactiveMode, pendingQuestions, listingFlow, lastMessage, announce, productState]);
 
   const handleTourCommand = useCallback((command) => {
     const lowerCommand = command.toLowerCase();
@@ -511,6 +530,11 @@ function VoiceNavigation({ isVoiceNavigationEnabled, isNewUser, setIsNewUser }) 
   }, [announce]);
 
   const handleInteractiveAnswer = useCallback((answer) => {
+    // Prevent processing empty answers
+    if (!answer || answer.trim().length === 0) {
+      return;
+    }
+    
     const currentQuestion = pendingQuestions[currentQuestionIndex];
     let fieldUpdated = false;
     
@@ -704,12 +728,21 @@ function VoiceNavigation({ isVoiceNavigationEnabled, isNewUser, setIsNewUser }) 
       audioContext.current = new (window.AudioContext || window.webkitAudioContext)();
     }
 
+    // Clean up any existing recognition
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+      } catch (error) {
+        console.warn('Error stopping existing recognition:', error);
+      }
+    }
+
     // Initialize speech recognition
     if (isVoiceNavigationEnabled) {
       console.log('Initializing custom voice navigation...');
       
       const recognition = new SpeechRecognition();
-      recognition.continuous = true;
+      recognition.continuous = false; // Changed to false to prevent aggressive restarting
       recognition.interimResults = false;
       recognition.lang = 'en-US';
       
@@ -729,8 +762,8 @@ function VoiceNavigation({ isVoiceNavigationEnabled, isNewUser, setIsNewUser }) 
           announce('Voice navigation error: Network issue. Please check your internet connection.');
         } else if (event.error === 'audio-capture') {
           announce('Voice navigation error: Microphone issue. Please check your microphone.');
-        } else if (event.error !== 'aborted') {
-          // Don't announce aborted errors as they're expected during cleanup
+        } else if (event.error !== 'aborted' && event.error !== 'no-speech') {
+          // Don't announce aborted or no-speech errors as they're expected
           announce(`Voice navigation error: ${event.error}`);
         }
       };
@@ -747,12 +780,17 @@ function VoiceNavigation({ isVoiceNavigationEnabled, isNewUser, setIsNewUser }) 
       recognition.onend = () => {
         console.log('Voice navigation ended');
         // Restart if still enabled and not manually stopped
-        if (isVoiceNavigationEnabled && recognitionRef.current) {
-          try {
-            recognition.start();
-          } catch (error) {
-            console.warn('Could not restart recognition:', error);
-          }
+        if (isVoiceNavigationEnabled) {
+          // Add a small delay before restarting to prevent rapid loops
+          setTimeout(() => {
+            if (isVoiceNavigationEnabled && recognitionRef.current) {
+              try {
+                recognitionRef.current.start();
+              } catch (error) {
+                console.warn('Could not restart recognition:', error);
+              }
+            }
+          }, 500);
         }
       };
       

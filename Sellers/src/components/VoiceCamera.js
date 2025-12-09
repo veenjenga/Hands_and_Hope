@@ -8,6 +8,7 @@ function VoiceCamera({ onCapture, onCancel }) {
   const [stream, setStream] = useState(null);
   const [capturedImage, setCapturedImage] = useState(null);
   const [error, setError] = useState(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     initCamera();
@@ -18,12 +19,21 @@ function VoiceCamera({ onCapture, onCancel }) {
         stream.getTracks().forEach(track => track.stop());
       }
     };
-  }, [stream]); // Add stream as dependency
+  }, []);
 
   const initCamera = async () => {
     try {
+      // Stop any existing stream
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+      
       const mediaStream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: 'environment' } // Prefer rear camera if available
+        video: { 
+          facingMode: 'environment',
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        } // Prefer rear camera if available with better resolution
       });
       setStream(mediaStream);
       
@@ -32,12 +42,29 @@ function VoiceCamera({ onCapture, onCancel }) {
       }
     } catch (err) {
       console.error('Error accessing camera:', err);
-      setError('Could not access camera. Please ensure you have given permission and try again.');
+      // Try with any camera if environment fails
+      try {
+        const fallbackStream = await navigator.mediaDevices.getUserMedia({ 
+          video: { 
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          }
+        });
+        setStream(fallbackStream);
+        
+        if (videoRef.current) {
+          videoRef.current.srcObject = fallbackStream;
+        }
+      } catch (fallbackErr) {
+        console.error('Fallback camera access failed:', fallbackErr);
+        setError('Could not access camera. Please ensure you have given permission and try again.');
+      }
     }
   };
 
   const captureImage = () => {
     if (videoRef.current && canvasRef.current) {
+      setIsProcessing(true);
       const video = videoRef.current;
       const canvas = canvasRef.current;
       const context = canvas.getContext('2d');
@@ -49,9 +76,10 @@ function VoiceCamera({ onCapture, onCancel }) {
       // Draw video frame to canvas
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
       
-      // Convert to data URL
-      const imageDataUrl = canvas.toDataURL('image/jpeg');
+      // Convert to data URL with better quality
+      const imageDataUrl = canvas.toDataURL('image/jpeg', 0.8);
       setCapturedImage(imageDataUrl);
+      setIsProcessing(false);
     }
   };
 
@@ -68,16 +96,18 @@ function VoiceCamera({ onCapture, onCancel }) {
   return (
     <div className={styles.cameraOverlay}>
       <div className={styles.cameraContainer}>
-        <h2 className={styles.title}>Voice Camera</h2>
+        <h2 className={styles.title}>
+          <i className="fas fa-camera"></i> Product Photo
+        </h2>
         
         {error ? (
           <div className={styles.error}>
-            <p>{error}</p>
+            <p><i className="fas fa-exclamation-triangle"></i> {error}</p>
             <button 
               className={styles.retryButton}
               onClick={initCamera}
             >
-              Retry
+              <i className="fas fa-redo"></i> Retry
             </button>
           </div>
         ) : (
@@ -108,15 +138,22 @@ function VoiceCamera({ onCapture, onCancel }) {
                   <button 
                     className={styles.captureButton}
                     onClick={captureImage}
+                    disabled={isProcessing}
                     aria-label="Capture photo"
                   >
-                    <div className={styles.captureCircle}></div>
+                    {isProcessing ? (
+                      <div className={styles.processingSpinner}>
+                        <i className="fas fa-spinner fa-spin"></i>
+                      </div>
+                    ) : (
+                      <div className={styles.captureCircle}></div>
+                    )}
                   </button>
                   <button 
                     className={styles.cancelButton}
                     onClick={onCancel}
                   >
-                    Cancel
+                    <i className="fas fa-times"></i> Cancel
                   </button>
                 </>
               ) : (
@@ -125,19 +162,19 @@ function VoiceCamera({ onCapture, onCancel }) {
                     className={styles.useButton}
                     onClick={useImage}
                   >
-                    Use Photo
+                    <i className="fas fa-check"></i> Use Photo
                   </button>
                   <button 
                     className={styles.retakeButton}
                     onClick={retakeImage}
                   >
-                    Retake
+                    <i className="fas fa-redo"></i> Retake
                   </button>
                   <button 
                     className={styles.cancelButton}
                     onClick={onCancel}
                   >
-                    Cancel
+                    <i className="fas fa-times"></i> Cancel
                   </button>
                 </>
               )}

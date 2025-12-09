@@ -1,0 +1,29 @@
+services:
+  mongodb:
+    image: mongo:5.0
+    container_name: hands_and_hope_mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+    volumes:
+      - mongodb_data:/data/db
+
+  backend:
+    build: .
+    container_name: hands_and_hope_backend
+    ports:
+      - "5000:5000"
+    environment:
+      - MONGO_URI=mongodb://admin:password@mongodb:27017/handsandhope?authSource=admin
+      - JWT_SECRET=your_jwt_secret_here
+      - NODE_ENV=production
+    depends_on:
+      - mongodb
+    volumes:
+      - .:/app
+      - /app/node_modules
+
+volumes:
+  mongodb_data:

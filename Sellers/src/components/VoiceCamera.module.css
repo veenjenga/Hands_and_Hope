@@ -77,9 +77,14 @@
   transition: all 0.2s ease;
 }
 
-.captureButton:hover {
+.captureButton:hover:not(:disabled) {
   background: #f9fafb;
   transform: scale(1.05);
+}
+
+.captureButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 
 .captureCircle {
@@ -87,6 +92,11 @@
   height: 50px;
   border-radius: 50%;
   background: #ef4444;
+}
+
+.processingSpinner {
+  font-size: 30px;
+  color: #ef4444;
 }
 
 .useButton, .retakeButton, .cancelButton, .retryButton {
@@ -97,6 +107,9 @@
   border: none;
   font-size: 1rem;
   transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .useButton {
