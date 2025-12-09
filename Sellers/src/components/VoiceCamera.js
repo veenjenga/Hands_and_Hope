@@ -58,6 +58,13 @@ function VoiceCamera({ onCapture, onCancel }) {
       } catch (fallbackErr) {
         console.error('Fallback camera access failed:', fallbackErr);
         setError('Could not access camera. Please ensure you have given permission and try again.');
+        
+        // Announce error with voice if enabled
+        window.dispatchEvent(new CustomEvent('voicePrompt', { 
+          detail: { 
+            message: "Camera access error. Please check your camera permissions and try again." 
+          } 
+        }));
       }
     }
   };

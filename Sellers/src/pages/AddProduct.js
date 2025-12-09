@@ -138,6 +138,18 @@ function AddProduct({ onAddProduct }) {
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
+      // Check file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Image size should be less than 5MB');
+        return;
+      }
+      
+      // Check file type
+      if (!file.type.startsWith('image/')) {
+        alert('Please select an image file');
+        return;
+      }
+      
       const reader = new FileReader();
       reader.onload = (event) => {
         setImage(event.target.result);
@@ -194,7 +206,7 @@ function AddProduct({ onAddProduct }) {
         return;
       }
       
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000'}/api/products`, {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL || 'https://handsandhope.onrender.com'}/api/products`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -269,7 +281,11 @@ function AddProduct({ onAddProduct }) {
               required
               placeholder="Enter product name"
               className={styles.inputField}
+              autoFocus
             />
+            <div className={styles.fieldHint}>
+              <small>Enter a descriptive name for your product</small>
+            </div>
           </div>
           
           <div className={styles.formRow}>
@@ -286,6 +302,9 @@ function AddProduct({ onAddProduct }) {
                 placeholder="0.00"
                 className={styles.inputField}
               />
+              <div className={styles.fieldHint}>
+                <small>Enter the price in USD</small>
+              </div>
             </div>
             
             <div className={styles.formGroupHalf}>
@@ -304,6 +323,9 @@ function AddProduct({ onAddProduct }) {
                   </option>
                 ))}
               </select>
+              <div className={styles.fieldHint}>
+                <small>Choose the most appropriate category for your product</small>
+              </div>
             </div>
           </div>
           
@@ -318,6 +340,9 @@ function AddProduct({ onAddProduct }) {
               placeholder="Describe your product in detail..."
               className={styles.textarea}
             />
+            <div className={styles.fieldHint}>
+              <small>Include key features, condition, and any other important details</small>
+            </div>
           </div>
           
           <div className={styles.formGroup}>
@@ -365,6 +390,10 @@ function AddProduct({ onAddProduct }) {
                 placeholder="Or paste image URL"
                 className={styles.urlInput}
               />
+              
+              <div className={styles.helpText}>
+                <small>You can upload an image file, take a photo with your camera, or paste an image URL.</small>
+              </div>
             </div>
           </div>
           
