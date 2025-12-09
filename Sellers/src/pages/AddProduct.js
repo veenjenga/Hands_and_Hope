@@ -194,7 +194,7 @@ function AddProduct({ onAddProduct }) {
         return;
       }
       
-      const response = await fetch('http://localhost:5000/api/products', {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000'}/api/products`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

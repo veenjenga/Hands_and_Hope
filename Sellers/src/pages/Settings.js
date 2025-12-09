@@ -31,7 +31,7 @@ function Settings({
           return;
         }
 
-        const response = await fetch("http://localhost:5000/api/profile", {
+        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000'}/api/profile`, {
           headers: {
             "Authorization": `Bearer ${token}`,
           },
@@ -85,7 +85,7 @@ function Settings({
         return;
       }
 
-      const response = await fetch("http://localhost:5000/api/profile", {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000'}/api/profile`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -224,7 +224,7 @@ function Settings({
         return;
       }
 
-      await fetch("http://localhost:5000/api/sellers/deactivate", {
+      await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000'}/api/sellers/deactivate`, {
         method: "PUT",
         headers: { 
           "Authorization": `Bearer ${token}`,
@@ -248,7 +248,7 @@ function Settings({
           return;
         }
 
-        await fetch("http://localhost:5000/api/sellers/delete", {
+        await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000'}/api/sellers/delete`, {
           method: "DELETE",
           headers: { 
             "Authorization": `Bearer ${token}`,

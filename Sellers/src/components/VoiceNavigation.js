@@ -145,6 +145,12 @@ function VoiceNavigation({ isVoiceNavigationEnabled, isNewUser, setIsNewUser }) 
   }, [announce]);
 
   const handleVoiceCommand = useCallback((command) => {
+    // Prevent processing if voice navigation is disabled
+    if (!isVoiceNavigationEnabled) {
+      console.log('Voice navigation is disabled, ignoring command:', command);
+      return;
+    }
+    
     // Prevent processing empty or repeated commands
     if (!command || command.trim().length === 0) {
       return;
@@ -743,25 +749,31 @@ function VoiceNavigation({ isVoiceNavigationEnabled, isNewUser, setIsNewUser }) 
           .join('');
           
         console.log('Voice command recognized:', transcript);
-        handleVoiceCommand(transcript);
+        // Only process command if voice navigation is still enabled
+        if (isVoiceNavigationEnabled) {
+          handleVoiceCommand(transcript);
+        }
       };
       
       recognition.onerror = (event) => {
         console.error('Speech recognition error:', event.error);
-        if (event.error === 'network') {
-          announce('Voice navigation error: Network issue. Please check your internet connection.');
-        } else if (event.error === 'audio-capture') {
-          announce('Voice navigation error: Microphone issue. Please check your microphone.');
-        } else if (event.error !== 'aborted' && event.error !== 'no-speech') {
-          // Don't announce aborted or no-speech errors as they're expected
-          announce(`Voice navigation error: ${event.error}`);
+        // Only announce errors if voice navigation is still enabled
+        if (isVoiceNavigationEnabled) {
+          if (event.error === 'network') {
+            announce('Voice navigation error: Network issue. Please check your internet connection.');
+          } else if (event.error === 'audio-capture') {
+            announce('Voice navigation error: Microphone issue. Please check your microphone.');
+          } else if (event.error !== 'aborted' && event.error !== 'no-speech') {
+            // Don't announce aborted or no-speech errors as they're expected
+            announce(`Voice navigation error: ${event.error}`);
+          }
         }
       };
       
       recognition.onstart = () => {
         console.log('Voice navigation started');
-        // Only announce if not already announced to prevent loops
-        if (!sessionStorage.getItem('voiceNavStarted')) {
+        // Only announce if not already announced to prevent loops and only if enabled
+        if (isVoiceNavigationEnabled && !sessionStorage.getItem('voiceNavStarted')) {
           sessionStorage.setItem('voiceNavStarted', 'true');
           announce('Voice navigation enabled. Say "what can I say" for a list of commands.');
         }
