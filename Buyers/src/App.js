@@ -10,9 +10,10 @@ import Register from './pages/Register';
 import Login from './pages/Login';
 import RegisterModeSelection from './components/RegisterModeSelection';
 import Settings from './pages/Settings';
-import AboutUs from './pages/AboutUs';  // Added import
-import HowItWorks from './pages/HowItWorks';  // Added import
-import SafetyTips from './pages/SafetyTips';  // Added import
+import AboutUs from './pages/AboutUs';
+import HowItWorks from './pages/HowItWorks';
+import SafetyTips from './pages/SafetyTips';
+import CategoryPage from './pages/CategoryPage'; // Added import
 import VoiceNavigation from './components/VoiceNavigation';
 import AccessibilityPanel from './components/AccessibilityPanel';
 import { CartProvider } from './contexts/CartContext';
@@ -340,7 +341,16 @@ function App() {
                   />
                 }
               />
-              {/* Added new routes */}
+              {/* Added category route */}
+              <Route
+                path="/category/:category"
+                element={
+                  <CategoryPage
+                    highContrastMode={highContrastMode}
+                    fontSize={fontSize}
+                  />
+                }
+              />
               <Route
                 path="/about"
                 element={<AboutUs highContrastMode={highContrastMode} />}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, useHistory, useLocation } from "react-router-dom"; // Changed useNavigate to useHistory
 import VoiceNavigationPopup from '../components/VoiceNavigationPopup';
 import { API_ENDPOINTS } from '../config/api'; // Import API configuration
 import styles from './Login.module.css';
@@ -11,7 +11,7 @@ function Login({ onLogin }) {
   const [showVoicePopup, setShowVoicePopup] = useState(false);
   const [userVoicePreference, setUserVoicePreference] = useState(null);
   const [isPlayingFeedback, setIsPlayingFeedback] = useState(false); // Prevent overlapping feedback
-  const navigate = useNavigate();
+  const history = useHistory(); // Changed useNavigate to useHistory
   const location = useLocation();
 
   useEffect(() => {
@@ -28,7 +28,7 @@ function Login({ onLogin }) {
     if (storedVoicePref) {
       setUserVoicePreference(storedVoicePref === 'enabled');
     }
-  }, [history]);
+  }, []); // Removed history from dependencies array
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -62,12 +62,12 @@ function Login({ onLogin }) {
           }, 1000);
           // Add a small delay before redirecting
           setTimeout(() => {
-            navigate("/");
+            history.push("/"); // Changed navigate to history.push
           }, 3000);
         } else if (storedVoicePref === 'disabled') {
           // Add a small delay before redirecting
           setTimeout(() => {
-            navigate("/");
+            history.push("/"); // Changed navigate to history.push
           }, 1500);
         } else {
           // No preference set, show popup
@@ -178,7 +178,7 @@ function Login({ onLogin }) {
   const handleClosePopup = () => {
     setShowVoicePopup(false);
     // Redirect to dashboard after closing popup
-    navigate("/");
+    history.push("/"); // Changed navigate to history.push
   };
 
   return (

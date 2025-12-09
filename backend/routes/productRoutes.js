@@ -19,6 +19,21 @@ router.get("/", async (req, res) => {
 });
 
 // ==============================
+// @desc    Get unique categories
+// @route   GET /api/products/categories
+// @access  Public
+// ==============================
+router.get("/categories", async (req, res) => {
+  try {
+    const products = await Product.find({}, 'category'); // fetch only category field
+    const categories = [...new Set(products.map(product => product.category))];
+    res.json(categories);
+  } catch (err) {
+    res.status(500).json({ message: "Error fetching categories", error: err.message });
+  }
+});
+
+// ==============================
 // @desc    Get products by seller ID
 // @route   GET /api/products/seller
 // @access  Private (seller only)
