@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { API_ENDPOINTS } from '../config/api';
 import styles from "./Settings.module.css";
 
 function Settings({
@@ -25,8 +24,6 @@ function Settings({
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
-        setLoading(true);
-        
         const token = localStorage.getItem("token");
         if (!token) {
           console.error("No authentication token found");
@@ -34,7 +31,7 @@ function Settings({
           return;
         }
 
-        const response = await fetch(API_ENDPOINTS.PROFILE.GET, {
+        const response = await fetch("http://localhost:5000/api/profile", {
           headers: {
             "Authorization": `Bearer ${token}`,
           },
@@ -49,8 +46,7 @@ function Settings({
             phoneNumber: userData.phone || "",
           });
         } else {
-          const errorData = await response.json();
-          console.error("Failed to fetch user profile:", errorData);
+          console.error("Failed to fetch user profile");
         }
       } catch (error) {
         console.error("Error fetching user profile:", error);
@@ -89,7 +85,7 @@ function Settings({
         return;
       }
 
-      const response = await fetch(API_ENDPOINTS.PROFILE.GET, {
+      const response = await fetch("http://localhost:5000/api/profile", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -228,7 +224,7 @@ function Settings({
         return;
       }
 
-      await fetch(API_ENDPOINTS.SELLERS.DEACTIVATE, {
+      await fetch("http://localhost:5000/api/sellers/deactivate", {
         method: "PUT",
         headers: { 
           "Authorization": `Bearer ${token}`,
@@ -252,7 +248,7 @@ function Settings({
           return;
         }
 
-        await fetch(API_ENDPOINTS.SELLERS.DELETE, {
+        await fetch("http://localhost:5000/api/sellers/delete", {
           method: "DELETE",
           headers: { 
             "Authorization": `Bearer ${token}`,

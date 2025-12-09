@@ -485,30 +485,20 @@ function VoiceNavigation({ isVoiceNavigationEnabled, isNewUser, setIsNewUser }) 
   }, [productState]);
 
   const announceProductInfoSummary = useCallback((productInfo) => {
-    const parts = [];
+    // Only announce if voice navigation is enabled
+    if (!isVoiceNavigationEnabled) return;
     
-    if (productInfo.name) {
-      parts.push(`Product name: ${productInfo.name}`);
-    }
+    const summaryParts = [];
+    if (productInfo.name) summaryParts.push(`Product name: ${productInfo.name}`);
+    if (productInfo.price) summaryParts.push(`Price: $${productInfo.price}`);
+    if (productInfo.category) summaryParts.push(`Category: ${productInfo.category}`);
+    if (productInfo.description) summaryParts.push(`Description: ${productInfo.description.substring(0, 50)}${productInfo.description.length > 50 ? '...' : ''}`);
     
-    if (productInfo.price) {
-      parts.push(`Price: $${productInfo.price}`);
+    if (summaryParts.length > 0) {
+      const summary = "I've extracted the following information: " + summaryParts.join(". ") + ". You can continue providing more details or say 'save product' to add this item.";
+      announce(summary);
     }
-    
-    if (productInfo.category) {
-      parts.push(`Category: ${productInfo.category}`);
-    }
-    
-    if (productInfo.description) {
-      parts.push(`Description: ${productInfo.description.substring(0, 50)}${productInfo.description.length > 50 ? '...' : ''}`);
-    }
-    
-    if (parts.length > 0) {
-      announce(`I've extracted the following information: ${parts.join(', ')}.`);
-    } else {
-      announce("I couldn't extract any product information from that description. Would you like to try again or answer some questions about your product?");
-    }
-  }, [announce]);
+  }, [isVoiceNavigationEnabled, announce]);
 
   const startInteractiveMode = useCallback(() => {
     const questions = productNLP.generateQuestions(productState);

@@ -56,6 +56,34 @@ function AddProduct({ onAddProduct }) {
   }, [image]);
 
   const handleVoiceFieldUpdate = (field, value) => {
+    // Only process voice updates if voice navigation is active
+    if (!isVoiceNavActive) {
+      switch (field) {
+        case 'name':
+          setName(value);
+          break;
+        case 'price':
+          setPrice(value);
+          break;
+        case 'category':
+          // Validate category
+          const matchedCategory = productNLP.matchCategory(value);
+          if (matchedCategory) {
+            setCategory(matchedCategory);
+          }
+          break;
+        case 'description':
+          setDescription(value);
+          break;
+        case 'image':
+          setImage(value);
+          break;
+        default:
+          break;
+      }
+      return;
+    }
+    
     switch (field) {
       case 'name':
         setName(value);
