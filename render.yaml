@@ -1,0 +1,48 @@
+services:
+  - type: web
+    name: handandhope-backend
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_VERSION
+        value: 18
+      - key: MONGO_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: PORT
+        value: 5000
+
+  - type: web
+    name: hands-and-hope
+    runtime: static
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    staticPublishPath: ./build
+    envVars:
+      - key: NODE_VERSION
+        value: 18
+      - key: VITE_API_URL
+        value: https://handandhope.onrender.com
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+
+  - type: web
+    name: sellers-awb5
+    runtime: static
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    staticPublishPath: ./build
+    envVars:
+      - key: NODE_VERSION
+        value: 18
+      - key: VITE_API_URL
+        value: https://handandhope.onrender.com
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
