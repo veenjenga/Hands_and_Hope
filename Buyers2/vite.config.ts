@@ -55,5 +55,9 @@ export default defineConfig({
     host: '0.0.0.0', // Bind to all interfaces for Render deployment
     port: 3000,
     open: true,
+    allowedHosts: [
+      'hands-and-hope.onrender.com',
+      'localhost'
+    ]
   },
 });

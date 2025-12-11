@@ -68,5 +68,9 @@ export default defineConfig({
         secure: false,
       }
     },
+    allowedHosts: [
+      'sellers-awb5.onrender.com',
+      'localhost'
+    ]
   },
 });
