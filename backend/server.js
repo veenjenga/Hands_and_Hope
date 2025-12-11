@@ -18,7 +18,9 @@ const app = express();
 // ✅ Middleware
 // Allow an optional CLIENT_URL in .env for CORS origin restriction
 const corsOptions = {
-  origin: process.env.CLIENT_URL || true,
+  origin: [process.env.CLIENT_URL, "https://hands-and-hope.onrender.com"] || true,
+  credentials: true,
+  optionsSuccessStatus: 200
 };
 app.use(cors(corsOptions));
 app.use(express.json());

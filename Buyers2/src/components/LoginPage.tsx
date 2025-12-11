@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Alert, AlertDescription } from './ui/alert';
 import Header from './Header';
 import { AccessibilitySettings } from './AccessibilityMenu';
+import { api } from '../services/api';
 
 interface LoginPageProps {
   onLogin: (user: any) => void;
@@ -18,28 +19,34 @@ export default function LoginPage({ onLogin, accessibilitySettings, onAccessibil
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
 
     if (!email || !password) {
       setError('Please fill in all fields');
+      setLoading(false);
       return;
     }
 
-    // Mock login - in real app, this would validate credentials
-    const user = {
-      id: 1,
-      name: 'John Doe',
-      email: email,
-      phone: '+1234567890',
-      address: '123 Main St, City, Country'
-    };
-
-    onLogin(user);
-    navigate('/');
+    try {
+      const response = await api.login(email, password);
+      
+      // Save token to localStorage
+      localStorage.setItem('token', response.token);
+      
+      onLogin(response.buyer);
+      navigate('/');
+    } catch (err: any) {
+      console.error('Login error:', err);
+      setError(err.message || 'Failed to login. Please check your credentials.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -81,6 +88,7 @@ export default function LoginPage({ onLogin, accessibilitySettings, onAccessibil
                 onChange={(e) => setEmail(e.target.value)}
                 className="focus:border-[#1e2875] focus:ring-[#1e2875]"
                 aria-required="true"
+                disabled={loading}
               />
             </div>
 
@@ -94,6 +102,7 @@ export default function LoginPage({ onLogin, accessibilitySettings, onAccessibil
                 onChange={(e) => setPassword(e.target.value)}
                 className="focus:border-[#1e2875] focus:ring-[#1e2875]"
                 aria-required="true"
+                disabled={loading}
               />
             </div>
 
@@ -111,8 +120,9 @@ export default function LoginPage({ onLogin, accessibilitySettings, onAccessibil
             <Button
               type="submit"
               className="w-full bg-[#1e2875] hover:bg-[#2a3490] text-white focus:ring-2 focus:ring-yellow-400"
+              disabled={loading}
             >
-              Login
+              {loading ? 'Logging in...' : 'Login'}
             </Button>
 
             <p className="text-center text-gray-600">
