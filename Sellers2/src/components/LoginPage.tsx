@@ -34,17 +34,24 @@ export function LoginPage({ onLogin, onNavigateToRegister }: LoginPageProps) {
     e.preventDefault();
     setIsLoading(true);
     setError('');
-    
+
     try {
       const response = await api.login(email, password);
-      
+
       // Store in auth context
       authLogin(response.user, response.token);
       console.debug('Auth context updated, user:', response.user);
       onLogin(response.user.role as UserRole);
     } catch (err: any) {
       console.error('Login error', err);
-      setError(err.message || 'Login failed');
+      // Provide more specific error messages
+      if (err.message && err.message.includes('400')) {
+        setError('Invalid email or password. Please check your credentials.');
+      } else if (err.message && err.message.includes('Failed to fetch')) {
+        setError('Unable to connect to the server. Please check your internet connection.');
+      } else {
+        setError(err.message || 'Login failed');
+      }
       alert(err.message || 'Login failed');
     } finally {
       setIsLoading(false);

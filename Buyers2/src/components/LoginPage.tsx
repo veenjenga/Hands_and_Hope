@@ -39,11 +39,19 @@ export default function LoginPage({ onLogin, accessibilitySettings, onAccessibil
       // Save token to localStorage
       localStorage.setItem('token', response.token);
       
-      onLogin(response.buyer);
+      // For buyers, we need to extract the user object (which contains buyer info)
+      onLogin(response.user);
       navigate('/');
     } catch (err: any) {
       console.error('Login error:', err);
-      setError(err.message || 'Failed to login. Please check your credentials.');
+      // Provide more specific error messages
+      if (err.message && err.message.includes('400')) {
+        setError('Invalid email or password. Please check your credentials.');
+      } else if (err.message && err.message.includes('Failed to fetch')) {
+        setError('Unable to connect to the server. Please check your internet connection.');
+      } else {
+        setError(err.message || 'Failed to login. Please check your credentials.');
+      }
     } finally {
       setLoading(false);
     }
