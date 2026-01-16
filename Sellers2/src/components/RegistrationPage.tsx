@@ -32,20 +32,20 @@ const EXISTING_SCHOOLS = [
 export function RegistrationPage({ onRegister, onNavigateToLogin }: RegistrationPageProps) {
   const { login: authLogin } = useAuth();
   const [showAccessibility, setShowAccessibility] = useState(false);
-  const [fontSize, setFontSize] = useState<'normal' | 'large' | 'extra-large'>('normal');
+  const [fontSize, setFontSize] = useState('normal');
   const [highContrast, setHighContrast] = useState(false);
   const [screenReader, setScreenReader] = useState(true);
   const [voiceNavigation, setVoiceNavigation] = useState(false); // Disabled by default on registration page
   
   // Current active tab
-  const [activeTab, setActiveTab] = useState<AccountTab>('individual');
+  const [activeTab, setActiveTab] = useState('individual');
   
   // Form states
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [selectedSchool, setSelectedSchool] = useState('');
   const [showNewSchoolDialog, setShowNewSchoolDialog] = useState(false);
-  const [studentTeacherType, setStudentTeacherType] = useState<'student' | 'teacher'>('student');
+  const [studentTeacherType, setStudentTeacherType] = useState('student');
   const [disabilityFiles, setDisabilityFiles] = useState([] as File[]);
   const [schoolFiles, setSchoolFiles] = useState([] as File[]);
   const [adminFiles, setAdminFiles] = useState([] as File[]);
@@ -54,6 +54,8 @@ export function RegistrationPage({ onRegister, onNavigateToLogin }: Registration
   const fontSizeClass = fontSize === 'large' ? 'text-lg' : fontSize === 'extra-large' ? 'text-xl' : '';
 
   let API_URL = ((import.meta as any).env?.VITE_API_URL as string) || '';
+  // If API_URL is empty, use relative paths to leverage Vite proxy
+  const useRelativePaths = !API_URL || API_URL === '';
   if (!API_URL || !API_URL.startsWith('http')) API_URL = 'http://localhost:5000';
 
   const uploadFiles = async (fileInputIdOrFiles: string | File[]) => {
@@ -69,7 +71,7 @@ export function RegistrationPage({ onRegister, onNavigateToLogin }: Registration
 
     const form = new FormData();
     filesArr.forEach((f) => form.append('files', f));
-    const res = await fetch(`${API_URL}/api/uploads`, { method: 'POST', body: form });
+    const res = await fetch(useRelativePaths ? '/api/uploads' : `${API_URL}/api/uploads`, { method: 'POST', body: form });
     if (!res.ok) {
       const text = await res.text();
       throw new Error(text || 'Upload failed');
@@ -107,7 +109,7 @@ export function RegistrationPage({ onRegister, onNavigateToLogin }: Registration
           documents: files,
         };
 
-        const res = await fetch(`${API_URL}/api/auth/signup`, {
+        const res = await fetch(useRelativePaths ? '/api/auth/signup' : `${API_URL}/api/auth/signup`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
@@ -145,7 +147,7 @@ export function RegistrationPage({ onRegister, onNavigateToLogin }: Registration
           documents: files,
         };
 
-        const res = await fetch(`${API_URL}/api/auth/signup`, {
+        const res = await fetch(useRelativePaths ? '/api/auth/signup' : `${API_URL}/api/auth/signup`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
@@ -181,7 +183,7 @@ export function RegistrationPage({ onRegister, onNavigateToLogin }: Registration
           schoolDocuments: files,
         };
 
-        const res = await fetch(`${API_URL}/api/auth/signup`, {
+        const res = await fetch(useRelativePaths ? '/api/auth/signup' : `${API_URL}/api/auth/signup`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),

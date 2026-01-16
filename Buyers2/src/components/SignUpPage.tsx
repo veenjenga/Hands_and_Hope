@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -28,14 +28,14 @@ export default function SignUpPage({ onSignUp, accessibilitySettings, onAccessib
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: any) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: any) => {
     e.preventDefault();
     setError('');
 

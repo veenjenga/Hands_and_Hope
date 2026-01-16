@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import peopleWorking from '../assets/people-working.svg';
+// Remove the SVG import since it's causing type issues
 import { Eye, EyeOff, Accessibility } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { AccessibilityPanel } from './AccessibilityPanel';
 import { ScreenReaderProvider } from '../contexts/ScreenReaderContext';
 import { useAuth } from '../contexts/AuthContext';
+import { api } from '../services/api';
 
 type UserRole = 'seller' | 'teacher' | 'student' | 'school' | 'super-admin' | 'admin';
 
@@ -27,29 +28,30 @@ export function LoginPage({ onLogin, onNavigateToRegister }: LoginPageProps) {
   const [screenReader, setScreenReader] = useState(true);
   const [voiceNavigation, setVoiceNavigation] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-
-  const API_URL = ((import.meta as any).env?.VITE_API_URL as string) || 'http://localhost:5000';
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     setIsLoading(true);
+    setError('');
+
     try {
-      const res = await fetch(`${API_URL}/api/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || 'Login failed');
-      }
-      console.debug('Login response:', data);
+      const response = await api.login(email, password);
+
       // Store in auth context
-      authLogin(data.user, data.token);
-      console.debug('Auth context updated, user:', data.user);
-      onLogin(data.user.role as UserRole);
+      authLogin(response.user, response.token);
+      console.debug('Auth context updated, user:', response.user);
+      onLogin(response.user.role as UserRole);
     } catch (err: any) {
       console.error('Login error', err);
+      // Provide more specific error messages
+      if (err.message && err.message.includes('400')) {
+        setError('Invalid email or password. Please check your credentials.');
+      } else if (err.message && err.message.includes('Failed to fetch')) {
+        setError('Unable to connect to the server. Please check your internet connection.');
+      } else {
+        setError(err.message || 'Login failed');
+      }
       alert(err.message || 'Login failed');
     } finally {
       setIsLoading(false);
@@ -61,7 +63,6 @@ export function LoginPage({ onLogin, onNavigateToRegister }: LoginPageProps) {
   return (
     <ScreenReaderProvider enabled={screenReader}>
     <div className={`relative min-h-screen overflow-hidden ${highContrast ? 'bg-black text-white' : ''} ${fontSizeClass}`}>
-      {/* Rest of the component remains the same until the form */}
       {/* Animated Background */}
       {!highContrast && (
         <div className="absolute inset-0 -z-10">
@@ -150,14 +151,12 @@ export function LoginPage({ onLogin, onNavigateToRegister }: LoginPageProps) {
                 </div>
               </div>
             </div>
-            {/* Community Image */}
+            {/* Community Image - Remove the problematic SVG image */}
             <div className="hidden xl:block pt-6">
               <div className="overflow-hidden rounded-2xl shadow-2xl ring-4 ring-white/20 bg-white/10 backdrop-blur-sm">
-                <img
-                  src={peopleWorking}
-                  alt="People working together at Hands and Hope marketplace"
-                  className="w-full h-auto object-cover"
-                />
+                <div className="bg-gray-200 border-2 border-dashed rounded-xl w-full h-64 flex items-center justify-center">
+                  <span className="text-gray-500">Community Image</span>
+                </div>
               </div>
             </div>
           </div>
@@ -175,6 +174,12 @@ export function LoginPage({ onLogin, onNavigateToRegister }: LoginPageProps) {
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-6">
+                  {error && (
+                    <div className="rounded-lg bg-red-50 p-3 text-sm text-red-700">
+                      {error}
+                    </div>
+                  )}
+                  
                   <div className="space-y-2">
                     <div className={`rounded-lg p-3 text-sm ${highContrast ? 'bg-gray-800 text-gray-300' : 'bg-blue-50 text-blue-700'}`}>
                       <strong>Demo Credentials:</strong><br/>
@@ -198,6 +203,7 @@ export function LoginPage({ onLogin, onNavigateToRegister }: LoginPageProps) {
                       className="h-14 text-lg"
                       aria-required="true"
                       autoComplete="email"
+                      disabled={isLoading}
                     />
                   </div>
 
@@ -216,42 +222,42 @@ export function LoginPage({ onLogin, onNavigateToRegister }: LoginPageProps) {
                         className="h-14 pr-12 text-lg"
                         aria-required="true"
                         autoComplete="current-password"
+                        disabled={isLoading}
                       />
-                      <Button
+                      <button
                         type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="absolute right-1 top-1 h-12 w-12"
+                        className="absolute right-1 top-1 h-12 w-12 flex items-center justify-center text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-md"
                         onClick={() => setShowPassword(!showPassword)}
                         aria-label={showPassword ? 'Hide password' : 'Show password'}
+                        disabled={isLoading}
                       >
                         {showPassword ? (
                           <EyeOff className="h-5 w-5" />
                         ) : (
                           <Eye className="h-5 w-5" />
                         )}
-                      </Button>
+                      </button>
                     </div>
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <Button
+                    <button
                       type="button"
-                      variant="link"
-                      className="h-auto p-0 text-base text-blue-600"
+                      className="h-auto p-0 text-base text-blue-600 underline hover:text-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
                       onClick={() => alert('Password reset feature coming soon')}
+                      disabled={isLoading}
                     >
                       Forgot Password?
-                    </Button>
+                    </button>
                   </div>
 
-                  <Button
+                  <button
                     type="submit"
-                    size="lg"
-                    className="h-14 w-full text-lg shadow-lg"
+                    className="h-14 w-full text-lg shadow-lg bg-primary text-primary-foreground hover:bg-primary/90 rounded-md font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={isLoading}
                   >
-                    Sign In
-                  </Button>
+                    {isLoading ? 'Signing In...' : 'Sign In'}
+                  </button>
 
                   <div className="relative">
                     <div className="absolute inset-0 flex items-center">
@@ -264,15 +270,14 @@ export function LoginPage({ onLogin, onNavigateToRegister }: LoginPageProps) {
                     </div>
                   </div>
 
-                  <Button
+                  <button
                     type="button"
-                    variant="outline"
-                    size="lg"
-                    className="h-14 w-full text-lg"
+                    className="h-14 w-full text-lg border border-input bg-background hover:bg-accent hover:text-accent-foreground rounded-md font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={onNavigateToRegister}
+                    disabled={isLoading}
                   >
                     Create an Account
-                  </Button>
+                  </button>
                 </form>
               </CardContent>
             </Card>
