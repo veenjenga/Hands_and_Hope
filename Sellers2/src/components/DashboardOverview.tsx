@@ -5,9 +5,14 @@ import bannerImage from 'figma:asset/575120f8324783dbb6eac73158909b23747d4002.pn
 
 interface DashboardOverviewProps {
   highContrast: boolean;
+  stats?: any;
 }
 
-export function DashboardOverview({ highContrast }: DashboardOverviewProps) {
+export function DashboardOverview({ highContrast, stats }: DashboardOverviewProps) {
+  const activeListings = stats?.activeListings || 0;
+  const totalEnquiries = stats?.totalEnquiries || 0;
+  const thisMonthRevenue = stats?.thisMonthRevenue || 0;
+  const profileViews = stats?.profileViews || 0;
   return (
     <div className="space-y-8">
       {/* Welcome Banner with Image */}
@@ -34,7 +39,7 @@ export function DashboardOverview({ highContrast }: DashboardOverviewProps) {
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-sm text-blue-100">Active Listings</p>
-                <h3 className="mt-2 text-white">0</h3>
+                <h3 className="mt-2 text-white">{activeListings}</h3>
                 <div className="mt-2 flex items-center gap-1 text-sm text-blue-100">
                   <ArrowUp className="h-4 w-4" />
                   <span>Ready to sell</span>
@@ -53,7 +58,7 @@ export function DashboardOverview({ highContrast }: DashboardOverviewProps) {
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-sm text-purple-100">Inquiries</p>
-                <h3 className="mt-2 text-white">0</h3>
+                <h3 className="mt-2 text-white">{totalEnquiries}</h3>
                 <div className="mt-2 flex items-center gap-1 text-sm text-purple-100">
                   <ArrowUp className="h-4 w-4" />
                   <span>Awaiting response</span>
@@ -72,7 +77,7 @@ export function DashboardOverview({ highContrast }: DashboardOverviewProps) {
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-sm text-green-100">Total Sales</p>
-                <h3 className="mt-2 text-white">$0.00</h3>
+                <h3 className="mt-2 text-white">${thisMonthRevenue.toFixed(2)}</h3>
                 <div className="mt-2 flex items-center gap-1 text-sm text-green-100">
                   <ArrowUp className="h-4 w-4" />
                   <span>This month</span>
@@ -91,7 +96,7 @@ export function DashboardOverview({ highContrast }: DashboardOverviewProps) {
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-sm text-orange-100">Profile Views</p>
-                <h3 className="mt-2 text-white">0</h3>
+                <h3 className="mt-2 text-white">{profileViews}</h3>
                 <div className="mt-2 flex items-center gap-1 text-sm text-orange-100">
                   <ArrowUp className="h-4 w-4" />
                   <span>This week</span>

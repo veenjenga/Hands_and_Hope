@@ -3,6 +3,12 @@ import cors from "cors";
 import dotenv from "dotenv";
 import connectDB from "./config/db.js";
 
+// ✅ Import models (ensures they're registered with Mongoose)
+import User from "./models/User.js";
+import Product from "./models/Product.js";
+import Order from "./models/Order.js";
+import Inquiry from "./models/Inquiry.js";
+
 // ✅ Import all routes
 import authRoutes from "./routes/authRoutes.js";
 import productRoutes from "./routes/productRoutes.js";

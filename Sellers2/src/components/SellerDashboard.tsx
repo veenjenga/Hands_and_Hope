@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DashboardSidebar } from './DashboardSidebar';
 import { DashboardHeader } from './DashboardHeader';
 import { DashboardOverview } from './DashboardOverview';
@@ -11,13 +11,14 @@ import { HelpPage } from './HelpPage';
 import { AccessibilityPanel } from './AccessibilityPanel';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { ScreenReaderProvider } from '../contexts/ScreenReaderContext';
+import { useAuth } from '../contexts/AuthContext';
 import { 
   Accessibility, Wallet, TrendingUp, DollarSign, Package, 
   MessageSquare, AlertCircle, Calendar, Download, Printer,
   CreditCard, Smartphone, Building2, CheckCircle, XCircle,
   Truck, RefreshCcw, Star, BarChart3, Filter, Send, Eye,
   Clock, ArrowUpRight, ArrowDownRight, Plus, Upload, Trash2,
-  Edit3, Save, X, School, Users, HelpCircle as HelpIcon
+  Edit3, Save, X, School, Users, HelpCircle as HelpIcon, Loader
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
@@ -105,6 +106,7 @@ const MOCK_SOLD_OUT_PRODUCTS = [
 ];
 
 export function SellerDashboard({ onLogout, userRole = 'seller' }: SellerDashboardProps) {
+  const { user } = useAuth();
   const [currentPage, setCurrentPage] = useState<DashboardPage>('dashboard');
   const [showAccessibility, setShowAccessibility] = useState(false);
   const [fontSize, setFontSize] = useState<'normal' | 'large' | 'extra-large'>('normal');
@@ -112,17 +114,100 @@ export function SellerDashboard({ onLogout, userRole = 'seller' }: SellerDashboa
   const [screenReader, setScreenReader] = useState(true);
   const [voiceNavigation, setVoiceNavigation] = useState(true);
   
+  // Dashboard data states - REAL DATA FROM BACKEND
+  const [dashboardStats, setDashboardStats] = useState<any>(null);
+  const [analytics, setAnalytics] = useState<any>(null);
+  const [orders, setOrders] = useState<any[]>([]);
+  const [inquiries, setInquiries] = useState<any[]>([]);
+  const [engagement, setEngagement] = useState<any>(null);
+  const [products, setProducts] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  
   // Withdrawal states
   const [withdrawalMethod, setWithdrawalMethod] = useState<'bank' | 'mobile' | null>(null);
   const [paymentProvider, setPaymentProvider] = useState<'safaricom' | 'airtel' | null>(null);
-  const [availableBalance, setAvailableBalance] = useState(565.50);
-  const [onHoldBalance, setOnHoldBalance] = useState(80.00);
+  const [availableBalance, setAvailableBalance] = useState(0);
+  const [onHoldBalance, setOnHoldBalance] = useState(0);
   
   // Analytics states
   const [analyticsFilter, setAnalyticsFilter] = useState<'daily' | 'weekly' | 'monthly' | 'yearly'>('monthly');
   
   // Message states
   const [selectedBuyerMessage, setSelectedBuyerMessage] = useState<string | null>(null);
+
+  const API_URL = ((import.meta as any).env?.VITE_API_URL as string) || 'http://localhost:5000';
+
+  // Fetch dashboard data on mount
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setIsLoading(true);
+        const token = localStorage.getItem('token');
+        
+        // Fetch stats
+        const statsRes = await fetch(`${API_URL}/api/dashboard/stats`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const stats = await statsRes.json();
+        setDashboardStats(stats);
+        
+        // Fetch analytics
+        const analyticsRes = await fetch(`${API_URL}/api/dashboard/analytics`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const analyticsData = await analyticsRes.json();
+        setAnalytics(analyticsData);
+        
+        // Fetch orders
+        const ordersRes = await fetch(`${API_URL}/api/dashboard/orders`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const ordersData = await ordersRes.json();
+        setOrders(ordersData);
+        
+        // Fetch inquiries
+        const inquiriesRes = await fetch(`${API_URL}/api/dashboard/inquiries`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const inquiriesData = await inquiriesRes.json();
+        setInquiries(inquiriesData);
+        
+        // Fetch engagement
+        const engagementRes = await fetch(`${API_URL}/api/dashboard/engagement`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const engagementData = await engagementRes.json();
+        setEngagement(engagementData);
+        
+        // Fetch products
+        const productsRes = await fetch(`${API_URL}/api/dashboard/products`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const productsData = await productsRes.json();
+        setProducts(productsData);
+        
+        // Set balance based on orders (pending vs completed)
+        const pendingOrdersTotal = ordersData
+          .filter((o: any) => o.status === 'pending')
+          .reduce((sum: number, o: any) => sum + (o.amount || 0), 0);
+        
+        const completedOrdersTotal = ordersData
+          .filter((o: any) => o.status === 'completed')
+          .reduce((sum: number, o: any) => sum + (o.amount || 0), 0);
+        
+        setAvailableBalance(completedOrdersTotal);
+        setOnHoldBalance(pendingOrdersTotal);
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (user && user.id) {
+      fetchDashboardData();
+    }
+  }, [user, API_URL]);
 
   const fontSizeClass = fontSize === 'large' ? 'text-lg' : fontSize === 'extra-large' ? 'text-xl' : '';
 
@@ -170,6 +255,18 @@ export function SellerDashboard({ onLogout, userRole = 'seller' }: SellerDashboa
     document.body.removeChild(link);
   };
 
+  // Show loading screen while fetching data
+  if (isLoading) {
+    return (
+      <div className={`flex min-h-screen items-center justify-center ${highContrast ? 'bg-black text-white' : 'bg-gray-50'}`}>
+        <div className="text-center">
+          <Loader className="h-12 w-12 animate-spin mx-auto mb-4" />
+          <p className="text-lg">Loading your dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <ScreenReaderProvider enabled={screenReader}>
     <div className={`flex min-h-screen ${highContrast ? 'bg-black text-white' : 'bg-gray-50'} ${fontSizeClass}`}>
@@ -216,7 +313,7 @@ export function SellerDashboard({ onLogout, userRole = 'seller' }: SellerDashboa
         />
         
         <main className="p-6">
-          {currentPage === 'dashboard' && <DashboardOverview highContrast={highContrast} />}
+          {currentPage === 'dashboard' && <DashboardOverview highContrast={highContrast} stats={dashboardStats} />}
           {currentPage === 'products' && <ProductsPage highContrast={highContrast} userRole={userRole} />}
           {currentPage === 'inquiries' && <InquiriesPage highContrast={highContrast} />}
           {currentPage === 'notifications' && <NotificationsPage userRole={userRole} highContrast={highContrast} />}
