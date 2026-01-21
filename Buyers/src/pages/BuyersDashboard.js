@@ -1,7 +1,37 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useCart } from '../contexts/CartContext';
 import styles from './BuyersDashboard.module.css';
+import { API_ENDPOINTS } from '../config/api'; // Import API configuration
 
-function BuyersDashboard({ highContrastMode, fontSize, products, filters }) {
+function BuyersDashboard({ highContrastMode, fontSize, products, filters, searchQuery }) {
+  const { addToCart } = useCart();
+  const [categories, setCategories] = useState([]);
+  
+  // Fetch categories from backend
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch(`${API_ENDPOINTS.PRODUCTS.LIST}/categories`);
+        if (response.ok) {
+          const categoriesData = await response.json();
+          setCategories(categoriesData);
+        } else {
+          console.error('Failed to fetch categories');
+          // Fallback to extracting from products if API fails
+          const uniqueCategories = [...new Set(products.map(product => product.category))];
+          setCategories(uniqueCategories);
+        }
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+        // Fallback to extracting from products if API fails
+        const uniqueCategories = [...new Set(products.map(product => product.category))];
+        setCategories(uniqueCategories);
+      }
+    };
+
+    fetchCategories();
+  }, [products]);
+
   const filteredProducts = products.filter((product) => {
     const matchesCategory =
       filters.categories.length === 0 || filters.categories.includes(product.category);
@@ -10,17 +40,15 @@ function BuyersDashboard({ highContrastMode, fontSize, products, filters }) {
     const matchesColor =
       filters.colors.length === 0 || filters.colors.includes(product.color);
     const matchesStatus = product.status === 'Active'; // Added status filter
-    return matchesCategory && matchesPrice && matchesColor && matchesStatus;
+    const matchesSearch = 
+      searchQuery === '' || product.name.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCategory && matchesPrice && matchesColor && matchesStatus && matchesSearch;
   });
 
-  const categories = [
-    "Electronics",
-    "Furniture",
-    "Smart Home",
-    "Wearables",
-    "Gaming",
-    "Audio"
-  ];
+  const handleAddToCart = (product) => {
+    addToCart(product);
+    // Optional: Show a notification or feedback to the user
+  };
 
   return (
     <main className={`${styles.main} ${highContrastMode ? styles.highContrast : ''}`}>
@@ -72,8 +100,11 @@ function BuyersDashboard({ highContrastMode, fontSize, products, filters }) {
                   </div>
                   <div className={styles.productPrice}>{product.price.toLocaleString('en-KE')} Ksh</div>
                 </div>
-                <button className={styles.contactButton}>
-                  <i className="fas fa-envelope mr-2"></i>Contact Seller
+                <button 
+                  className={styles.contactButton}
+                  onClick={() => handleAddToCart(product)}
+                >
+                  <i className="fas fa-shopping-cart mr-2"></i>Add to Cart
                 </button>
               </div>
             </div>
@@ -99,8 +130,15 @@ function BuyersDashboard({ highContrastMode, fontSize, products, filters }) {
             <div className={styles.footerSection}>
               <h4 className={styles.footerSubtitle}>Categories</h4>
               <ul className={styles.footerList}>
-                {categories.slice(0, 4).map((category) => (
-                  <li key={category}><a href={`/category/${encodeURIComponent(category.toLowerCase().replace(/\s+/g, '-'))}`} className={styles.footerLink}>{category}</a></li>
+                {categories.map((category) => (
+                  <li key={category}>
+                    <a 
+                      href={`/category/${encodeURIComponent(category.toLowerCase().replace(/\s+/g, '-'))}`} 
+                      className={styles.footerLink}
+                    >
+                      {category}
+                    </a>
+                  </li>
                 ))}
               </ul>
             </div>

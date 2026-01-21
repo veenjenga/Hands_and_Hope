@@ -1,17 +1,69 @@
 // src/components/Header.js
-import React from 'react';
-import { useHistory } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useHistory, Link } from 'react-router-dom';
 import styles from './Header.module.css';
 
-function Header({ highContrastMode }) {
+function Header({ highContrastMode, currentUser }) {
   const history = useHistory();
+  const [user, setUser] = useState(currentUser);
+
+  // Update local user state when currentUser prop changes
+  useEffect(() => {
+    setUser(currentUser);
+  }, [currentUser]);
+
+  // Listen for storage changes and fetch user data from API
+  useEffect(() => {
+    const handleStorageChange = async () => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          const response = await fetch('http://localhost:5000/api/profile', {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          
+          if (response.ok) {
+            const userData = await response.json();
+            setUser(userData);
+          } else {
+            // Fallback to localStorage if API fails
+            const storedUser = localStorage.getItem('user');
+            if (storedUser) {
+              setUser(JSON.parse(storedUser));
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching user profile:', error);
+          // Fallback to localStorage if API fails
+          const storedUser = localStorage.getItem('user');
+          if (storedUser) {
+            setUser(JSON.parse(storedUser));
+          }
+        }
+      } else {
+        // Clear user data if no token
+        setUser(null);
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Also fetch user data on component mount
+    handleStorageChange();
+    
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
 
   const handleAddProduct = () => {
     history.push('/add-product');
   };
 
   const handleLogout = () => {
-    // Add logout logic here (e.g., clear auth token)
+    // Clear auth token and user data
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
     history.push('/login');
   };
 
@@ -44,6 +96,22 @@ function Header({ highContrastMode }) {
         </div>
 
         <div className={styles.userActions}>
+          {!user && (
+            <>
+              <Link 
+                to="/login"
+                className={`${styles.loginButton} ${highContrastMode ? styles.loginButtonHighContrast : ''}`}
+              >
+                Login
+              </Link>
+              <Link 
+                to="/register"
+                className={`${styles.registerButton} ${highContrastMode ? styles.registerButtonHighContrast : ''}`}
+              >
+                Register
+              </Link>
+            </>
+          )}
           <button
             onClick={handleAddProduct}
             className={`${styles.addButton} ${
@@ -56,12 +124,26 @@ function Header({ highContrastMode }) {
           </button>
 
           <div className={styles.userInfo}>
-            <img
-              src="https://public.readdy.ai/ai/img_res/d148673ac06fcc36bc7ff4b04964af63.jpg"
-              alt="User Avatar for John Doe"
-              className={styles.userAvatar}
-            />
-            <span className={styles.userName}>John Doe</span>
+            <div 
+              className={styles.avatarContainer}
+              onClick={() => history.push('/profile')}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  history.push('/profile');
+                }
+              }}
+            >
+              <img
+                src={user?.profilePicture || "https://public.readdy.ai/ai/img_res/d148673ac06fcc36bc7ff4b04964af63.jpg"}
+                alt={`User Avatar for ${user?.name || 'Seller'}`}
+                className={styles.userAvatar}
+              />
+            </div>
+            <span className={`${styles.userName} ${highContrastMode ? styles.userNameHighContrast : ''}`}>
+              {user?.name || 'Seller'}
+            </span>
             <button
               onClick={handleLogout}
               className={`${styles.logoutButton} ${

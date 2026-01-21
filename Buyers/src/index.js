@@ -5,7 +5,6 @@ import App from './App';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
+  // Removing StrictMode temporarily to see if it resolves the issue
+  <App />
 );

@@ -17,6 +17,7 @@
   display: flex;
   align-items: center;
   margin-bottom: 32px;
+  flex-wrap: wrap;
 }
 
 .title {
@@ -41,6 +42,31 @@
 .highContrast .inquiryCount {
   background: #fff;
   color: #000;
+}
+
+/* Voice Help Section */
+.voiceHelp {
+  background: #e3f2fd;
+  border: 1px solid #2196f3;
+  border-radius: 4px;
+  padding: 12px;
+  margin-top: 16px;
+  width: 100%;
+}
+
+.highContrast .voiceHelp {
+  background: #1f2937;
+  border: 1px solid #fff;
+}
+
+.voiceHelp p {
+  margin: 0;
+  color: #0d47a1;
+  font-size: 14px;
+}
+
+.highContrast .voiceHelp p {
+  color: #fff;
 }
 
 /* Inquiries Grid */

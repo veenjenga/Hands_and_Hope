@@ -91,7 +91,7 @@ function Register({ onRegister, selectedMode }) {
 
   return (
     <div className={styles.registerContainer}>
-      <h2 className={styles.title}>Register as Seller</h2>
+      <h2 className={styles.title}>Register as Buyer</h2>
       {isVoiceEnabled && (
         <div className={styles.voiceControl}>
           <button

@@ -1,198 +1,322 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Switch, Redirect } from 'react-router-dom';
+import axios from "axios";   
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import Dashboard from './pages/Dashboard';
 import ProductListing from './pages/ProductListing';
 import AddProduct from './pages/AddProduct';
 import Inquiries from './pages/Inquiries';
-import Settings from './pages/Settings'; // Import the new Settings page
+import Settings from './pages/Settings';
+import Profile from './pages/Profile'; // ✅ import profile
 import VoiceNavigation from './components/VoiceNavigation';
 import AccessibilityPanel from './components/AccessibilityPanel';
+import Login from './pages/Login';   // ✅ import login
+import Signup from './pages/Signup'; // ✅ import signup
+import { API_ENDPOINTS } from './config/api'; // Import API configuration
 import styles from './App.module.css';
+import voiceFeedback from './utils/voiceFeedback';
 
 function App() {
   const [activeNavItem, setActiveNavItem] = useState('Dashboard');
   const [highContrastMode, setHighContrastMode] = useState(false);
-  const [fontSize, setFontSize] = useState(1);
+  const [fontSize, setFontSize] = useState(16);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedStatus, setSelectedStatus] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [isAccessibilityPanelOpen, setIsAccessibilityPanelOpen] = useState(false);
   const [isVoiceNavigationEnabled, setIsVoiceNavigationEnabled] = useState(false);
-  const [voiceFeedback, setVoiceFeedback] = useState(false); // New state for voice feedback
+  const [voiceFeedbackEnabled, setVoiceFeedbackEnabled] = useState(false);
+  const [isNewUser, setIsNewUser] = useState(false); // Track if user is new (just signed up)
 
-  const initialProducts = [
-    {
-      id: 1,
-      name: 'Handcrafted Wooden Chair',
-      price: '$149.99',
-      status: 'Active',
-      category: 'Furniture',
-      image: 'https://readdy.ai/api/search-image?query=A%20beautiful%20handcrafted%20wooden%20chair%20with%20intricate%20details%2C%20natural%20wood%20grain%20visible%2C%20elegant%20design%2C%20professional%20product%20photography%20on%20pure%20white%20background%2C%20high%20quality%20studio%20lighting%20showing%20texture%20and%20craftsmanship&width=300&height=200&seq=product1&orientation=landscape'
-    },
-    {
-      id: 2,
-      name: 'Organic Cotton T-Shirt',
-      price: '$29.99',
-      status: 'Active',
-      category: 'Clothing',
-      image: 'https://readdy.ai/api/search-image?query=A%20high-quality%20organic%20cotton%20t-shirt%20in%20solid%20color%2C%20neatly%20folded%2C%20professional%20product%20photography%20on%20pure%20white%20background%2C%20showing%20fabric%20texture%20and%20quality%20stitching%2C%20clean%20and%20minimal%20styling&width=300&height=200&seq=product2&orientation=landscape'
-    },
-    {
-      id: 3,
-      name: 'Handmade Ceramic Vase',
-      price: '$79.99',
-      status: 'Draft',
-      category: 'Home Decor',
-      image: 'https://readdy.ai/api/search-image?query=An%20elegant%20handmade%20ceramic%20vase%20with%20unique%20glaze%20pattern%2C%20artistic%20design%2C%20professional%20product%20photography%20on%20pure%20white%20background%2C%20showing%20texture%20and%20craftsmanship%2C%20high%20quality%20studio%20lighting&width=300&height=200&seq=product3&orientation=landscape'
-    },
-    {
-      id: 4,
-      name: 'Smart Watch Pro',
-      price: '$199.99',
-      status: 'Sold Out',
-      category: 'Electronics',
-      image: 'https://readdy.ai/api/search-image?query=A%20modern%20smartwatch%20with%20sleek%20design%2C%20clear%20display%20showing%20fitness%20tracking%20interface%2C%20premium%20materials%2C%20professional%20product%20photography%20on%20pure%20white%20background%2C%20high-end%20tech%20product%20appearance&width=300&height=200&seq=product4&orientation=landscape'
-    },
-    {
-      id: 5,
-      name: 'Leather Messenger Bag',
-      price: '$89.99',
-      status: 'Active',
-      category: 'Accessories',
-      image: 'https://readdy.ai/api/search-image?query=A%20premium%20leather%20messenger%20bag%20with%20brass%20hardware%2C%20rich%20brown%20color%2C%20professional%20product%20photography%20on%20pure%20white%20background%2C%20showing%20leather%20texture%20and%20craftsmanship%20details&width=300&height=200&seq=product5&orientation=landscape'
-    },
-    {
-      id: 6,
-      name: 'Minimalist Desk Lamp',
-      price: '$59.99',
-      status: 'Active',
-      category: 'Home Decor',
-      image: 'https://readdy.ai/api/search-image?query=A%20modern%20minimalist%20desk%20lamp%20with%20adjustable%20arm%2C%20clean%20lines%2C%20metallic%20finish%2C%20professional%20product%20photography%20on%20pure%20white%20background%2C%20showing%20design%20details&width=300&height=200&seq=product6&orientation=landscape'
-    }
-  ];
+  // ✅ track authentication
+  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem("token"));
+  const [currentUser, setCurrentUser] = useState(null);
 
-  const [products, setProducts] = useState(() => {
-    const savedProducts = localStorage.getItem('products');
-    return savedProducts ? JSON.parse(savedProducts) : initialProducts;
-  });
-
+  // Fetch user data from API or localStorage
   useEffect(() => {
-    localStorage.setItem('products', JSON.stringify(products));
-  }, [products]);
+    const fetchUserData = async () => {
+      const token = localStorage.getItem("token");
+      if (token) {
+        try {
+          const response = await fetch(API_ENDPOINTS.PROFILE.GET, {
+            headers: {
+              "Authorization": `Bearer ${token}`
+            }
+          });
+          
+          if (response.ok) {
+            const userData = await response.json();
+            setCurrentUser(userData);
+            // Also update localStorage for immediate access
+            localStorage.setItem("user", JSON.stringify(userData));
+          } else {
+            // Fallback to localStorage if API fails
+            const storedUser = localStorage.getItem("user");
+            if (storedUser) {
+              setCurrentUser(JSON.parse(storedUser));
+            }
+          }
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+          // Fallback to localStorage if API fails
+          const storedUser = localStorage.getItem("user");
+          if (storedUser) {
+            setCurrentUser(JSON.parse(storedUser));
+          }
+        }
+      }
+    };
 
-  const handleNavItemClick = (item) => {
-    setActiveNavItem(item);
+    fetchUserData();
+  }, [isAuthenticated]);
+
+  // Listen for authentication changes
+  useEffect(() => {
+    const handleStorageChange = async () => {
+      const token = localStorage.getItem("token");
+      setIsAuthenticated(!!token);
+      
+      if (token) {
+        try {
+          const response = await fetch(API_ENDPOINTS.PROFILE.GET, {
+            headers: {
+              "Authorization": `Bearer ${token}`
+            }
+          });
+          
+          if (response.ok) {
+            const userData = await response.json();
+            setCurrentUser(userData);
+            // Also update localStorage for immediate access
+            localStorage.setItem("user", JSON.stringify(userData));
+          } else {
+            // Fallback to localStorage if API fails
+            const storedUser = localStorage.getItem("user");
+            if (storedUser) {
+              setCurrentUser(JSON.parse(storedUser));
+            }
+          }
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+          // Fallback to localStorage if API fails
+          const storedUser = localStorage.getItem("user");
+          if (storedUser) {
+            setCurrentUser(JSON.parse(storedUser));
+          }
+        }
+        
+        // Fetch products for the authenticated seller
+        fetchSellerProducts(token);
+      } else {
+        setCurrentUser(null);
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  // Listen for high contrast toggle event from Settings
+  useEffect(() => {
+    const handleToggleHighContrast = (event) => {
+      setHighContrastMode(event.detail);
+    };
+
+    window.addEventListener('toggleHighContrast', handleToggleHighContrast);
+    return () => window.removeEventListener('toggleHighContrast', handleToggleHighContrast);
+  }, []);
+
+  // Check voice navigation preference on app load
+  useEffect(() => {
+    const storedVoicePref = localStorage.getItem('voiceNavigationPreference');
+    if (storedVoicePref === 'enabled') {
+      setIsVoiceNavigationEnabled(true);
+    } else if (storedVoicePref === 'disabled') {
+      setIsVoiceNavigationEnabled(false);
+    }
+    
+    // Check voice feedback preference on app load
+    const storedVoiceFeedbackPref = localStorage.getItem('voiceFeedback');
+    if (storedVoiceFeedbackPref === 'enabled') {
+      setVoiceFeedbackEnabled(true);
+    } else if (storedVoiceFeedbackPref === 'disabled') {
+      setVoiceFeedbackEnabled(false);
+    }
+  }, []);
+
+  // Function to handle login
+  const handleLogin = (token, userData) => {
+    localStorage.setItem("token", token);
+    if (userData) {
+      localStorage.setItem("user", JSON.stringify(userData));
+      setCurrentUser(userData);
+    }
+    setIsAuthenticated(true);
+    setIsNewUser(false); // Not a new user when logging in
+    
+    // Fetch products for the authenticated seller
+    fetchSellerProducts(token);
   };
 
-  const toggleHighContrastMode = () => {
-    setHighContrastMode(!highContrastMode);
-  };
+  // ✅ Products from backend
+  const [products, setProducts] = useState([]);
 
-  const increaseFontSize = () => {
-    if (fontSize < 1.5) {
-      setFontSize((prev) => prev + 0.1);
+  const fetchSellerProducts = async (token) => {
+    try {
+      const response = await fetch(API_ENDPOINTS.PRODUCTS.SELLER, {
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
+      
+      if (response.ok) {
+        const productsData = await response.json();
+        setProducts(productsData);
+      }
+    } catch (err) {
+      console.error("Error fetching products:", err);
     }
   };
 
-  const decreaseFontSize = () => {
-    if (fontSize > 0.8) {
-      setFontSize((prev) => prev - 0.1);
+  const handleAddProduct = async (newProduct) => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.post(API_ENDPOINTS.PRODUCTS.LIST, newProduct, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setProducts([...products, res.data]);
+    } catch (err) {
+      console.error("Error adding product:", err);
     }
   };
 
+  const handleDeleteProduct = async (productId) => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.delete(`${API_ENDPOINTS.PRODUCTS.LIST}/${productId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setProducts(products.filter(p => p._id !== productId));
+    } catch (err) {
+      console.error("Error deleting product:", err);
+    }
+  };
+
+  const handleNavItemClick = (item) => setActiveNavItem(item);
+  const toggleHighContrastMode = () => setHighContrastMode(!highContrastMode);
+  const increaseFontSize = () => fontSize < 24 && setFontSize((prev) => prev + 2);
+  const decreaseFontSize = () => fontSize > 14 && setFontSize((prev) => prev - 2);
   const toggleVoiceNavigation = () => {
-    setIsVoiceNavigationEnabled(!isVoiceNavigationEnabled);
+    const newVoiceNavState = !isVoiceNavigationEnabled;
+    setIsVoiceNavigationEnabled(newVoiceNavState);
+    // Save preference to localStorage
+    localStorage.setItem('voiceNavigationPreference', newVoiceNavState ? 'enabled' : 'disabled');
   };
-
   const resetAccessibilitySettings = () => {
     setHighContrastMode(false);
-    setFontSize(1);
+    setFontSize(16);
     setIsVoiceNavigationEnabled(false);
-    setVoiceFeedback(false); // Reset voice feedback as well
-  };
-
-  const handleAddProduct = (newProduct) => {
-    setProducts([...products, newProduct]);
-  };
-
-  const handleDeleteProduct = (productId) => {
-    setProducts(products.filter((product) => product.id !== productId));
+    setVoiceFeedbackEnabled(false);
+    // Save preference to localStorage
+    localStorage.setItem('voiceNavigationPreference', 'disabled');
+    localStorage.setItem('voiceFeedback', 'disabled');
   };
 
   return (
     <Router>
-      <div className={styles.appContainer} style={{ fontSize: `${fontSize}rem` }}>
-        {/* Left Sidebar */}
-        <Sidebar
-          activeNavItem={activeNavItem}
-          handleNavItemClick={handleNavItemClick}
-          highContrastMode={highContrastMode}
-        />
+      <div className={styles.appContainer} style={{ fontSize: `${fontSize}px` }}>
+        <Switch>
+          {/* Public Routes */}
+          <Route path="/login">
+            <Login onLogin={handleLogin} />
+          </Route>
+          <Route path="/signup">
+            <Signup />
+          </Route>
 
-        {/* Main Content */}
-        <div
-          className={`${styles.mainContent} ${
-            highContrastMode ? styles.mainContentHighContrast : ''
-          }`}
-        >
-          {/* Top Navigation */}
-          <Header highContrastMode={highContrastMode} />
-
-          {/* Main Content Area */}
-          <Switch>
-            <Route exact path="/">
-              <Dashboard highContrastMode={highContrastMode} />
-            </Route>
-            <Route path="/products">
-              <ProductListing
+          {/* Protected Routes */}
+          {isAuthenticated ? (
+            <>
+              <Sidebar
+                activeNavItem={activeNavItem}
+                handleNavItemClick={handleNavItemClick}
                 highContrastMode={highContrastMode}
-                products={products}
-                onDelete={handleDeleteProduct}
-                selectedCategory={selectedCategory}
-                setSelectedCategory={setSelectedCategory}
-                selectedStatus={selectedStatus}
-                setSelectedStatus={setSelectedStatus}
-                searchQuery={searchQuery}
-                setSearchQuery={setSearchQuery}
               />
-            </Route>
-            <Route path="/add-product">
-              <AddProduct onAddProduct={handleAddProduct} />
-            </Route>
-            <Route path="/inquiries">
-              <Inquiries highContrastMode={highContrastMode} />
-            </Route>
-            <Route path="/settings">
-              <Settings
+
+              <div
+                className={`${styles.mainContent} ${
+                  highContrastMode ? styles.mainContentHighContrast : ''
+                }`}
+              >
+                <Header highContrastMode={highContrastMode} currentUser={currentUser} />
+
+                <Switch>
+                  <Route exact path="/">
+                    <Dashboard highContrastMode={highContrastMode} />
+                  </Route>
+                  <Route path="/products">
+                    <ProductListing
+                      highContrastMode={highContrastMode}
+                      products={products}
+                      onDelete={handleDeleteProduct}
+                      selectedCategory={selectedCategory}
+                      setSelectedCategory={setSelectedCategory}
+                      selectedStatus={selectedStatus}
+                      setSelectedStatus={setSelectedStatus}
+                      searchQuery={searchQuery}
+                      setSearchQuery={setSearchQuery}
+                    />
+                  </Route>
+                  <Route path="/add-product">
+                    <AddProduct onAddProduct={handleAddProduct} />
+                  </Route>
+                  <Route path="/inquiries">
+                    <Inquiries highContrastMode={highContrastMode} />
+                  </Route>
+                  <Route path="/settings">
+                    <Settings
+                      highContrastMode={highContrastMode}
+                      fontSize={fontSize}
+                      setFontSize={setFontSize}
+                      isVoiceNavigationEnabled={isVoiceNavigationEnabled}
+                      setIsVoiceNavigationEnabled={setIsVoiceNavigationEnabled}
+                      voiceFeedback={voiceFeedbackEnabled}
+                      setVoiceFeedback={setVoiceFeedbackEnabled}
+                    />
+                  </Route>
+                  <Route path="/profile">
+                    <Profile />
+                  </Route>
+                </Switch>
+              </div>
+
+              <AccessibilityPanel
                 highContrastMode={highContrastMode}
-                fontSize={fontSize * 16} // Convert rem to px for Settings
-                setFontSize={(newSize) => setFontSize(newSize / 16)} // Convert px back to rem
+                toggleHighContrastMode={toggleHighContrastMode}
+                fontSize={fontSize}
+                increaseFontSize={increaseFontSize}
+                decreaseFontSize={decreaseFontSize}
                 isVoiceNavigationEnabled={isVoiceNavigationEnabled}
-                setIsVoiceNavigationEnabled={setIsVoiceNavigationEnabled}
-                voiceFeedback={voiceFeedback}
-                setVoiceFeedback={setVoiceFeedback}
+                toggleVoiceNavigation={toggleVoiceNavigation}
+                resetAccessibilitySettings={resetAccessibilitySettings}
+                isOpen={isAccessibilityPanelOpen}
+                setIsOpen={setIsAccessibilityPanelOpen}
               />
-            </Route>
-          </Switch>
-        </div>
 
-        {/* Accessibility Panel */}
-        <AccessibilityPanel
-          highContrastMode={highContrastMode}
-          toggleHighContrastMode={toggleHighContrastMode}
-          fontSize={fontSize}
-          increaseFontSize={increaseFontSize}
-          decreaseFontSize={decreaseFontSize}
-          isVoiceNavigationEnabled={isVoiceNavigationEnabled}
-          toggleVoiceNavigation={toggleVoiceNavigation}
-          resetAccessibilitySettings={resetAccessibilitySettings}
-          isOpen={isAccessibilityPanelOpen}
-          setIsOpen={setIsAccessibilityPanelOpen}
-        />
+              {isVoiceNavigationEnabled && (
+                <VoiceNavigation 
+                  isVoiceNavigationEnabled={isVoiceNavigationEnabled}
+                  isNewUser={isNewUser}
+                  setIsNewUser={setIsNewUser}
+                />
+              )}
+            </>
+          ) : (
+            <Redirect to="/login" />
+          )}
+        </Switch>
       </div>
-      {isVoiceNavigationEnabled && <VoiceNavigation isVoiceNavigationEnabled={isVoiceNavigationEnabled} />}
     </Router>
   );
 }

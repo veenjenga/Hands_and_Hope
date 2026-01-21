@@ -2,6 +2,7 @@
 import React from 'react';
 import { useHistory } from 'react-router-dom';
 import styles from './Sidebar.module.css';
+import voiceFeedback from '../utils/voiceFeedback';
 
 function Sidebar({ activeNavItem, handleNavItemClick, highContrastMode }) {
   const history = useHistory();
@@ -18,6 +19,9 @@ function Sidebar({ activeNavItem, handleNavItemClick, highContrastMode }) {
   const handleClick = (item, path) => {
     handleNavItemClick(item);
     history.push(path);
+    
+    // Provide voice feedback when navigating
+    voiceFeedback.announce(`You are in ${item}`);
   };
 
   return (
