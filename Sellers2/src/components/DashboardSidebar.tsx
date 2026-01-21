@@ -1,7 +1,7 @@
-import { Home, Package, Mail, Settings, HelpCircle, Bell, User, Users, Clock, TrendingUp, Activity, GraduationCap, CheckCircle, MessageSquare, Wallet, BarChart3, DollarSign, RefreshCcw, Truck, School } from 'lucide-react';
+import { Home, Package, Mail, Settings, HelpCircle, Bell, User, Users, Clock, TrendingUp, Activity, GraduationCap, CheckCircle, MessageSquare, Wallet, BarChart3, DollarSign, RefreshCcw, Truck, School, UserPlus } from 'lucide-react';
 import handsHopeLogo from 'figma:asset/972a6bc015fa5c98ddeb2bc3d5985f42623eb1bb.png';
 
-type DashboardPage = 'dashboard' | 'products' | 'inquiries' | 'notifications' | 'profile' | 'settings' | 'help' | 'students' | 'pending-approvals' | 'student-activity' | 'rankings' | 'activity-log' | 'teachers' | 'approvals' | 'teacher-activity' | 'messages' | 'withdrawals' | 'analytics' | 'sales-history' | 'buyer-messages' | 'refunds' | 'shipments' | 'assistance';
+type DashboardPage = 'dashboard' | 'products' | 'inquiries' | 'notifications' | 'profile' | 'settings' | 'help' | 'students' | 'pending-approvals' | 'student-activity' | 'rankings' | 'activity-log' | 'teachers' | 'approvals' | 'teacher-activity' | 'messages' | 'withdrawals' | 'analytics' | 'sales-history' | 'buyer-messages' | 'refunds' | 'shipments' | 'assistance' | 'caregivers';
 
 interface DashboardSidebarProps {
   currentPage: DashboardPage;
@@ -47,6 +47,7 @@ export function DashboardSidebar({ currentPage, setCurrentPage, highContrast, us
     { id: 'buyer-messages' as const, label: 'Buyer Messages', icon: MessageSquare },
     { id: 'refunds' as const, label: 'Refunds', icon: RefreshCcw },
     { id: 'shipments' as const, label: 'Shipments', icon: Truck },
+    { id: 'caregivers' as const, label: 'Caregivers/Helpers', icon: UserPlus },
     { id: 'inquiries' as const, label: 'Inquiries', icon: Mail },
     { id: 'notifications' as const, label: 'Notifications', icon: Bell },
     { id: 'profile' as const, label: 'Profile', icon: User },
@@ -63,6 +64,7 @@ export function DashboardSidebar({ currentPage, setCurrentPage, highContrast, us
     { id: 'buyer-messages' as const, label: 'Buyer Messages', icon: MessageSquare },
     { id: 'refunds' as const, label: 'Refunds', icon: RefreshCcw },
     { id: 'shipments' as const, label: 'Shipments', icon: Truck },
+    { id: 'caregivers' as const, label: 'Caregivers/Helpers', icon: UserPlus },
     { id: 'assistance' as const, label: 'Get Assistance', icon: School },
     { id: 'inquiries' as const, label: 'Inquiries', icon: Mail },
     { id: 'notifications' as const, label: 'Notifications', icon: Bell },

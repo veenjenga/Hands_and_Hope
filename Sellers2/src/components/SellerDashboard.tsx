@@ -8,6 +8,7 @@ import { NotificationsPage } from './NotificationsPage';
 import { ProfilePage } from './ProfilePage';
 import { SettingsPage } from './SettingsPage';
 import { HelpPage } from './HelpPage';
+import { CaregiverManagementPage } from './CaregiverManagementPage';
 import { AccessibilityPanel } from './AccessibilityPanel';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { ScreenReaderProvider } from '../contexts/ScreenReaderContext';
@@ -32,7 +33,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Avatar, AvatarFallback } from './ui/avatar';
 
 type DashboardPage = 'dashboard' | 'products' | 'inquiries' | 'notifications' | 'profile' | 'settings' | 'help' | 
-  'withdrawals' | 'analytics' | 'sales-history' | 'buyer-messages' | 'refunds' | 'shipments' | 'assistance';
+  'withdrawals' | 'analytics' | 'sales-history' | 'buyer-messages' | 'refunds' | 'shipments' | 'assistance' | 'caregivers';
 
 interface SellerDashboardProps {
   onLogout: () => void;
@@ -216,7 +217,7 @@ export function SellerDashboard({ onLogout, userRole = 'seller' }: SellerDashboa
   };
 
   const handleVoiceNavigate = (page: string) => {
-    const validPages: DashboardPage[] = ['dashboard', 'products', 'inquiries', 'notifications', 'profile', 'settings', 'help', 'withdrawals', 'analytics', 'sales-history', 'buyer-messages', 'refunds', 'shipments', 'assistance'];
+    const validPages: DashboardPage[] = ['dashboard', 'products', 'inquiries', 'notifications', 'profile', 'settings', 'help', 'withdrawals', 'analytics', 'sales-history', 'buyer-messages', 'refunds', 'shipments', 'assistance', 'caregivers'];
     if (validPages.includes(page as DashboardPage)) {
       setCurrentPage(page as DashboardPage);
     }
@@ -320,6 +321,7 @@ export function SellerDashboard({ onLogout, userRole = 'seller' }: SellerDashboa
           {currentPage === 'profile' && <ProfilePage userRole={userRole} highContrast={highContrast} />}
           {currentPage === 'settings' && <SettingsPage highContrast={highContrast} userRole={userRole} />}
           {currentPage === 'help' && <HelpPage highContrast={highContrast} userRole={userRole} />}
+          {currentPage === 'caregivers' && <CaregiverManagementPage />}
 
           {/* WITHDRAWALS PAGE */}
           {currentPage === 'withdrawals' && (

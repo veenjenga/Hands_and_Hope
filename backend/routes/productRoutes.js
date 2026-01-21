@@ -16,7 +16,7 @@ router.get("/", async (req, res) => {
   } catch (err) {
     res.status(500).json({ message: "Error fetching products", error: err.message });
   }
-});
+}); 
 
 // ==============================
 // @desc    Add a new product (seller)

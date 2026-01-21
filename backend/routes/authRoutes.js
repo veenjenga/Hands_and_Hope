@@ -4,6 +4,7 @@ import School from "../models/School.js";
 import Teacher from "../models/Teacher.js";
 import Student from "../models/Student.js";
 import Seller from "../models/Seller.js";
+import Caregiver from "../models/Caregiver.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import mongoose from 'mongoose';
@@ -45,6 +46,8 @@ router.post("/signup", async (req, res) => {
     const user = new User({ name, email, password, businessName, phone, role, documents });
     await user.save();
 
+    let extra = {};
+
     // If seller, create Seller doc to keep sellers in separate collection
     if (role === 'seller') {
       try {
@@ -57,7 +60,17 @@ router.post("/signup", async (req, res) => {
       }
     }
 
-    let extra = {};
+    // If caregiver, create Caregiver doc
+    if (role === 'caregiver') {
+      try {
+        const caregiver = new Caregiver({ user: user._id, phone, documents });
+        await caregiver.save();
+        console.log(`Created Caregiver ${caregiver._id} for user ${user._id}`);
+        extra.caregiver = caregiver;
+      } catch (e) {
+        console.error('Failed to create caregiver doc', e);
+      }
+    }
 
     // If registering a school account, create School doc and link
     if (role === 'school') {

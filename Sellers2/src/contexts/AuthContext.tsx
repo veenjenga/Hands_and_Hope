@@ -5,7 +5,7 @@ interface User {
   name: string;
   email: string;
   phone?: string;
-  role: 'seller' | 'teacher' | 'student' | 'school' | 'admin' | 'super-admin';
+  role: 'seller' | 'teacher' | 'student' | 'school' | 'admin' | 'super-admin' | 'caregiver';
   businessName?: string;
   school?: string;
 }

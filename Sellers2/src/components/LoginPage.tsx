@@ -10,7 +10,7 @@ import { ScreenReaderProvider } from '../contexts/ScreenReaderContext';
 import { useAuth } from '../contexts/AuthContext';
 import { api } from '../services/api';
 
-type UserRole = 'seller' | 'teacher' | 'student' | 'school' | 'super-admin' | 'admin';
+type UserRole = 'seller' | 'teacher' | 'student' | 'school' | 'super-admin' | 'admin' | 'caregiver';
 
 interface LoginPageProps {
   onLogin: (role: UserRole) => void;

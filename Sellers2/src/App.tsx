@@ -5,11 +5,12 @@ import { SellerDashboard } from './components/SellerDashboard';
 import { TeacherDashboard } from './components/TeacherDashboard';
 import { SchoolDashboard } from './components/SchoolDashboard';
 import { AdminDashboard } from './components/AdminDashboard';
+import { CaregiverDashboard } from './components/CaregiverDashboard';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
 type Page = 'login' | 'register' | 'dashboard' | 'admin-dashboard';
-type UserRole = 'seller' | 'teacher' | 'student' | 'school' | 'super-admin' | 'admin' | null;
+type UserRole = 'seller' | 'teacher' | 'student' | 'school' | 'super-admin' | 'admin' | 'caregiver' | null;
 
 function AppContent() {
   const { user, login: authLogin, logout: authLogout } = useAuth();
@@ -101,6 +102,12 @@ function AppContent() {
       {currentPage === 'dashboard' && user && (user.role === 'seller' || user.role === 'student') && (
         <ErrorBoundary>
           <SellerDashboard onLogout={handleLogout} userRole={user.role} />
+        </ErrorBoundary>
+      )}
+
+      {currentPage === 'dashboard' && user && user.role === 'caregiver' && (
+        <ErrorBoundary>
+          <CaregiverDashboard onLogout={handleLogout} />
         </ErrorBoundary>
       )}
     </div>

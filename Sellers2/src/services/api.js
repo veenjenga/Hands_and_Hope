@@ -1,5 +1,5 @@
 // API service for Sellers2 frontend
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
 console.log('API Base URL:', API_BASE_URL);
 
@@ -7,7 +7,7 @@ export const api = {
   // Auth endpoints
   login: async (email, password) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -28,7 +28,7 @@ export const api = {
   
   register: async (userData) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+      const response = await fetch(`${API_BASE_URL}/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -50,7 +50,7 @@ export const api = {
   // Product endpoints
   createProduct: async (productData, token) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/products`, {
+      const response = await fetch(`${API_BASE_URL}/products`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -72,7 +72,7 @@ export const api = {
   
   getProducts: async (token) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/products/seller`, {
+      const response = await fetch(`${API_BASE_URL}/products/seller`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -91,7 +91,7 @@ export const api = {
   
   updateProduct: async (id, productData, token) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/products/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/products/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -113,7 +113,7 @@ export const api = {
   
   deleteProduct: async (id, token) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/products/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/products/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -134,7 +134,7 @@ export const api = {
   // Seller endpoints
   getProfile: async (token) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/sellers/profile`, {
+      const response = await fetch(`${API_BASE_URL}/sellers/profile`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -153,7 +153,7 @@ export const api = {
   
   updateProfile: async (profileData, token) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/sellers/profile`, {
+      const response = await fetch(`${API_BASE_URL}/sellers/profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

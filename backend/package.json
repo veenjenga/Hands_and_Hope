@@ -9,6 +9,7 @@
     "dev": "nodemon server.js",
     "seed": "node scripts/seed.js",
     "seed:admins": "node scripts/create_admins.js",
+    "create-admin-accounts": "node scripts/create_admin_accounts.js",
     "extract-frontend-data": "node scripts/extract_frontend_data.js",
     "test": "echo \"No tests yet\" && exit 0"
   },

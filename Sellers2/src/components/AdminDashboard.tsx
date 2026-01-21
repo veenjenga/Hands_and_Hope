@@ -6,7 +6,7 @@ import {
   Plus, CheckCircle, XCircle, Ban, Search, Filter, Download,
   Calendar, Clock, Globe, School, ShoppingBag, Heart, Key,
   Lock, Unlock, RefreshCw, ChevronDown, ChevronUp, Edit, Trash2,
-  MessageSquare, History, UserCog, Database, Printer
+  MessageSquare, History, UserCog, Database, Printer, UserPlus, Truck, Wallet
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
@@ -19,9 +19,23 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Avatar, AvatarFallback } from './ui/avatar';
 import { ImageWithFallback } from './figma/ImageWithFallback';
+import { AdminCaregiverManagement } from './AdminCaregiverManagement';
+import { AdminLocationsPage } from './admin/AdminLocationsPage';
+import { AdminReportsPage } from './admin/AdminReportsPage';
+import { AdminDeactivatedAccountsPage } from './admin/AdminDeactivatedAccountsPage';
+import { AdminNotificationsPage } from './admin/AdminNotificationsPage';
+import { AdminProfilePage } from './admin/AdminProfilePage';
+import { AdminSettingsPage } from './admin/AdminSettingsPage';
+import { AdminSchoolHierarchyPage } from './admin/AdminSchoolHierarchyPage';
+import { AdminEnhancedAnalyticsPage } from './admin/AdminEnhancedAnalyticsPage';
+import { AdminTransactionsCommissionPage } from './admin/AdminTransactionsCommissionPage';
+import { AdminFundsOnHoldPage } from './admin/AdminFundsOnHoldPage';
+import { AdminShipmentTrackingPage } from './admin/AdminShipmentTrackingPage';
+import { AdminMessagesInquiriesPage } from './admin/AdminMessagesInquiriesPage';
 
 type AdminPage = 'dashboard' | 'users' | 'accounts-pending' | 'products' | 'transactions' | 'analytics' | 
-  'locations' | 'reports' | 'deactivated' | 'admins' | 'hierarchy' | 'notifications' | 'profile' | 'settings';
+  'locations' | 'reports' | 'deactivated' | 'admins' | 'hierarchy' | 'notifications' | 'profile' | 'settings' | 'caregivers' |
+  'funds-on-hold' | 'shipments' | 'messages';
 
 interface AdminDashboardProps {
   onLogout: () => void;
@@ -180,8 +194,12 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
             { id: 'users', label: 'All Users', icon: Users },
             { id: 'accounts-pending', label: 'Pending Approvals', icon: Clock, badge: MOCK_PENDING_ACCOUNTS.length },
             { id: 'products', label: 'Product Approvals', icon: Package, badge: MOCK_PENDING_PRODUCTS.length },
+            { id: 'caregivers', label: 'Caregiver Management', icon: UserPlus },
             { id: 'transactions', label: 'Transactions', icon: DollarSign },
+            { id: 'funds-on-hold', label: 'Funds on Hold', icon: Wallet },
             { id: 'analytics', label: 'Analytics & Stats', icon: TrendingUp },
+            { id: 'shipments', label: 'Shipment Tracking', icon: Truck },
+            { id: 'messages', label: 'Messages & Inquiries', icon: MessageSquare },
             { id: 'locations', label: 'Locations', icon: MapPin },
             { id: 'hierarchy', label: 'School Hierarchy', icon: School },
             { id: 'reports', label: 'Reports', icon: AlertTriangle, badge: MOCK_REPORTS.filter(r => r.status === 'pending').length },
@@ -960,6 +978,229 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
                   </div>
                 </CardContent>
               </Card>
+            </div>
+          )}
+
+          {/* TRANSACTIONS & COMMISSION PAGE (Super Admin Only) */}
+          {currentPage === 'transactions' && (
+            <AdminTransactionsCommissionPage adminRole={adminRole} />
+          )}
+
+          {/* FUNDS ON HOLD PAGE */}
+          {currentPage === 'funds-on-hold' && (
+            <AdminFundsOnHoldPage />
+          )}
+
+          {/* SHIPMENT TRACKING PAGE */}
+          {currentPage === 'shipments' && (
+            <AdminShipmentTrackingPage />
+          )}
+
+          {/* MESSAGES & INQUIRIES PAGE */}
+          {currentPage === 'messages' && (
+            <AdminMessagesInquiriesPage />
+          )}
+
+          {/* LOCATIONS PAGE */}
+          {currentPage === 'locations' && (
+            <AdminLocationsPage />
+          )}
+
+          {/* REPORTS PAGE */}
+          {currentPage === 'reports' && (
+            <AdminReportsPage />
+          )}
+
+          {/* DEACTIVATED ACCOUNTS PAGE */}
+          {currentPage === 'deactivated' && (
+            <AdminDeactivatedAccountsPage />
+          )}
+
+          {/* NOTIFICATIONS PAGE */}
+          {currentPage === 'notifications' && (
+            <AdminNotificationsPage />
+          )}
+
+          {/* PROFILE PAGE */}
+          {currentPage === 'profile' && (
+            <AdminProfilePage adminRole={adminRole} />
+          )}
+
+          {/* SETTINGS PAGE */}
+          {currentPage === 'settings' && (
+            <AdminSettingsPage />
+          )}
+
+          {/* SCHOOL HIERARCHY PAGE */}
+          {currentPage === 'hierarchy' && (
+            <AdminSchoolHierarchyPage />
+          )}
+
+          {/* ENHANCED ANALYTICS PAGE (User Categories) */}
+          {currentPage === 'analytics' && (
+            <AdminEnhancedAnalyticsPage adminRole={adminRole} />
+          )}
+
+          {/* CAREGIVER MANAGEMENT PAGE */}
+          {currentPage === 'caregivers' && (
+            <AdminCaregiverManagement />
+          )}
+
+          {/* ADMIN MANAGEMENT PAGE (Super Admin Only) */}
+          {currentPage === 'admins' && adminRole === 'super-admin' && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <p className="text-gray-400">Manage administrator accounts and permissions</p>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button className="gap-2 bg-green-600 hover:bg-green-700">
+                      <Plus className="h-4 w-4" />
+                      Create New Admin
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="bg-gray-800 border-gray-700">
+                    <DialogHeader>
+                      <DialogTitle className="text-white">Create New Administrator</DialogTitle>
+                      <DialogDescription className="text-gray-400">
+                        Add a new admin account to manage the platform
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label className="text-gray-300">Full Name *</Label>
+                        <Input 
+                          placeholder="John Doe"
+                          className="bg-gray-900 border-gray-700 text-white"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-gray-300">Email Address *</Label>
+                        <Input 
+                          type="email"
+                          placeholder="john.doe@handsandhope.com"
+                          className="bg-gray-900 border-gray-700 text-white"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-gray-300">Role *</Label>
+                        <Select>
+                          <SelectTrigger className="bg-gray-900 border-gray-700 text-white">
+                            <SelectValue placeholder="Select role" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-gray-900 border-gray-700">
+                            <SelectItem value="admin">Admin</SelectItem>
+                            <SelectItem value="super-admin">Super Admin</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="bg-blue-900/20 border border-blue-600 p-4 rounded-lg">
+                        <p className="text-blue-200 text-sm">
+                          📧 A temporary password will be generated and emailed to the new admin
+                        </p>
+                      </div>
+                      <Button className="w-full bg-green-600 hover:bg-green-700">
+                        Create Admin Account
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
+
+              {/* Admin Accounts List */}
+              {MOCK_ADMINS.map((admin) => (
+                <Card key={admin.id} className="bg-gray-800 border-gray-700">
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <Avatar className="h-14 w-14 bg-gradient-to-br from-purple-600 to-blue-600">
+                          <AvatarFallback className="text-white">{admin.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <h3 className="text-white font-semibold">{admin.name}</h3>
+                          <p className="text-sm text-gray-400">{admin.email}</p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Badge variant={admin.role === 'super-admin' ? 'default' : 'secondary'} className={admin.role === 'super-admin' ? 'bg-purple-600' : ''}>
+                              {admin.role === 'super-admin' ? 'Super Admin' : 'Admin'}
+                            </Badge>
+                            <Badge variant="outline" className={`text-${admin.status === 'active' ? 'green' : 'gray'}-400`}>
+                              {admin.status}
+                            </Badge>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm text-gray-400">Last Login</p>
+                        <p className="text-white">{admin.lastLogin}</p>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="border-t border-gray-700 pt-4">
+                    <div className="grid gap-4 md:grid-cols-3 mb-4">
+                      <div>
+                        <Label className="text-gray-400">Created</Label>
+                        <p className="text-white mt-1">{admin.createdDate}</p>
+                        {admin.createdBy && (
+                          <p className="text-xs text-gray-500 mt-1">by {admin.createdBy}</p>
+                        )}
+                      </div>
+                      <div>
+                        <Label className="text-gray-400">Status</Label>
+                        <p className="text-white mt-1">{admin.status === 'active' ? '✅ Active' : '🔴 Inactive'}</p>
+                      </div>
+                      <div>
+                        <Label className="text-gray-400">Account ID</Label>
+                        <p className="text-white mt-1">{admin.id}</p>
+                      </div>
+                    </div>
+                    
+                    {admin.role !== 'super-admin' && (
+                      <div className="flex gap-3">
+                        <Button size="sm" variant="outline" className="gap-2 border-gray-600 text-gray-300">
+                          <Edit className="h-4 w-4" />
+                          Edit Permissions
+                        </Button>
+                        <Button size="sm" variant="outline" className="gap-2 border-gray-600 text-gray-300">
+                          <RefreshCw className="h-4 w-4" />
+                          Reset Password
+                        </Button>
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button size="sm" variant="destructive" className="gap-2">
+                              <Trash2 className="h-4 w-4" />
+                              Delete Admin
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="bg-gray-800 border-gray-700">
+                            <DialogHeader>
+                              <DialogTitle className="text-white">Delete Administrator - {admin.name}</DialogTitle>
+                              <DialogDescription className="text-gray-400">
+                                This action cannot be undone. This will permanently delete the admin account.
+                              </DialogDescription>
+                            </DialogHeader>
+                            <div className="space-y-4">
+                              <div className="bg-red-900/20 border border-red-600 p-4 rounded-lg">
+                                <p className="text-red-200 text-sm">
+                                  ⚠️ All actions performed by this admin will remain in the system logs.
+                                </p>
+                              </div>
+                              <Button variant="destructive" className="w-full">
+                                Confirm Delete
+                              </Button>
+                            </div>
+                          </DialogContent>
+                        </Dialog>
+                      </div>
+                    )}
+                    {admin.role === 'super-admin' && (
+                      <div className="bg-purple-900/20 border border-purple-600 p-3 rounded-lg">
+                        <p className="text-purple-200 text-sm">
+                          👑 Super Admin accounts cannot be modified or deleted
+                        </p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           )}
         </main>

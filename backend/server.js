@@ -8,6 +8,11 @@ import User from "./models/User.js";
 import Product from "./models/Product.js";
 import Order from "./models/Order.js";
 import Inquiry from "./models/Inquiry.js";
+import Caregiver from "./models/Caregiver.js";
+import Seller from "./models/Seller.js";
+import Teacher from "./models/Teacher.js";
+import Student from "./models/Student.js";
+import School from "./models/School.js";
 
 // ✅ Import all routes
 import authRoutes from "./routes/authRoutes.js";
@@ -24,7 +29,15 @@ const app = express();
 // ✅ Middleware
 // Allow an optional CLIENT_URL in .env for CORS origin restriction
 const corsOptions = {
-  origin: [process.env.CLIENT_URL, "https://hands-and-hope.onrender.com", "https://sellers-awb5.onrender.com"] || true,
+  origin: [
+    process.env.CLIENT_URL,
+    "http://localhost:3001",
+    "http://localhost:3002",
+    "http://127.0.0.1:3001",
+    "http://127.0.0.1:3002",
+    "https://hands-and-hope.onrender.com",
+    "https://sellers-awb5.onrender.com"
+  ],
   credentials: true,
   optionsSuccessStatus: 200
 };
