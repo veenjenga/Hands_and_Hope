@@ -88,4 +88,4 @@ export const deleteBuyer = async (req, res) => {
   }
 };
 
-export { registerBuyer, loginBuyer, getBuyerProfile, deactivateBuyer, deleteBuyer };
+// Exports are declared inline above for each function.
