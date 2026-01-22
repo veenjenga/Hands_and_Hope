@@ -7,18 +7,18 @@ import {
   deleteBuyer,
 } from "../controllers/buyerController.js";
 
-import authMiddleware from "../middleware/authMiddleware.js"; // same middleware used for sellers
+import authMiddleware from "../middleware/authMiddleware.js";
 
 const protect = authMiddleware;
 const router = express.Router();
 
-// Public
+// Public routes
 router.post("/register", registerBuyer);
 router.post("/login", loginBuyer);
 
-// Protected
-router.get("/profile", protect, getBuyerProfile);
-router.put("/deactivate", protect, deactivateBuyer);
-router.delete("/delete", protect, deleteBuyer);
+// Protected routes
+router.get("/profile", authMiddleware, getBuyerProfile);
+router.put("/deactivate", authMiddleware, deactivateBuyer);
+router.delete("/delete", authMiddleware, deleteBuyer);
 
 export default router;

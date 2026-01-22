@@ -45,4 +45,5 @@ buyerSchema.pre("save", async function (next) {
   next();
 });
 
-export default mongoose.model("Buyer", buyerSchema);
+const Buyer = mongoose.model("Buyer", buyerSchema);
+export default Buyer;

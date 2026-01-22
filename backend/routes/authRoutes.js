@@ -1,33 +1,156 @@
 import express from "express";
 import User from "../models/User.js";
-import Activity from "../models/Activity.js";
+import School from "../models/School.js";
+import Teacher from "../models/Teacher.js";
+import Student from "../models/Student.js";
+import Seller from "../models/Seller.js";
+import Caregiver from "../models/Caregiver.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
+import mongoose from 'mongoose';
 
 const router = express.Router();
 
 // Signup
 router.post("/signup", async (req, res) => {
   try {
-    const { name, email, password, businessName, phone } = req.body;
-    const user = new User({ name, email, password, businessName, phone, role: 'seller' });
+    const {
+      name,
+      email,
+      password,
+      businessName,
+      phone,
+      role = 'seller',
+      // school-related
+      schoolName,
+      registrationNumber,
+      schoolAddress,
+      schoolContactEmail,
+      schoolContactPhone,
+      // teacher/student extras
+      schoolId,
+      schoolEmail,
+      subject,
+      staffId,
+      studentId,
+      disabilityId,
+    documents = [],
+    schoolDocuments = [],
+  } = req.body;
+
+    // prevent duplicate emails
+    const exists = await User.findOne({ email });
+    if (exists) return res.status(400).json({ error: 'Email already registered' });
+
+    // Create user record
+    const user = new User({ name, email, password, businessName, phone, role, documents });
     await user.save();
-    
-    // Generate token for auto-login
-    const token = jwt.sign({ id: user._id, role: user.role }, "secretKey", { expiresIn: "1d" });
-    
-    res.status(201).json({ 
-      message: "User created successfully",
-      token,
-      user: { 
-        id: user._id, 
-        name: user.name, 
-        email: user.email, 
-        businessName: user.businessName,
-        profilePicture: user.profilePicture // Include profile picture in response
+
+    let extra = {};
+
+    // If seller, create Seller doc to keep sellers in separate collection
+    if (role === 'seller') {
+      try {
+        const seller = new Seller({ user: user._id, businessName, phone, documents });
+        await seller.save();
+        console.log(`Created Seller ${seller._id} for user ${user._id}`);
+        extra.seller = seller;
+      } catch (e) {
+        console.error('Failed to create seller doc', e);
       }
-    });
+    }
+
+    // If caregiver, create Caregiver doc
+    if (role === 'caregiver') {
+      try {
+        const caregiver = new Caregiver({ user: user._id, phone, documents });
+        await caregiver.save();
+        console.log(`Created Caregiver ${caregiver._id} for user ${user._id}`);
+        extra.caregiver = caregiver;
+      } catch (e) {
+        console.error('Failed to create caregiver doc', e);
+      }
+    }
+
+    // If registering a school account, create School doc and link
+    if (role === 'school') {
+      const school = new School({
+        name: schoolName || businessName || `${name}'s School`,
+        registrationNumber,
+        address: schoolAddress,
+        contactEmail: schoolContactEmail || email,
+        contactPhone: schoolContactPhone || phone,
+        approved: false,
+        documents: schoolDocuments,
+      });
+      await school.save();
+      console.log(`Created School ${school._id} for user ${user._id}`);
+      // attach school reference to user (optional)
+      user.school = school._id;
+      await user.save();
+      extra.school = school;
+    }
+
+    // If teacher, create Teacher record and try to attach to a school
+    if (role === 'teacher') {
+      let sId = schoolId;
+      // If client sent a school name instead of an ObjectId, try to resolve by name
+      if (sId && !mongoose.Types.ObjectId.isValid(sId)) {
+        const sByName = await School.findOne({ name: sId });
+        if (sByName) sId = sByName._id;
+        else sId = undefined;
+      }
+      if (!sId && schoolEmail) {
+        const s = await School.findOne({ contactEmail: schoolEmail });
+        if (s) sId = s._id;
+      }
+      if (!sId && schoolName) {
+        const s = await School.findOne({ name: schoolName });
+        if (s) sId = s._id;
+      }
+      if (!sId) {
+        const any = await School.findOne({});
+        if (any) sId = any._id;
+      }
+      const teacher = new Teacher({ user: user._id, school: sId, subject, staffId, documents });
+      await teacher.save();
+      console.log(`Created Teacher ${teacher._id} for user ${user._id} attached to school ${sId}`);
+      extra.teacher = teacher;
+    }
+
+    // If student, create Student record
+    if (role === 'student') {
+      let sId = schoolId;
+      if (sId && !mongoose.Types.ObjectId.isValid(sId)) {
+        const sByName = await School.findOne({ name: sId });
+        if (sByName) sId = sByName._id;
+        else sId = undefined;
+      }
+      if (!sId && schoolEmail) {
+        const s = await School.findOne({ contactEmail: schoolEmail });
+        if (s) sId = s._id;
+      }
+      if (!sId && schoolName) {
+        const s = await School.findOne({ name: schoolName });
+        if (s) sId = s._id;
+      }
+      if (!sId) {
+        const any = await School.findOne({});
+        if (any) sId = any._id;
+      }
+      const student = new Student({ user: user._id, school: sId, studentId, disabilityId, documents });
+      await student.save();
+      console.log(`Created Student ${student._id} for user ${user._id} attached to school ${sId}`);
+      extra.student = student;
+    }
+
+    // create token on signup
+    const secret = process.env.JWT_SECRET || "secretKey";
+    const token = jwt.sign({ id: user._id, role: user.role }, secret, { expiresIn: "1d" });
+
+    res.status(201).json({ message: "User created successfully", token, user: { id: user._id, name: user.name, email: user.email, role: user.role }, extra });
   } catch (err) {
+    console.error('Signup error', err);
     res.status(400).json({ error: err.message });
   }
 });
@@ -36,44 +159,27 @@ router.post("/signup", async (req, res) => {
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
-    
-    // Log the incoming request for debugging
-    console.log('Login attempt for email:', email);
-    
+
     const user = await User.findOne({ email });
-    if (!user) {
-      console.log('User not found for email:', email);
-      return res.status(400).json({ error: "Invalid email or password" });
-    }
-    
-    console.log('User found:', user.email);
-    console.log('Stored password hash:', user.password);
-    console.log('Provided password:', password);
+    if (!user) return res.status(400).json({ error: "User not found. Please register first or check your email." });
 
     const isMatch = await bcrypt.compare(password, user.password);
-    console.log('Password match result:', isMatch);
-    
-    if (!isMatch) return res.status(400).json({ error: "Invalid email or password" });
+    if (!isMatch) return res.status(400).json({ error: "Invalid password. Please try again." });
 
-    const token = jwt.sign({ id: user._id, role: user.role }, "secretKey", { expiresIn: "1d" });
-    
-    // Log activity
-    const activity = new Activity({
-      userId: user._id,
-      type: 'user_login',
-      description: `User ${user.name} logged in`
-    });
-    await activity.save();
+    const secret = process.env.JWT_SECRET || "secretKey";
+    const token = jwt.sign({ id: user._id, role: user.role }, secret, { expiresIn: "1d" });
 
-    res.json({ 
-      token, 
-      user: { 
-        id: user._id, 
-        name: user.name, 
-        email: user.email, 
+    res.json({
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
         businessName: user.businessName,
-        profilePicture: user.profilePicture // Include profile picture in response
-      } 
+        role: user.role,
+        school: user.school,
+      },
     });
   } catch (err) {
     console.error('Login error:', err);

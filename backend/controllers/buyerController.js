@@ -6,13 +6,13 @@ import bcrypt from "bcryptjs";
 const generateToken = (buyer) => {
   return jwt.sign(
     { id: buyer._id, role: "buyer" },
-    process.env.JWT_SECRET,
+    process.env.JWT_SECRET || "secretKey",
     { expiresIn: "1d" }
   );
 };
 
 // @desc Register buyer
-const registerBuyer = async (req, res) => {
+export const registerBuyer = async (req, res) => {
   try {
     const { name, email, password, phoneNumber } = req.body;
 
@@ -36,7 +36,7 @@ const registerBuyer = async (req, res) => {
 };
 
 // @desc Login buyer
-const loginBuyer = async (req, res) => {
+export const loginBuyer = async (req, res) => {
   try {
     const { email, password } = req.body;
     const buyer = await Buyer.findOne({ email });
@@ -54,7 +54,7 @@ const loginBuyer = async (req, res) => {
 };
 
 // @desc Get buyer profile
-const getBuyerProfile = async (req, res) => {
+export const getBuyerProfile = async (req, res) => {
   try {
     const buyer = await Buyer.findById(req.user.id).select("-password");
     if (!buyer) return res.status(404).json({ message: "Buyer not found" });
@@ -65,9 +65,13 @@ const getBuyerProfile = async (req, res) => {
 };
 
 // @desc Deactivate buyer
-const deactivateBuyer = async (req, res) => {
+export const deactivateBuyer = async (req, res) => {
   try {
-    const buyer = await Buyer.findByIdAndUpdate(req.user.id, { isActive: false }, { new: true });
+    const buyer = await Buyer.findByIdAndUpdate(
+      req.user.id,
+      { isActive: false },
+      { new: true }
+    );
     res.json({ message: "Account deactivated", buyer });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -75,7 +79,7 @@ const deactivateBuyer = async (req, res) => {
 };
 
 // @desc Delete buyer account
-const deleteBuyer = async (req, res) => {
+export const deleteBuyer = async (req, res) => {
   try {
     await Buyer.findByIdAndDelete(req.user.id);
     res.json({ message: "Buyer account deleted successfully" });

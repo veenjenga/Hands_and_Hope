@@ -1,10 +1,10 @@
 import express from "express";
-const router = express.Router();   // initialize router
 import Product from "../models/Product.js";
-import Activity from "../models/Activity.js";
 import authMiddleware from "../middleware/authMiddleware.js";
 
-// ==============================
+const router = express.Router();
+
+// ==============================\
 // @desc    Get all products
 // @route   GET /api/products
 // @access  Public
@@ -16,36 +16,7 @@ router.get("/", async (req, res) => {
   } catch (err) {
     res.status(500).json({ message: "Error fetching products", error: err.message });
   }
-});
-
-// ==============================
-// @desc    Get unique categories
-// @route   GET /api/products/categories
-// @access  Public
-// ==============================
-router.get("/categories", async (req, res) => {
-  try {
-    const products = await Product.find({}, 'category'); // fetch only category field
-    const categories = [...new Set(products.map(product => product.category))];
-    res.json(categories);
-  } catch (err) {
-    res.status(500).json({ message: "Error fetching categories", error: err.message });
-  }
-});
-
-// ==============================
-// @desc    Get products by seller ID
-// @route   GET /api/products/seller
-// @access  Private (seller only)
-// ==============================
-router.get("/seller", authMiddleware, async (req, res) => {
-  try {
-    const products = await Product.find({ sellerId: req.user.id });
-    res.json(products);
-  } catch (err) {
-    res.status(500).json({ message: "Error fetching seller products", error: err.message });
-  }
-});
+}); 
 
 // ==============================
 // @desc    Add a new product (seller)
@@ -66,7 +37,7 @@ router.post("/", authMiddleware, async (req, res) => {
       status: status || "Active",
       category: category || "Uncategorized",
       image: image || "https://via.placeholder.com/150",
-      sellerId: req.user.id, // 👈 attach seller
+      sellerId: req.user.id, // attach seller
     });
 
     const savedProduct = await newProduct.save();
@@ -99,7 +70,6 @@ router.delete("/:id", authMiddleware, async (req, res) => {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    // check if seller owns the product
     if (product.sellerId.toString() !== req.user.id) {
       return res.status(403).json({ message: "Not authorized" });
     }
@@ -135,7 +105,6 @@ router.put("/:id", authMiddleware, async (req, res) => {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    // check if seller owns the product
     if (product.sellerId.toString() !== req.user.id) {
       return res.status(403).json({ message: "Not authorized" });
     }
