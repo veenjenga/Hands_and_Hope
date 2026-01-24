@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Shield, Users, Building2, GraduationCap, UserCheck, UserX, 
   DollarSign, TrendingUp, Package, AlertTriangle, Eye, MapPin,
@@ -19,6 +19,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Avatar, AvatarFallback } from './ui/avatar';
 import { ImageWithFallback } from './figma/ImageWithFallback';
+import adminApi from '../services/adminApi';
 import { AdminCaregiverManagement } from './AdminCaregiverManagement';
 import { AdminLocationsPage } from './admin/AdminLocationsPage';
 import { AdminReportsPage } from './admin/AdminReportsPage';
@@ -110,13 +111,64 @@ const MOCK_ADMINS = [
 ];
 
 export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
-  const [currentPage, setCurrentPage] = useState<AdminPage>('dashboard');
+  const [currentPage, setCurrentPage] = useState('dashboard');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedUser, setSelectedUser] = useState<string | null>(null);
-  const [impersonateUser, setImpersonateUser] = useState<string | null>(null);
-  const [expandedUser, setExpandedUser] = useState<string | null>(null);
-  const [timeFilter, setTimeFilter] = useState<'daily' | 'weekly' | 'monthly' | 'yearly'>('monthly');
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [impersonateUser, setImpersonateUser] = useState(null);
+  const [expandedUser, setExpandedUser] = useState(null);
+  const [timeFilter, setTimeFilter] = useState('monthly');
   const [showCreateAdmin, setShowCreateAdmin] = useState(false);
+  
+  // Real data states
+  const [dashboardStats, setDashboardStats] = useState(null);
+  const [pendingAccounts, setPendingAccounts] = useState([]);
+  const [allUsers, setAllUsers] = useState([]);
+  const [pendingProducts, setPendingProducts] = useState([]);
+  const [reports, setReports] = useState([]);
+  const [admins, setAdmins] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Load dashboard data
+  useEffect(() => {
+    loadDashboardData();
+  }, []);
+
+  const loadDashboardData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Load all necessary data in parallel
+      const [
+        statsData,
+        pendingAccountsData,
+        usersData,
+        pendingProductsData,
+        reportsData,
+        adminsData
+      ] = await Promise.all([
+        adminApi.getDashboardStats(),
+        adminApi.getPendingAccounts(),
+        adminApi.getAllUsers(),
+        adminApi.getPendingProducts(),
+        adminApi.getReports('pending'),
+        adminRole === 'super-admin' ? adminApi.getAdmins() : Promise.resolve({ admins: [] })
+      ]);
+
+      setDashboardStats(statsData);
+      setPendingAccounts(pendingAccountsData.pendingAccounts || []);
+      setAllUsers(usersData.users || []);
+      setPendingProducts(pendingProductsData.pendingProducts || []);
+      setReports(reportsData.reports || []);
+      setAdmins(adminsData.admins || []);
+    } catch (err: any) {
+      console.error('Error loading dashboard data:', err);
+      setError(err.message || 'Failed to load dashboard data');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const generatePassword = () => {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
@@ -127,50 +179,147 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
     return password;
   };
 
-  const handleApproveAccount = (accountId: string) => {
-    alert(`Account ${accountId} approved successfully!`);
-  };
-
-  const handleDeclineAccount = (accountId: string, reason: string) => {
-    if (reason.trim()) {
-      alert(`Account ${accountId} declined. Reason: ${reason}`);
+  const handleApproveAccount = async (accountId: string) => {
+    try {
+      await adminApi.approveAccount(accountId);
+      alert(`Account ${accountId} approved successfully!`);
+      // Reload data
+      loadDashboardData();
+    } catch (err: any) {
+      alert(`Error approving account: ${err.message}`);
     }
   };
 
-  const handleBanUser = (userId: string, reason: string) => {
+  const handleDeclineAccount = async (accountId: string, reason: string) => {
     if (reason.trim()) {
-      alert(`User ${userId} banned. Reason: ${reason}`);
+      try {
+        await adminApi.declineAccount(accountId, reason);
+        alert(`Account ${accountId} declined. Reason: ${reason}`);
+        // Reload data
+        loadDashboardData();
+      } catch (err: any) {
+        alert(`Error declining account: ${err.message}`);
+      }
     }
   };
 
-  const handleActivateUser = (userId: string) => {
-    alert(`User ${userId} reactivated successfully!`);
-  };
-
-  const handleApproveProduct = (productId: string) => {
-    alert(`Product ${productId} approved!`);
-  };
-
-  const handleDeclineProduct = (productId: string, reason: string) => {
+  const handleBanUser = async (userId: string, reason: string) => {
     if (reason.trim()) {
-      alert(`Product ${productId} declined. Reason: ${reason}`);
+      try {
+        await adminApi.banUser(userId, reason);
+        alert(`User ${userId} banned. Reason: ${reason}`);
+        // Reload data
+        loadDashboardData();
+      } catch (err: any) {
+        alert(`Error banning user: ${err.message}`);
+      }
     }
   };
 
-  const handleControlMoney = (userId: string, action: 'release' | 'hold', amount: number) => {
-    alert(`${action === 'release' ? 'Released' : 'Put on hold'} $${amount} for user ${userId}`);
+  const handleActivateUser = async (userId: string) => {
+    try {
+      await adminApi.unbanUser(userId);
+      alert(`User ${userId} reactivated successfully!`);
+      // Reload data
+      loadDashboardData();
+    } catch (err: any) {
+      alert(`Error reactivating user: ${err.message}`);
+    }
+  };
+
+  const handleApproveProduct = async (productId: string) => {
+    try {
+      await adminApi.approveProduct(productId);
+      alert(`Product ${productId} approved!`);
+      // Reload data
+      loadDashboardData();
+    } catch (err: any) {
+      alert(`Error approving product: ${err.message}`);
+    }
+  };
+
+  const handleDeclineProduct = async (productId: string, reason: string) => {
+    if (reason.trim()) {
+      try {
+        await adminApi.declineProduct(productId, reason);
+        alert(`Product ${productId} declined. Reason: ${reason}`);
+        // Reload data
+        loadDashboardData();
+      } catch (err: any) {
+        alert(`Error declining product: ${err.message}`);
+      }
+    }
+  };
+
+  const handleControlMoney = async (userId: string, action: 'release' | 'hold', amount: number) => {
+    try {
+      // This would integrate with a payment/funds API
+      alert(`${action === 'release' ? 'Released' : 'Put on hold'} $${amount} for user ${userId}`);
+      // In a real implementation, you'd call the appropriate API endpoint
+    } catch (err: any) {
+      alert(`Error controlling funds: ${err.message}`);
+    }
   };
 
   const handleImpersonate = (userId: string) => {
     if (confirm(`Are you sure you want to login as this user? This action will be logged.`)) {
       setImpersonateUser(userId);
       alert(`Now viewing as user ${userId}. All actions are being logged.`);
+      // In a real implementation, you'd:
+      // 1. Make API call to start impersonation session
+      // 2. Store impersonation token
+      // 3. Update auth context
     }
   };
 
-  const handleExportData = (dataType: string) => {
-    alert(`Exporting ${dataType} data...`);
+  const handleExportData = async (dataType: string) => {
+    try {
+      alert(`Exporting ${dataType} data...`);
+      // In a real implementation, you'd:
+      // 1. Call export API endpoint
+      // 2. Generate downloadable file
+      // 3. Trigger download
+    } catch (err: any) {
+      alert(`Error exporting data: ${err.message}`);
+    }
   };
+
+  // Update the badge counts to use real data
+  const pendingAccountsCount = pendingAccounts.length;
+  const pendingReportsCount = reports.filter((r: any) => r.status === 'pending').length;
+  const pendingProductsCount = pendingProducts.length;
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="flex min-h-screen bg-gray-900 items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-400">Loading admin dashboard...</p>
+        </div>
+      </div>
+    );
+
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="flex min-h-screen bg-gray-900 items-center justify-center">
+        <div className="text-center max-w-md">
+          <div className="text-red-400 mb-4">
+            <AlertTriangle className="h-16 w-16 mx-auto" />
+          </div>
+          <h2 className="text-xl font-bold text-white mb-2">Error Loading Dashboard</h2>
+          <p className="text-gray-400 mb-4">{error}</p>
+          <Button onClick={loadDashboardData} className="bg-blue-600 hover:bg-blue-700">
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Retry
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-gray-900">
@@ -192,8 +341,8 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
           {[
             { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
             { id: 'users', label: 'All Users', icon: Users },
-            { id: 'accounts-pending', label: 'Pending Approvals', icon: Clock, badge: MOCK_PENDING_ACCOUNTS.length },
-            { id: 'products', label: 'Product Approvals', icon: Package, badge: MOCK_PENDING_PRODUCTS.length },
+            { id: 'accounts-pending', label: 'Pending Approvals', icon: Clock, badge: pendingAccountsCount },
+            { id: 'products', label: 'Product Approvals', icon: Package, badge: pendingProductsCount },
             { id: 'caregivers', label: 'Caregiver Management', icon: UserPlus },
             { id: 'transactions', label: 'Transactions', icon: DollarSign },
             { id: 'funds-on-hold', label: 'Funds on Hold', icon: Wallet },
@@ -202,7 +351,7 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
             { id: 'messages', label: 'Messages & Inquiries', icon: MessageSquare },
             { id: 'locations', label: 'Locations', icon: MapPin },
             { id: 'hierarchy', label: 'School Hierarchy', icon: School },
-            { id: 'reports', label: 'Reports', icon: AlertTriangle, badge: MOCK_REPORTS.filter(r => r.status === 'pending').length },
+            { id: 'reports', label: 'Reports', icon: AlertTriangle, badge: pendingReportsCount },
             { id: 'deactivated', label: 'Deactivated Accounts', icon: UserX },
             ...(adminRole === 'super-admin' ? [{ id: 'admins' as AdminPage, label: 'Admin Management', icon: UserCog }] : []),
             { id: 'notifications', label: 'Notifications', icon: Bell },
@@ -287,7 +436,7 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm text-blue-100">Total Users</p>
-                        <h2 className="text-3xl font-bold mt-2">{MOCK_ALL_USERS.length}</h2>
+                        <h2 className="text-3xl font-bold mt-2">{dashboardStats?.totalUsers || 0}</h2>
                       </div>
                       <Users className="h-12 w-12 opacity-80" />
                     </div>
@@ -299,7 +448,7 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm text-purple-100">Pending Approvals</p>
-                        <h2 className="text-3xl font-bold mt-2">{MOCK_PENDING_ACCOUNTS.length}</h2>
+                        <h2 className="text-3xl font-bold mt-2">{pendingAccountsCount}</h2>
                       </div>
                       <Clock className="h-12 w-12 opacity-80" />
                     </div>
@@ -311,7 +460,7 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm text-green-100">Total Transactions</p>
-                        <h2 className="text-3xl font-bold mt-2">{MOCK_TRANSACTIONS.length}</h2>
+                        <h2 className="text-3xl font-bold mt-2">{dashboardStats?.totalOrders || 0}</h2>
                       </div>
                       <DollarSign className="h-12 w-12 opacity-80" />
                     </div>
@@ -323,7 +472,7 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm text-orange-100">Pending Reports</p>
-                        <h2 className="text-3xl font-bold mt-2">{MOCK_REPORTS.filter(r => r.status === 'pending').length}</h2>
+                        <h2 className="text-3xl font-bold mt-2">{pendingReportsCount}</h2>
                       </div>
                       <AlertTriangle className="h-12 w-12 opacity-80" />
                     </div>
@@ -431,7 +580,7 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
                 </Button>
               </div>
 
-              {MOCK_PENDING_ACCOUNTS.map((account) => (
+              {pendingAccounts.map((account: any) => (
                 <Card key={account.id} className="bg-gray-800 border-gray-700">
                   <CardHeader>
                     <div className="flex items-center justify-between">
@@ -538,7 +687,7 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
                 </Card>
               ))}
 
-              {MOCK_PENDING_ACCOUNTS.length === 0 && (
+              {pendingAccounts.length === 0 && (
                 <Card className="bg-gray-800 border-gray-700 p-12 text-center">
                   <CheckCircle className="h-16 w-16 text-gray-600 mx-auto mb-4" />
                   <h3 className="text-white">No Pending Approvals</h3>
@@ -570,7 +719,7 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
                 </Button>
               </div>
 
-              {MOCK_ALL_USERS.filter(u => u.status === 'active').map((user) => (
+              {allUsers.filter((u: any) => u.active && !u.banned).map((user: any) => (
                 <Card key={user.id} className="bg-gray-800 border-gray-700">
                   <CardHeader>
                     <div className="flex items-center justify-between">
@@ -713,7 +862,7 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
             <div className="space-y-6">
               <p className="text-gray-400">Review and approve product listings from sellers</p>
 
-              {MOCK_PENDING_PRODUCTS.map((product) => (
+              {pendingProducts.map((product: any) => (
                 <Card key={product.id} className="bg-gray-800 border-gray-700">
                   <CardHeader>
                     <div className="flex items-center justify-between">
@@ -788,7 +937,7 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
                 </Card>
               ))}
 
-              {MOCK_PENDING_PRODUCTS.length === 0 && (
+              {pendingProducts.length === 0 && (
                 <Card className="bg-gray-800 border-gray-700 p-12 text-center">
                   <CheckCircle className="h-16 w-16 text-gray-600 mx-auto mb-4" />
                   <h3 className="text-white">No Pending Products</h3>
@@ -981,9 +1130,9 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
             </div>
           )}
 
-          {/* TRANSACTIONS & COMMISSION PAGE (Super Admin Only) */}
+          {/* TRANSACTIONS PAGE */}
           {currentPage === 'transactions' && (
-            <AdminTransactionsCommissionPage adminRole={adminRole} />
+            <AdminTransactionsCommissionPage />
           )}
 
           {/* FUNDS ON HOLD PAGE */}
@@ -1023,7 +1172,15 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
 
           {/* PROFILE PAGE */}
           {currentPage === 'profile' && (
-            <AdminProfilePage adminRole={adminRole} />
+            <div className="space-y-6">
+              <h1 className="text-2xl font-bold text-white">Profile</h1>
+              <p className="text-gray-400">Manage your admin profile</p>
+              <Card className="bg-gray-800 border-gray-700">
+                <CardContent className="p-6 text-gray-400">
+                  Profile management functionality coming soon.
+                </CardContent>
+              </Card>
+            </div>
           )}
 
           {/* SETTINGS PAGE */}
@@ -1037,9 +1194,7 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
           )}
 
           {/* ENHANCED ANALYTICS PAGE (User Categories) */}
-          {currentPage === 'analytics' && (
-            <AdminEnhancedAnalyticsPage adminRole={adminRole} />
-          )}
+          {/* Duplicate of main analytics page - removed to prevent conflicts */}
 
           {/* CAREGIVER MANAGEMENT PAGE */}
           {currentPage === 'caregivers' && (

@@ -6,11 +6,11 @@ export function AdminShipmentTrackingPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-white">Shipment Tracking</h1>
-        <p className="text-gray-400 mt-1">Track and manage shipments across the platform</p>
+        <p className="text-gray-400 mt-1">Track and manage shipments</p>
       </div>
       <Card className="bg-gray-800 border-gray-700">
         <CardContent className="p-6 text-gray-400">
-          Shipment tracking page - Coming soon
+          Shipment tracking functionality coming soon.
         </CardContent>
       </Card>
     </div>

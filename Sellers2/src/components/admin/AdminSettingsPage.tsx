@@ -5,12 +5,12 @@ export function AdminSettingsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-white">System Settings</h1>
-        <p className="text-gray-400 mt-1">Configure system-wide settings</p>
+        <h1 className="text-2xl font-bold text-white">Settings</h1>
+        <p className="text-gray-400 mt-1">System configuration and settings</p>
       </div>
       <Card className="bg-gray-800 border-gray-700">
         <CardContent className="p-6 text-gray-400">
-          System settings management page - Coming soon
+          System settings functionality coming soon.
         </CardContent>
       </Card>
     </div>

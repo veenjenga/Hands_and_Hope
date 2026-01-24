@@ -1,7 +1,11 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 
-export function AdminTransactionsCommissionPage() {
+interface AdminTransactionsCommissionPageProps {
+  adminRole: 'super-admin' | 'admin';
+}
+
+export function AdminTransactionsCommissionPage({ adminRole }: AdminTransactionsCommissionPageProps) {
   return (
     <div className="space-y-6">
       <div>
@@ -10,7 +14,7 @@ export function AdminTransactionsCommissionPage() {
       </div>
       <Card className="bg-gray-800 border-gray-700">
         <CardContent className="p-6 text-gray-400">
-          Transactions and commission management page - Coming soon
+          Transactions and commission management functionality coming soon.
         </CardContent>
       </Card>
     </div>
