@@ -53,18 +53,15 @@ export function AdminTransactionsCommissionPage({ adminRole }: AdminTransactions
   useEffect(() => {
     loadTransactions();
     loadCommissionStats();
-  }, []);
+  }, [timeRange]);
 
   const loadTransactions = async () => {
     try {
       setLoading(true);
       setError(null);
-      const params = new URLSearchParams();
-      params.append('type', 'all');
-      params.append('timeframe', timeRange);
       
       const transactionsData = await adminApi.getTransactions({ timeframe: timeRange });
-      setTransactions(transactionsData.transactions || []);
+      setTransactions(transactionsData.data.transactions || []);
     } catch (err: any) {
       console.error('Error loading transactions:', err);
       setError(err.message || 'Failed to load transactions');
@@ -75,8 +72,12 @@ export function AdminTransactionsCommissionPage({ adminRole }: AdminTransactions
 
   const loadCommissionStats = async () => {
     try {
-      // In a real implementation, this would call an API endpoint
-      // For now, we'll calculate from the transactions
+      const statsData = await adminApi.getCommissionStats(timeRange);
+      setStats(statsData.data || null);
+    } catch (err: any) {
+      console.error('Error loading commission stats:', err);
+      
+      // Fallback calculation if API fails
       const totalRevenue = transactions.reduce((sum, t) => sum + t.amount, 0);
       const totalCommission = transactions.reduce((sum, t) => sum + t.commissionAmount, 0);
       
@@ -87,8 +88,6 @@ export function AdminTransactionsCommissionPage({ adminRole }: AdminTransactions
         totalTransactions: transactions.length,
         avgCommissionRate: transactions.length ? transactions.reduce((sum, t) => sum + t.commissionRate, 0) / transactions.length : 0
       });
-    } catch (err: any) {
-      console.error('Error loading commission stats:', err);
     }
   };
 
@@ -199,6 +198,8 @@ export function AdminTransactionsCommissionPage({ adminRole }: AdminTransactions
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <Input
                     placeholder="Search transactions..."
+                    value={filters.search}
+                    onChange={(e) => setFilters({...filters, search: e.target.value})}
                     className="pl-10 bg-gray-900 border-gray-700 text-white"
                   />
                 </div>
@@ -246,7 +247,16 @@ export function AdminTransactionsCommissionPage({ adminRole }: AdminTransactions
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {transactions.map((transaction) => (
+                    {transactions
+                      .filter(transaction => {
+                        const matchesSearch = transaction.userName.toLowerCase().includes(filters.search.toLowerCase()) ||
+                          transaction.userEmail.toLowerCase().includes(filters.search.toLowerCase()) ||
+                          transaction.product?.toLowerCase().includes(filters.search.toLowerCase());
+                        const matchesStatus = filters.status === 'all' || transaction.status === filters.status;
+                        const matchesType = filters.type === 'all' || transaction.type === filters.type;
+                        return matchesSearch && matchesStatus && matchesType;
+                      })
+                      .map((transaction) => (
                       <TableRow key={transaction.id} className="border-gray-700 hover:bg-gray-700/50">
                         <TableCell>
                           <div>

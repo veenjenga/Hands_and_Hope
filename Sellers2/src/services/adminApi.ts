@@ -273,6 +273,45 @@ class AdminApiService {
   async exportReports(): Promise<any> {
     return this.request('/admin/export/reports', { method: 'GET' });
   }
+
+  // Commission Management
+  async getCommissionStats(timeframe: string = 'monthly'): Promise<ApiResponse<CommissionStats>> {
+    return this.request(`/admin/commission-stats?timeframe=${timeframe}`);
+  }
+
+  async getCommissionReports(params: Record<string, string> = {}): Promise<ApiResponse<{ reports: CommissionReport[] }>> {
+    const queryParams = new URLSearchParams(params).toString();
+    return this.request(`/admin/commission-reports?${queryParams}`);
+  }
+
+  async updateCommissionRates(productId: string, rates: { platformRate: number; adminRate: number }): Promise<ApiResponse<any>> {
+    return this.request(`/admin/products/${productId}/commission-rates`, {
+      method: 'PUT',
+      body: JSON.stringify(rates)
+    });
+  }
+}
+
+interface CommissionStats {
+  totalRevenue: number;
+  totalCommission: number;
+  netRevenue: number;
+  totalTransactions: number;
+  avgCommissionRate: number;
+}
+
+interface CommissionReport {
+  id: string;
+  productId: string;
+  productName: string;
+  sellerId: string;
+  sellerName: string;
+  revenue: number;
+  commissionAmount: number;
+  commissionRate: number;
+  period: string;
+  status: 'pending' | 'paid' | 'due';
+  paidDate?: string;
 }
 
 export default new AdminApiService();

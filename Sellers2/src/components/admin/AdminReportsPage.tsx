@@ -11,9 +11,9 @@ import { AlertTriangle, Eye, CheckCircle, XCircle, Search, Filter, Download } fr
 import adminApi from '../../services/adminApi';
 
 export function AdminReportsPage() {
-  const [reports, setReports] = useState([]);
+  const [reports, setReports] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState({
     status: 'all',
     type: 'all',
@@ -29,7 +29,7 @@ export function AdminReportsPage() {
       setLoading(true);
       setError(null);
       const reportsData = await adminApi.getReports(filters.status === 'all' ? 'all' : filters.status);
-      setReports(reportsData.reports || []);
+      setReports(reportsData.data.reports || []);
     } catch (err: any) {
       console.error('Error loading reports:', err);
       setError(err.message || 'Failed to load reports');
@@ -90,6 +90,8 @@ export function AdminReportsPage() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
                 placeholder="Search reports..."
+                value={filters.search}
+                onChange={(e) => setFilters({...filters, search: e.target.value})}
                 className="pl-10 bg-gray-900 border-gray-700 text-white"
               />
             </div>
