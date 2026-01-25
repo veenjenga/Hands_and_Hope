@@ -1,31 +1,77 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MapPin, Users, Building2, GraduationCap, ShoppingBag, Globe, TrendingUp, Search } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Badge } from '../ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
+import adminApi from '../../services/adminApi';
 
-// Kenya's 47 counties with mock data
-const KENYA_COUNTIES = [
-  { name: 'Nairobi', sellers: 245, students: 1240, teachers: 180, schools: 25, buyers: 890, totalUsers: 2580 },
-  { name: 'Mombasa', sellers: 156, students: 680, teachers: 95, schools: 15, buyers: 450, totalUsers: 1396 },
-  { name: 'Kisumu', sellers: 98, students: 520, teachers: 78, schools: 12, buyers: 320, totalUsers: 1028 },
-  { name: 'Nakuru', sellers: 87, students: 445, teachers: 62, schools: 10, buyers: 280, totalUsers: 884 },
-  { name: 'Machakos', sellers: 72, students: 380, teachers: 54, schools: 8, buyers: 210, totalUsers: 724 },
-];
+interface CountyData {
+  name: string;
+  sellers: number;
+  students: number;
+  teachers: number;
+  schools: number;
+  buyers: number;
+  totalUsers: number;
+}
 
-const COUNTRY_RANKINGS = [
-  { country: 'Kenya', sellers: 2145, students: 12640, teachers: 1780, schools: 250, buyers: 8890, totalUsers: 25705, flag: '🇰🇪' },
-  { country: 'Uganda', sellers: 856, students: 4580, teachers: 642, schools: 98, buyers: 3250, totalUsers: 9426, flag: '🇺🇬' },
-];
+interface CountryData {
+  country: string;
+  sellers: number;
+  students: number;
+  teachers: number;
+  schools: number;
+  buyers: number;
+  totalUsers: number;
+  flag: string;
+}
 
 export function AdminLocationsPage() {
-  const [selectedCountry, setSelectedCountry] = useState<string>('Kenya');
+  const [selectedCountry] = useState('Kenya');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedView, setSelectedView] = useState<'all' | 'sellers' | 'students' | 'buyers'>('all');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [counties, setCounties] = useState<CountyData[]>([
+    { name: 'Nairobi', sellers: 245, students: 1240, teachers: 180, schools: 25, buyers: 890, totalUsers: 2580 },
+    { name: 'Mombasa', sellers: 156, students: 680, teachers: 95, schools: 15, buyers: 450, totalUsers: 1396 },
+    { name: 'Kisumu', sellers: 98, students: 520, teachers: 78, schools: 12, buyers: 320, totalUsers: 1028 },
+    { name: 'Nakuru', sellers: 87, students: 445, teachers: 62, schools: 10, buyers: 280, totalUsers: 884 },
+    { name: 'Machakos', sellers: 72, students: 380, teachers: 54, schools: 8, buyers: 210, totalUsers: 724 },
+  ]);
+  
+  const [countries, setCountries] = useState<CountryData[]>([
+    { country: 'Kenya', sellers: 2145, students: 12640, teachers: 1780, schools: 250, buyers: 8890, totalUsers: 25705, flag: '🇰🇪' },
+    { country: 'Uganda', sellers: 856, students: 4580, teachers: 642, schools: 98, buyers: 3250, totalUsers: 9426, flag: '🇺🇬' },
+  ]);
 
-  const filteredCounties = KENYA_COUNTIES.filter(county =>
+  // Load location data from API
+  useEffect(() => {
+    loadLocationData();
+  }, []);
+
+  const loadLocationData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // In a real implementation, we would fetch location data from the API
+      const locationData = await adminApi.getLocationAnalytics();
+      setCounties(locationData.data.counties || counties);
+      setCountries(locationData.data.countries || countries);
+      
+      // For now, if the API doesn't return data, we'll fallback to mock data
+    } catch (err: any) {
+      console.error('Error loading location data:', err);
+      setError(err.message || 'Failed to load location data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredCounties = counties.filter(county =>
     county.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -41,6 +87,53 @@ export function AdminLocationsPage() {
         return b.totalUsers - a.totalUsers;
     }
   });
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-white">Location Analytics</h1>
+            <p className="text-gray-400 mt-1">Loading location data...</p>
+          </div>
+          <Button variant="outline" className="gap-2 border-gray-600 text-gray-300" disabled>
+            <Globe className="h-4 w-4" />
+            Export Map Data
+          </Button>
+        </div>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+            <p className="text-gray-400">Loading location data...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-white">Location Analytics</h1>
+            <p className="text-red-400 mt-1">Error: {error}</p>
+          </div>
+        </div>
+        <Card className="bg-gray-800 border-gray-700">
+          <CardContent className="p-6 text-center">
+            <p className="text-red-400">Failed to load location data. Please try again.</p>
+            <Button 
+              className="mt-4" 
+              onClick={loadLocationData}
+            >
+              Retry
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -64,7 +157,7 @@ export function AdminLocationsPage() {
         {/* Country Rankings Tab */}
         <TabsContent value="countries" className="space-y-4">
           <div className="grid gap-4">
-            {COUNTRY_RANKINGS.map((country, index) => (
+            {countries.map((country, index) => (
               <Card key={country.country} className="bg-gray-800 border-gray-700 hover:border-blue-500 transition-colors">
                 <CardContent className="p-6">
                   <div className="flex items-center gap-4">

@@ -10,10 +10,22 @@ import { Textarea } from '../ui/textarea';
 import { AlertTriangle, Eye, Download, Search, Filter, DollarSign, Calendar, Clock } from 'lucide-react';
 import adminApi from '../../services/adminApi';
 
+interface Fund {
+  id: string;
+  amount: number;
+  userName: string;
+  userEmail: string;
+  status: 'held' | 'released' | 'extended';
+  holdDate: string;
+  reason: string;
+  releaseDate?: string;
+  notes: string;
+}
+
 export function AdminFundsOnHoldPage() {
-  const [funds, setFunds] = useState<any[]>([]);
+  const [funds, setFunds] = useState<Fund[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(null);
   const [filters, setFilters] = useState({
     status: 'all',
     search: ''
@@ -28,7 +40,7 @@ export function AdminFundsOnHoldPage() {
       setLoading(true);
       setError(null);
       const fundsData = await adminApi.getFundsOnHold(filters.status === 'all' ? 'all' : filters.status);
-      setFunds(fundsData.funds || []);
+      setFunds(fundsData.data?.funds || []);
     } catch (err: any) {
       console.error('Error loading funds on hold:', err);
       setError(err.message || 'Failed to load funds on hold');
@@ -43,6 +55,7 @@ export function AdminFundsOnHoldPage() {
       alert(`Fund ${status} successfully!`);
       loadFundsOnHold(); // Reload funds
     } catch (err: any) {
+      console.error('Error updating fund status:', err);
       alert(`Error updating fund status: ${err.message}`);
     }
   };
@@ -89,6 +102,8 @@ export function AdminFundsOnHoldPage() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
                 placeholder="Search funds..."
+                value={filters.search}
+                onChange={(e) => setFilters({...filters, search: e.target.value})}
                 className="pl-10 bg-gray-900 border-gray-700 text-white"
               />
             </div>
@@ -111,7 +126,13 @@ export function AdminFundsOnHoldPage() {
       </Card>
 
       <div className="space-y-4">
-        {funds.map((fund) => (
+        {funds
+          .filter(fund => 
+            filters.search === '' || 
+            fund.userName.toLowerCase().includes(filters.search.toLowerCase()) ||
+            fund.userEmail.toLowerCase().includes(filters.search.toLowerCase())
+          )
+          .map((fund) => (
           <Card key={fund.id} className="bg-gray-800 border-gray-700">
             <CardHeader>
               <div className="flex items-start justify-between">
@@ -233,7 +254,11 @@ export function AdminFundsOnHoldPage() {
           </Card>
         ))}
         
-        {funds.length === 0 && (
+        {funds.filter(fund => 
+          filters.search === '' || 
+          fund.userName.toLowerCase().includes(filters.search.toLowerCase()) ||
+          fund.userEmail.toLowerCase().includes(filters.search.toLowerCase())
+        ).length === 0 && (
           <Card className="bg-gray-800 border-gray-700 p-12 text-center">
             <DollarSign className="h-12 w-12 text-gray-600 mx-auto mb-4" />
             <h3 className="text-white">No Funds on Hold</h3>

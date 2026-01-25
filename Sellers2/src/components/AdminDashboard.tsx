@@ -34,7 +34,7 @@ import { AdminFundsOnHoldPage } from './admin/AdminFundsOnHoldPage';
 import { AdminShipmentTrackingPage } from './admin/AdminShipmentTrackingPage';
 import { AdminMessagesInquiriesPage } from './admin/AdminMessagesInquiriesPage';
 
-type AdminPage = 'dashboard' | 'users' | 'accounts-pending' | 'products' | 'transactions' | 'analytics' | 
+type AdminPage = 'dashboard' | 'users' | 'accounts-pending' | 'products' | 'transactions' | 'analytics' | 'enhanced-analytics' | 
   'locations' | 'reports' | 'deactivated' | 'admins' | 'hierarchy' | 'notifications' | 'profile' | 'settings' | 'caregivers' |
   'funds-on-hold' | 'shipments' | 'messages';
 
@@ -118,6 +118,8 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
   const [expandedUser, setExpandedUser] = useState(null);
   const [timeFilter, setTimeFilter] = useState('monthly');
   const [showCreateAdmin, setShowCreateAdmin] = useState(false);
+  const [newAdminRole, setNewAdminRole] = useState('admin');
+  const [creatingAdmin, setCreatingAdmin] = useState(false);
   
   // Real data states
   const [dashboardStats, setDashboardStats] = useState(null);
@@ -284,6 +286,41 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
     }
   };
 
+  const handleCreateAdmin = async () => {
+    try {
+      setCreatingAdmin(true);
+      
+      const nameInput = document.getElementById('new-admin-name') as HTMLInputElement;
+      const emailInput = document.getElementById('new-admin-email') as HTMLInputElement;
+      
+      const name = nameInput.value;
+      const email = emailInput.value;
+      
+      if (!name || !email) {
+        alert('Please enter both name and email');
+        return;
+      }
+      
+      await adminApi.createAdmin({
+        name,
+        email,
+        role: newAdminRole
+      });
+      
+      alert(`Admin account created successfully for ${email}`);
+      setShowCreateAdmin(false);
+      
+      // Reload admins list
+      loadDashboardData();
+    } catch (err: any) {
+      console.error('Error creating admin:', err);
+      alert(`Error creating admin: ${err.message}`);
+    } finally {
+      setCreatingAdmin(false);
+    }
+  };
+
+
   // Update the badge counts to use real data
   const pendingAccountsCount = pendingAccounts.length;
   const pendingReportsCount = reports.filter((r: any) => r.status === 'pending').length;
@@ -347,6 +384,8 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
             { id: 'transactions', label: 'Transactions', icon: DollarSign },
             { id: 'funds-on-hold', label: 'Funds on Hold', icon: Wallet },
             { id: 'analytics', label: 'Analytics & Stats', icon: TrendingUp },
+            { id: 'enhanced-analytics', label: 'Enhanced Analytics', icon: TrendingUp },
+
             { id: 'shipments', label: 'Shipment Tracking', icon: Truck },
             { id: 'messages', label: 'Messages & Inquiries', icon: MessageSquare },
             { id: 'locations', label: 'Locations', icon: MapPin },
@@ -1132,7 +1171,7 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
 
           {/* TRANSACTIONS PAGE */}
           {currentPage === 'transactions' && (
-            <AdminTransactionsCommissionPage />
+            <AdminTransactionsCommissionPage adminRole={adminRole} />
           )}
 
           {/* FUNDS ON HOLD PAGE */}
@@ -1193,8 +1232,10 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
             <AdminSchoolHierarchyPage />
           )}
 
-          {/* ENHANCED ANALYTICS PAGE (User Categories) */}
-          {/* Duplicate of main analytics page - removed to prevent conflicts */}
+          {/* ENHANCED ANALYTICS PAGE */}
+          {currentPage === 'enhanced-analytics' && (
+            <AdminEnhancedAnalyticsPage adminRole={adminRole} />
+          )}
 
           {/* CAREGIVER MANAGEMENT PAGE */}
           {currentPage === 'caregivers' && (
@@ -1224,6 +1265,7 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
                       <div className="space-y-2">
                         <Label className="text-gray-300">Full Name *</Label>
                         <Input 
+                          id="new-admin-name"
                           placeholder="John Doe"
                           className="bg-gray-900 border-gray-700 text-white"
                         />
@@ -1231,6 +1273,7 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
                       <div className="space-y-2">
                         <Label className="text-gray-300">Email Address *</Label>
                         <Input 
+                          id="new-admin-email"
                           type="email"
                           placeholder="john.doe@handsandhope.com"
                           className="bg-gray-900 border-gray-700 text-white"
@@ -1238,7 +1281,7 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
                       </div>
                       <div className="space-y-2">
                         <Label className="text-gray-300">Role *</Label>
-                        <Select>
+                        <Select value={newAdminRole} onValueChange={setNewAdminRole}>
                           <SelectTrigger className="bg-gray-900 border-gray-700 text-white">
                             <SelectValue placeholder="Select role" />
                           </SelectTrigger>
@@ -1253,8 +1296,12 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
                           📧 A temporary password will be generated and emailed to the new admin
                         </p>
                       </div>
-                      <Button className="w-full bg-green-600 hover:bg-green-700">
-                        Create Admin Account
+                      <Button 
+                        className="w-full bg-green-600 hover:bg-green-700"
+                        onClick={handleCreateAdmin}
+                        disabled={creatingAdmin}
+                      >
+                        {creatingAdmin ? 'Creating...' : 'Create Admin Account'}
                       </Button>
                     </div>
                   </DialogContent>
