@@ -113,23 +113,23 @@ const MOCK_ADMINS = [
 export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
   const [currentPage, setCurrentPage] = useState('dashboard');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [impersonateUser, setImpersonateUser] = useState(null);
-  const [expandedUser, setExpandedUser] = useState(null);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [impersonateUser, setImpersonateUser] = useState<any>(null);
+  const [expandedUser, setExpandedUser] = useState<any>(null);
   const [timeFilter, setTimeFilter] = useState('monthly');
   const [showCreateAdmin, setShowCreateAdmin] = useState(false);
   const [newAdminRole, setNewAdminRole] = useState('admin');
   const [creatingAdmin, setCreatingAdmin] = useState(false);
   
   // Real data states
-  const [dashboardStats, setDashboardStats] = useState(null);
-  const [pendingAccounts, setPendingAccounts] = useState([]);
-  const [allUsers, setAllUsers] = useState([]);
-  const [pendingProducts, setPendingProducts] = useState([]);
-  const [reports, setReports] = useState([]);
-  const [admins, setAdmins] = useState([]);
+  const [dashboardStats, setDashboardStats] = useState<any>(null);
+  const [pendingAccounts, setPendingAccounts] = useState<any[]>([]);
+  const [allUsers, setAllUsers] = useState<any[]>([]);
+  const [pendingProducts, setPendingProducts] = useState<any[]>([]);
+  const [reports, setReports] = useState<any[]>([]);
+  const [admins, setAdmins] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   // Load dashboard data
   useEffect(() => {
@@ -158,12 +158,12 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
         adminRole === 'super-admin' ? adminApi.getAdmins() : Promise.resolve({ admins: [] })
       ]);
 
-      setDashboardStats(statsData);
-      setPendingAccounts(pendingAccountsData.pendingAccounts || []);
-      setAllUsers(usersData.users || []);
-      setPendingProducts(pendingProductsData.pendingProducts || []);
-      setReports(reportsData.reports || []);
-      setAdmins(adminsData.admins || []);
+      setDashboardStats(statsData.data || statsData);
+      setPendingAccounts(pendingAccountsData.data?.pendingAccounts || []);
+      setAllUsers(usersData.data?.users || []);
+      setPendingProducts(pendingProductsData.data?.pendingProducts || []);
+      setReports(reportsData.data?.reports || []);
+      setAdmins('data' in adminsData ? adminsData.data.admins : adminsData.admins || []);
     } catch (err: any) {
       console.error('Error loading dashboard data:', err);
       setError(err.message || 'Failed to load dashboard data');
@@ -276,12 +276,38 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
 
   const handleExportData = async (dataType: string) => {
     try {
-      alert(`Exporting ${dataType} data...`);
-      // In a real implementation, you'd:
-      // 1. Call export API endpoint
-      // 2. Generate downloadable file
-      // 3. Trigger download
+      let response;
+      let filename;
+      
+      switch(dataType) {
+        case 'users':
+          response = await adminApi.exportUsers();
+          filename = `users-export-${new Date().toISOString().split('T')[0]}.csv`;
+          break;
+        case 'transactions':
+          response = await adminApi.exportTransactions();
+          filename = `transactions-export-${new Date().toISOString().split('T')[0]}.csv`;
+          break;
+        case 'reports':
+          response = await adminApi.exportReports();
+          filename = `reports-export-${new Date().toISOString().split('T')[0]}.csv`;
+          break;
+        default:
+          throw new Error('Invalid export type');
+      }
+      
+      // Convert response to blob and create download
+      const blob = new Blob([response], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
     } catch (err: any) {
+      console.error(`Error exporting ${dataType} data:`, err);
       alert(`Error exporting data: ${err.message}`);
     }
   };
@@ -575,33 +601,35 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {MOCK_TRANSACTIONS.slice(0, 5).map((transaction) => (
-                      <div key={transaction.id} className="flex items-center justify-between py-3 border-b border-gray-700">
-                        <div className="flex items-center gap-3">
-                          <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                            transaction.type === 'sale' ? 'bg-green-500/20' :
-                            transaction.type === 'purchase' ? 'bg-blue-500/20' :
-                            'bg-purple-500/20'
-                          }`}>
-                            <DollarSign className={`h-5 w-5 ${
-                              transaction.type === 'sale' ? 'text-green-400' :
-                              transaction.type === 'purchase' ? 'text-blue-400' :
-                              'text-purple-400'
-                            }`} />
+                    {allUsers.flatMap(user => 
+                      user.transactions?.slice(0, 5).map(transaction => (
+                        <div key={transaction.id} className="flex items-center justify-between py-3 border-b border-gray-700">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                              transaction.type === 'sale' ? 'bg-green-500/20' :
+                              transaction.type === 'purchase' ? 'bg-blue-500/20' :
+                              'bg-purple-500/20'
+                            }`}>
+                              <DollarSign className={`h-5 w-5 ${
+                                transaction.type === 'sale' ? 'text-green-400' :
+                                transaction.type === 'purchase' ? 'text-blue-400' :
+                                'text-purple-400'
+                              }`} />
+                            </div>
+                            <div>
+                              <p className="text-white font-medium">{user.name}</p>
+                              <p className="text-sm text-gray-400">{transaction.type} • {transaction.date}</p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="text-white font-medium">{transaction.userName}</p>
-                            <p className="text-sm text-gray-400">{transaction.type} • {transaction.date}</p>
+                          <div className="text-right">
+                            <p className="text-white font-bold">${transaction.amount.toFixed(2)}</p>
+                            <Badge variant="outline" className="text-xs">
+                              {transaction.status}
+                            </Badge>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <p className="text-white font-bold">${transaction.amount.toFixed(2)}</p>
-                          <Badge variant="outline" className="text-xs">
-                            {transaction.status}
-                          </Badge>
-                        </div>
-                      </div>
-                    ))}
+                      )) || []
+                    ).slice(0, 5)}
                   </div>
                 </CardContent>
               </Card>
@@ -1029,45 +1057,47 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
                         </tr>
                       </thead>
                       <tbody>
-                        {MOCK_TRANSACTIONS.map((transaction) => (
-                          <tr key={transaction.id} className="border-b border-gray-700 hover:bg-gray-700/50">
-                            <td className="px-6 py-4">
-                              <div className="flex items-center gap-3">
-                                <Avatar className="h-8 w-8 bg-blue-600">
-                                  <AvatarFallback className="text-white text-xs">{transaction.userName.charAt(0)}</AvatarFallback>
-                                </Avatar>
-                                <div>
-                                  <p className="text-white text-sm">{transaction.userName}</p>
-                                  <p className="text-xs text-gray-400">{transaction.userId}</p>
+                        {allUsers.flatMap(user => 
+                          user.transactions?.map(transaction => (
+                            <tr key={transaction.id} className="border-b border-gray-700 hover:bg-gray-700/50">
+                              <td className="px-6 py-4">
+                                <div className="flex items-center gap-3">
+                                  <Avatar className="h-8 w-8 bg-blue-600">
+                                    <AvatarFallback className="text-white text-xs">{user.name.charAt(0)}</AvatarFallback>
+                                  </Avatar>
+                                  <div>
+                                    <p className="text-white text-sm">{user.name}</p>
+                                    <p className="text-xs text-gray-400">{user.id}</p>
+                                  </div>
                                 </div>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4">
-                              <Badge variant={transaction.type === 'sale' ? 'default' : transaction.type === 'purchase' ? 'secondary' : 'outline'}>
-                                {transaction.type}
-                              </Badge>
-                            </td>
-                            <td className="px-6 py-4">
-                              <p className="text-white text-sm">
-                                {transaction.product || transaction.method}
-                              </p>
-                            </td>
-                            <td className="px-6 py-4 text-gray-400 text-sm">{transaction.date}</td>
-                            <td className="px-6 py-4">
-                              <p className="text-green-400 font-semibold">${transaction.amount.toFixed(2)}</p>
-                            </td>
-                            <td className="px-6 py-4">
-                              <Badge variant="outline" className="text-green-400 border-green-400">
-                                {transaction.status}
-                              </Badge>
-                            </td>
-                            <td className="px-6 py-4">
-                              <Button size="sm" variant="ghost" className="text-blue-400 hover:text-blue-300">
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                            </td>
-                          </tr>
-                        ))}
+                              </td>
+                              <td className="px-6 py-4">
+                                <Badge variant={transaction.type === 'sale' ? 'default' : transaction.type === 'purchase' ? 'secondary' : 'outline'}>
+                                  {transaction.type}
+                                </Badge>
+                              </td>
+                              <td className="px-6 py-4">
+                                <p className="text-white text-sm">
+                                  {transaction.product || transaction.method}
+                                </p>
+                              </td>
+                              <td className="px-6 py-4 text-gray-400 text-sm">{transaction.date}</td>
+                              <td className="px-6 py-4">
+                                <p className="text-green-400 font-semibold">${transaction.amount.toFixed(2)}</p>
+                              </td>
+                              <td className="px-6 py-4">
+                                <Badge variant="outline" className="text-green-400 border-green-400">
+                                  {transaction.status}
+                                </Badge>
+                              </td>
+                              <td className="px-6 py-4">
+                                <Button size="sm" variant="ghost" className="text-blue-400 hover:text-blue-300">
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                              </td>
+                            </tr>
+                          )) || []
+                        )}
                       </tbody>
                     </table>
                   </div>
@@ -1100,7 +1130,7 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
                   <CardContent className="p-6">
                     <div className="text-center">
                       <p className="text-sm text-blue-100">Individuals</p>
-                      <h2 className="text-3xl font-bold text-white mt-2">{MOCK_SIGNUP_STATS[timeFilter].individuals}</h2>
+                      <h2 className="text-3xl font-bold text-white mt-2">{dashboardStats?.signupStats?.[timeFilter]?.individuals || 0}</h2>
                       <p className="text-xs text-blue-100 mt-1">New sign-ups</p>
                     </div>
                   </CardContent>
@@ -1110,7 +1140,7 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
                   <CardContent className="p-6">
                     <div className="text-center">
                       <p className="text-sm text-purple-100">Schools</p>
-                      <h2 className="text-3xl font-bold text-white mt-2">{MOCK_SIGNUP_STATS[timeFilter].schools}</h2>
+                      <h2 className="text-3xl font-bold text-white mt-2">{dashboardStats?.signupStats?.[timeFilter]?.schools || 0}</h2>
                       <p className="text-xs text-purple-100 mt-1">New sign-ups</p>
                     </div>
                   </CardContent>
@@ -1120,7 +1150,7 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
                   <CardContent className="p-6">
                     <div className="text-center">
                       <p className="text-sm text-green-100">Students</p>
-                      <h2 className="text-3xl font-bold text-white mt-2">{MOCK_SIGNUP_STATS[timeFilter].students}</h2>
+                      <h2 className="text-3xl font-bold text-white mt-2">{dashboardStats?.signupStats?.[timeFilter]?.students || 0}</h2>
                       <p className="text-xs text-green-100 mt-1">New sign-ups</p>
                     </div>
                   </CardContent>
@@ -1130,7 +1160,7 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
                   <CardContent className="p-6">
                     <div className="text-center">
                       <p className="text-sm text-orange-100">Teachers</p>
-                      <h2 className="text-3xl font-bold text-white mt-2">{MOCK_SIGNUP_STATS[timeFilter].teachers}</h2>
+                      <h2 className="text-3xl font-bold text-white mt-2">{dashboardStats?.signupStats?.[timeFilter]?.teachers || 0}</h2>
                       <p className="text-xs text-orange-100 mt-1">New sign-ups</p>
                     </div>
                   </CardContent>
@@ -1140,7 +1170,7 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
                   <CardContent className="p-6">
                     <div className="text-center">
                       <p className="text-sm text-pink-100">Buyers</p>
-                      <h2 className="text-3xl font-bold text-white mt-2">{MOCK_SIGNUP_STATS[timeFilter].buyers}</h2>
+                      <h2 className="text-3xl font-bold text-white mt-2">{dashboardStats?.signupStats?.[timeFilter]?.buyers || 0}</h2>
                       <p className="text-xs text-pink-100 mt-1">New sign-ups</p>
                     </div>
                   </CardContent>
@@ -1154,13 +1184,13 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
                 </CardHeader>
                 <CardContent>
                   <div className="h-64 flex items-end justify-around gap-2 p-6 bg-gray-900 rounded-lg">
-                    {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, idx) => (
-                      <div key={day} className="flex-1 flex flex-col items-center gap-2">
+                    {(dashboardStats?.trendData || ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']).map((day, idx) => (
+                      <div key={typeof day === 'string' ? day : day.label} className="flex-1 flex flex-col items-center gap-2">
                         <div 
                           className="w-full bg-gradient-to-t from-blue-600 to-purple-600 rounded-t-lg transition-all hover:opacity-80"
-                          style={{ height: `${Math.random() * 100}%` }}
+                          style={{ height: `${typeof day === 'string' ? Math.random() * 100 : day.value}%` }}
                         />
-                        <span className="text-xs text-gray-400">{day}</span>
+                        <span className="text-xs text-gray-400">{typeof day === 'string' ? day : day.label}</span>
                       </div>
                     ))}
                   </div>
@@ -1169,10 +1199,7 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
             </div>
           )}
 
-          {/* TRANSACTIONS PAGE */}
-          {currentPage === 'transactions' && (
-            <AdminTransactionsCommissionPage adminRole={adminRole} />
-          )}
+
 
           {/* FUNDS ON HOLD PAGE */}
           {currentPage === 'funds-on-hold' && (
@@ -1309,7 +1336,7 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
               </div>
 
               {/* Admin Accounts List */}
-              {MOCK_ADMINS.map((admin) => (
+              {admins.map((admin) => (
                 <Card key={admin.id} className="bg-gray-800 border-gray-700">
                   <CardHeader>
                     <div className="flex items-center justify-between">

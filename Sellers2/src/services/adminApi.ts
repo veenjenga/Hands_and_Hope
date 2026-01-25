@@ -259,6 +259,19 @@ class AdminApiService {
   async getLocationAnalytics(): Promise<ApiResponse<{ counties: any[], countries: any[] }>> {
     return this.request('/admin/location-analytics');
   }
+
+  // Data Export
+  async exportUsers(): Promise<any> {
+    return this.request('/admin/export/users', { method: 'GET' });
+  }
+
+  async exportTransactions(): Promise<any> {
+    return this.request('/admin/export/transactions', { method: 'GET' });
+  }
+
+  async exportReports(): Promise<any> {
+    return this.request('/admin/export/reports', { method: 'GET' });
+  }
 }
 
 export default new AdminApiService();
