@@ -22,6 +22,7 @@ import { Avatar, AvatarFallback } from './ui/avatar';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 // TODO: Implement admin API calls using fetch or create proper admin service
 import { AdminCaregiverManagement } from './AdminCaregiverManagement';
+import { AdminManagement } from './admin/AdminManagement';
 import { NotificationDropdown } from './notification/NotificationDropdown';
 import { AdminLocationsPage } from './admin/AdminLocationsPage';
 import { AdminReportsPage } from './admin/AdminReportsPage';
@@ -1424,117 +1425,7 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
 
           {/* ADMIN MANAGEMENT PAGE (Super Admin Only) */}
           {currentPage === 'admins' && adminRole === 'super-admin' && (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <p className="text-gray-400">Manage administrator accounts and permissions</p>
-                <div>
-                  <button 
-                    className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-md flex items-center gap-2 text-white"
-                    onClick={() => {
-                      const name = prompt('Admin Full Name:');
-                      if (!name) return;
-                      const email = prompt('Admin Email Address:');
-                      if (!email) return;
-                      
-                      const nameInput = document.getElementById('new-admin-name') as HTMLInputElement;
-                      const emailInput = document.getElementById('new-admin-email') as HTMLInputElement;
-                      
-                      if (nameInput) nameInput.value = name;
-                      if (emailInput) emailInput.value = email;
-                      
-                      handleCreateAdmin();
-                    }}
-                  >
-                    <Plus className="h-4 w-4" />
-                    Create New Admin
-                  </button>
-                </div>
-              </div>
-
-              {/* Admin Accounts List */}
-              {admins.map((admin) => (
-                <Card key={admin.id} className="bg-gray-800 border-gray-700">
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <Avatar className="h-14 w-14 bg-gradient-to-br from-purple-600 to-blue-600">
-                          <AvatarFallback className="text-white">{admin.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <h3 className="text-white font-semibold">{admin.name}</h3>
-                          <p className="text-sm text-gray-400">{admin.email}</p>
-                          <div className="flex items-center gap-2 mt-1">
-                            <Badge variant={admin.role === 'super-admin' ? 'default' : 'secondary'} className={admin.role === 'super-admin' ? 'bg-purple-600' : ''}>
-                              {admin.role === 'super-admin' ? 'Super Admin' : 'Admin'}
-                            </Badge>
-                            <Badge variant="outline" className={`text-${admin.status === 'active' ? 'green' : 'gray'}-400`}>
-                              {admin.status}
-                            </Badge>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm text-gray-400">Last Login</p>
-                        <p className="text-white">{admin.lastLogin}</p>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="border-t border-gray-700 pt-4">
-                    <div className="grid gap-4 md:grid-cols-3 mb-4">
-                      <div>
-                        <Label className="text-gray-400">Created</Label>
-                        <p className="text-white mt-1">{admin.createdDate}</p>
-                        {admin.createdBy && (
-                          <p className="text-xs text-gray-500 mt-1">by {admin.createdBy}</p>
-                        )}
-                      </div>
-                      <div>
-                        <Label className="text-gray-400">Status</Label>
-                        <p className="text-white mt-1">{admin.status === 'active' ? '✅ Active' : '🔴 Inactive'}</p>
-                      </div>
-                      <div>
-                        <Label className="text-gray-400">Account ID</Label>
-                        <p className="text-white mt-1">{admin.id}</p>
-                      </div>
-                    </div>
-                    
-                    {admin.role !== 'super-admin' && (
-                      <div className="flex gap-3">
-                        <button className="px-3 py-1 border border-gray-600 text-gray-300 rounded-md flex items-center gap-2 hover:bg-gray-700 text-sm">
-                          <Edit className="h-4 w-4" />
-                          Edit Permissions
-                        </button>
-                        <button className="px-3 py-1 border border-gray-600 text-gray-300 rounded-md flex items-center gap-2 hover:bg-gray-700 text-sm">
-                          <RefreshCw className="h-4 w-4" />
-                          Reset Password
-                        </button>
-                        <div>
-                          <button 
-                            className="px-3 py-1 bg-red-600 hover:bg-red-700 rounded-md flex items-center gap-2 text-sm text-white"
-                            onClick={() => {
-                              if (confirm(`Are you sure you want to delete admin ${admin.name}? This action cannot be undone.`)) {
-                                // Handle delete logic here
-                                alert('Delete functionality would be implemented here');
-                              }
-                            }}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                            Delete Admin
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                    {admin.role === 'super-admin' && (
-                      <div className="bg-purple-900/20 border border-purple-600 p-3 rounded-lg">
-                        <p className="text-purple-200 text-sm">
-                          👑 Super Admin accounts cannot be modified or deleted
-                        </p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+            <AdminManagement />
           )}
         </main>
       </div>

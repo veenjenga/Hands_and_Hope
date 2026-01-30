@@ -9,6 +9,8 @@ import Seller from '../models/Seller.js';
 import Teacher from '../models/Teacher.js';
 import Student from '../models/Student.js';
 import Caregiver from '../models/Caregiver.js';
+import Notification from '../models/Notification.js';
+import bcrypt from 'bcryptjs';
 
 const router = express.Router();
 
@@ -564,10 +566,14 @@ router.post('/create-admin', async (req, res) => {
     // Generate random password
     const tempPassword = Math.random().toString(36).slice(-12);
     
+    // Hash the temporary password
+    const salt = await bcrypt.genSalt(12);
+    const hashedPassword = await bcrypt.hash(tempPassword, salt);
+    
     const newUser = new User({
       name,
       email,
-      password: tempPassword,
+      password: hashedPassword, // Store hashed password
       role,
       active: true
     });
@@ -575,7 +581,17 @@ router.post('/create-admin', async (req, res) => {
     await newUser.save();
 
     // TODO: Send email with temporary password
+    // In a production environment, you would send an email here
     console.log(`New admin created: ${email}, temp password: ${tempPassword}`);
+    
+    // Create a notification for the admin
+    const notification = new Notification({
+      userId: newUser._id, // New admin user
+      title: 'Welcome to Hands & Hope Admin Panel',
+      message: `Your admin account has been created. Your temporary password is: ${tempPassword}. Please change it after first login.`,
+      type: 'info'
+    });
+    await notification.save();
 
     res.status(201).json({
       message: 'Admin account created successfully',
@@ -584,7 +600,8 @@ router.post('/create-admin', async (req, res) => {
         name: newUser.name,
         email: newUser.email,
         role: newUser.role
-      }
+      },
+      tempPassword // Include temp password in response for the UI
     });
   } catch (err) {
     console.error('Create admin error:', err);
