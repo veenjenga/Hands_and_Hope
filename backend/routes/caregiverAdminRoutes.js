@@ -22,7 +22,7 @@ const requireAdmin = (req, res, next) => {
 router.use(requireAdmin);
 
 // GET /api/admin/caregivers - Get all caregivers with their managed accounts
-router.get('/caregivers', async (req, res) => {
+router.get('/', async (req, res) => {
   try {
     const caregivers = await Caregiver.find({})
       .populate({
@@ -63,7 +63,7 @@ router.get('/caregivers', async (req, res) => {
 });
 
 // GET /api/admin/caregivers/:caregiverId - Get specific caregiver details
-router.get('/caregivers/:caregiverId', async (req, res) => {
+router.get('/:caregiverId', async (req, res) => {
   try {
     const { caregiverId } = req.params;
     
@@ -116,7 +116,7 @@ router.get('/caregivers/:caregiverId', async (req, res) => {
 });
 
 // GET /api/admin/caregivers/:caregiverId/activity - Get caregiver activity log
-router.get('/caregivers/:caregiverId/activity', async (req, res) => {
+router.get('/:caregiverId/activity', async (req, res) => {
   try {
     const { caregiverId } = req.params;
     
@@ -152,7 +152,7 @@ router.get('/caregivers/:caregiverId/activity', async (req, res) => {
 });
 
 // POST /api/admin/caregivers - Create a new caregiver account
-router.post('/caregivers', async (req, res) => {
+router.post('/', async (req, res) => {
   try {
     const {
       fullName,
@@ -231,7 +231,7 @@ router.post('/caregivers', async (req, res) => {
 });
 
 // PUT /api/admin/caregivers/:caregiverId - Update caregiver details
-router.put('/caregivers/:caregiverId', async (req, res) => {
+router.put('/:caregiverId', async (req, res) => {
   try {
     const { caregiverId } = req.params;
     const { phone, relationshipType, managedAccounts } = req.body;
@@ -291,7 +291,7 @@ router.put('/caregivers/:caregiverId', async (req, res) => {
 });
 
 // DELETE /api/admin/caregivers/:caregiverId - Remove caregiver account
-router.delete('/caregivers/:caregiverId', async (req, res) => {
+router.delete('/:caregiverId', async (req, res) => {
   try {
     const { caregiverId } = req.params;
     
@@ -323,7 +323,7 @@ router.delete('/caregivers/:caregiverId', async (req, res) => {
 });
 
 // POST /api/admin/caregivers/:caregiverId/assign-account - Assign an account to a caregiver
-router.post('/caregivers/:caregiverId/assign-account', async (req, res) => {
+router.post('/:caregiverId/assign-account', async (req, res) => {
   try {
     const { caregiverId } = req.params;
     const { accountId, accountType, permissionLevel, permissions } = req.body;

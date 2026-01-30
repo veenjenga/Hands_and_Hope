@@ -81,9 +81,10 @@ app.use("/api/sellers", sellerRoutes);
 app.use("/api/buyers", buyerRoutes);   // ✅ Added this line
 app.use('/api/uploads', uploadRoutes);
 app.use('/api/dashboard', dashboardRoutes);
-app.use("/api/admin", adminRoutes);
 app.use("/api/caregiver", caregiverRoutes);
-app.use("/api/admin", caregiverAdminRoutes);
+// Mount admin routes and caregiver admin routes separately to avoid conflicts
+app.use("/api/admin", adminRoutes);
+app.use("/api/admin/caregivers", caregiverAdminRoutes);
 
 // Connect to MongoDB and start server
 connectDB();
