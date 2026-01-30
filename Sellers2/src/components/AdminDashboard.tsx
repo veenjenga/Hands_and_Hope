@@ -505,7 +505,8 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
             <div className="space-y-6">
               {/* Stats Grid */}
               <div className="grid gap-6 md:grid-cols-4">
-                <Card className="bg-gradient-to-br from-blue-600 to-blue-700 border-0 text-white">
+                <Card className="bg-gradient-to-br from-blue-600 to-blue-700 border-0 text-white cursor-pointer hover:opacity-90 transition-opacity"
+                  onClick={() => setCurrentPage('users')}>
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
@@ -517,7 +518,8 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
                   </CardContent>
                 </Card>
 
-                <Card className="bg-gradient-to-br from-purple-600 to-purple-700 border-0 text-white">
+                <Card className="bg-gradient-to-br from-purple-600 to-purple-700 border-0 text-white cursor-pointer hover:opacity-90 transition-opacity"
+                  onClick={() => setCurrentPage('accounts-pending')}>
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
@@ -529,7 +531,8 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
                   </CardContent>
                 </Card>
 
-                <Card className="bg-gradient-to-br from-green-600 to-green-700 border-0 text-white">
+                <Card className="bg-gradient-to-br from-green-600 to-green-700 border-0 text-white cursor-pointer hover:opacity-90 transition-opacity"
+                  onClick={() => setCurrentPage('transactions')}>
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
@@ -541,7 +544,8 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
                   </CardContent>
                 </Card>
 
-                <Card className="bg-gradient-to-br from-orange-600 to-red-600 border-0 text-white">
+                <Card className="bg-gradient-to-br from-orange-600 to-red-600 border-0 text-white cursor-pointer hover:opacity-90 transition-opacity"
+                  onClick={() => setCurrentPage('reports')}>
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
