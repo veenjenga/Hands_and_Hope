@@ -22,6 +22,8 @@ import buyerRoutes from "./routes/buyerRoutes.js";   // ✅ Added buyer routes
 import uploadRoutes from "./routes/uploadRoutes.js";
 import dashboardRoutes from "./routes/dashboardRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
+import caregiverRoutes from "./routes/caregiverRoutes.js";
+import caregiverAdminRoutes from "./routes/caregiverAdminRoutes.js";
 
 dotenv.config();
 
@@ -79,7 +81,9 @@ app.use("/api/sellers", sellerRoutes);
 app.use("/api/buyers", buyerRoutes);   // ✅ Added this line
 app.use('/api/uploads', uploadRoutes);
 app.use('/api/dashboard', dashboardRoutes);
-app.use('/api/admin', adminRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/caregiver", caregiverRoutes);
+app.use("/api/admin", caregiverAdminRoutes);
 
 // Connect to MongoDB and start server
 connectDB();
