@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { NotificationProvider, useNotifications } from '../contexts/NotificationContext';
 import { 
   Shield, Users, Building2, GraduationCap, UserCheck, UserX, 
   DollarSign, TrendingUp, Package, AlertTriangle, Eye, MapPin,
@@ -21,6 +22,7 @@ import { Avatar, AvatarFallback } from './ui/avatar';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 // TODO: Implement admin API calls using fetch or create proper admin service
 import { AdminCaregiverManagement } from './AdminCaregiverManagement';
+import { NotificationDropdown } from './notification/NotificationDropdown';
 import { AdminLocationsPage } from './admin/AdminLocationsPage';
 import { AdminReportsPage } from './admin/AdminReportsPage';
 import { AdminDeactivatedAccountsPage } from './admin/AdminDeactivatedAccountsPage';
@@ -121,6 +123,9 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
   const [newAdminRole, setNewAdminRole] = useState('admin');
   const [creatingAdmin, setCreatingAdmin] = useState(false);
   
+  // Notification context
+  const { addNotification } = useNotifications();
+  
   // Real data states
   const [dashboardStats, setDashboardStats] = useState(null);
   const [pendingAccounts, setPendingAccounts] = useState([]);
@@ -170,8 +175,58 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
       setPendingProducts(pendingProductsData.data?.pendingProducts || []);
       setReports(reportsData.data?.reports || []);
       setAdmins([]); // TODO: Fix type when implementing real API
+      
+      // Add sample notifications
+      if (dashboardStats?.pendingAccounts > 0) {
+        addNotification({
+          title: 'Pending Approvals',
+          message: `${dashboardStats.pendingAccounts} new account requests need review`,
+          type: 'info',
+          action: {
+            label: 'Review Now',
+            url: '/admin/accounts-pending'
+          }
+        });
+      }
+      
+      if (dashboardStats?.recentOrders > 0) {
+        addNotification({
+          title: 'New Orders',
+          message: `${dashboardStats.recentOrders} new orders placed today`,
+          type: 'info',
+          action: {
+            label: 'View Orders',
+            url: '/admin/transactions'
+          }
+        });
+      }
+      
+      if (reports.length > 0) {
+        addNotification({
+          title: 'New Reports',
+          message: `${reports.length} new reports filed`,
+          type: 'warning',
+          action: {
+            label: 'View Reports',
+            url: '/admin/reports'
+          }
+        });
+      }
+      
     } catch (err: any) {
       console.error('Error loading dashboard data:', err);
+      
+      // Send error notification
+      addNotification({
+        title: 'Data Load Failed',
+        message: `Failed to load dashboard data: ${err.message}`,
+        type: 'error',
+        action: {
+          label: 'Retry',
+          url: '/admin/dashboard'
+        }
+      });
+      
       setError(err.message || 'Failed to load dashboard data');
     } finally {
       setLoading(false);
@@ -191,10 +246,33 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
     try {
       // TODO: Implement approve account API call
       console.log('Approving account:', accountId);
+      
+      // Send notification
+      addNotification({
+        title: 'Account Approved',
+        message: `Account ${accountId} has been approved successfully`,
+        type: 'success',
+        action: {
+          label: 'View Account',
+          url: '/admin/accounts-pending'
+        }
+      });
+      
       alert(`Account ${accountId} approved successfully!`);
       // Reload data
       loadDashboardData();
     } catch (err: any) {
+      // Send error notification
+      addNotification({
+        title: 'Approval Failed',
+        message: `Failed to approve account ${accountId}: ${err.message}`,
+        type: 'error',
+        action: {
+          label: 'Retry',
+          url: '/admin/accounts-pending'
+        }
+      });
+      
       alert(`Error approving account: ${err.message}`);
     }
   };
@@ -204,10 +282,33 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
       try {
         // TODO: Implement decline account API call
         console.log('Declining account:', accountId, 'Reason:', reason);
+        
+        // Send notification
+        addNotification({
+          title: 'Account Declined',
+          message: `Account ${accountId} has been declined. Reason: ${reason}`,
+          type: 'warning',
+          action: {
+            label: 'View Account',
+            url: '/admin/accounts-pending'
+          }
+        });
+        
         alert(`Account ${accountId} declined. Reason: ${reason}`);
         // Reload data
         loadDashboardData();
       } catch (err: any) {
+        // Send error notification
+        addNotification({
+          title: 'Decline Failed',
+          message: `Failed to decline account ${accountId}: ${err.message}`,
+          type: 'error',
+          action: {
+            label: 'Retry',
+            url: '/admin/accounts-pending'
+          }
+        });
+        
         alert(`Error declining account: ${err.message}`);
       }
     }
@@ -218,10 +319,33 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
       try {
         // TODO: Implement ban user API call
         console.log('Banning user:', userId, 'Reason:', reason);
+        
+        // Send notification
+        addNotification({
+          title: 'User Banned',
+          message: `User ${userId} has been banned. Reason: ${reason}`,
+          type: 'warning',
+          action: {
+            label: 'View User',
+            url: '/admin/users'
+          }
+        });
+        
         alert(`User ${userId} banned. Reason: ${reason}`);
         // Reload data
         loadDashboardData();
       } catch (err: any) {
+        // Send error notification
+        addNotification({
+          title: 'Ban Failed',
+          message: `Failed to ban user ${userId}: ${err.message}`,
+          type: 'error',
+          action: {
+            label: 'Retry',
+            url: '/admin/users'
+          }
+        });
+        
         alert(`Error banning user: ${err.message}`);
       }
     }
@@ -231,10 +355,33 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
     try {
       // TODO: Implement unban user API call
       console.log('Unbanning user:', userId);
+      
+      // Send notification
+      addNotification({
+        title: 'User Reactivated',
+        message: `User ${userId} has been reactivated successfully`,
+        type: 'success',
+        action: {
+          label: 'View User',
+          url: '/admin/users'
+        }
+      });
+      
       alert(`User ${userId} reactivated successfully!`);
       // Reload data
       loadDashboardData();
     } catch (err: any) {
+      // Send error notification
+      addNotification({
+        title: 'Reactivate Failed',
+        message: `Failed to reactivate user ${userId}: ${err.message}`,
+        type: 'error',
+        action: {
+          label: 'Retry',
+          url: '/admin/users'
+        }
+      });
+      
       alert(`Error reactivating user: ${err.message}`);
     }
   };
@@ -243,10 +390,33 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
     try {
       // TODO: Implement approve product API call
       console.log('Approving product:', productId);
+      
+      // Send notification
+      addNotification({
+        title: 'Product Approved',
+        message: `Product ${productId} has been approved successfully`,
+        type: 'success',
+        action: {
+          label: 'View Product',
+          url: '/admin/products'
+        }
+      });
+      
       alert(`Product ${productId} approved!`);
       // Reload data
       loadDashboardData();
     } catch (err: any) {
+      // Send error notification
+      addNotification({
+        title: 'Approval Failed',
+        message: `Failed to approve product ${productId}: ${err.message}`,
+        type: 'error',
+        action: {
+          label: 'Retry',
+          url: '/admin/products'
+        }
+      });
+      
       alert(`Error approving product: ${err.message}`);
     }
   };
@@ -256,10 +426,33 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
       try {
         // TODO: Implement decline product API call
         console.log('Declining product:', productId, 'Reason:', reason);
+        
+        // Send notification
+        addNotification({
+          title: 'Product Declined',
+          message: `Product ${productId} has been declined. Reason: ${reason}`,
+          type: 'warning',
+          action: {
+            label: 'View Product',
+            url: '/admin/products'
+          }
+        });
+        
         alert(`Product ${productId} declined. Reason: ${reason}`);
         // Reload data
         loadDashboardData();
       } catch (err: any) {
+        // Send error notification
+        addNotification({
+          title: 'Decline Failed',
+          message: `Failed to decline product ${productId}: ${err.message}`,
+          type: 'error',
+          action: {
+            label: 'Retry',
+            url: '/admin/products'
+          }
+        });
+        
         alert(`Error declining product: ${err.message}`);
       }
     }
@@ -345,6 +538,17 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
       // TODO: Implement create admin API call
       console.log('Creating admin:', { name, email, role: newAdminRole });
       
+      // Send notification
+      addNotification({
+        title: 'Admin Created',
+        message: `Admin account created successfully for ${email} with role ${newAdminRole}`,
+        type: 'success',
+        action: {
+          label: 'View Admins',
+          url: '/admin/admins'
+        }
+      });
+      
       alert(`Admin account created successfully for ${email}`);
       setShowCreateAdmin(false);
       
@@ -352,6 +556,18 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
       loadDashboardData();
     } catch (err: any) {
       console.error('Error creating admin:', err);
+      
+      // Send error notification
+      addNotification({
+        title: 'Admin Creation Failed',
+        message: `Failed to create admin account: ${err.message}`,
+        type: 'error',
+        action: {
+          label: 'Retry',
+          url: '/admin/admins'
+        }
+      });
+      
       alert(`Error creating admin: ${err.message}`);
     } finally {
       setCreatingAdmin(false);
@@ -490,10 +706,7 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
                   </button>
                 </div>
               )}
-              <button className="px-3 py-1 border border-gray-600 text-gray-300 rounded-md flex items-center gap-2 hover:bg-gray-700">
-                <Bell className="h-4 w-4" />
-                <Badge variant="destructive" className="text-xs">3</Badge>
-              </button>
+              <NotificationDropdown adminRole={adminRole} />
             </div>
           </div>
         </header>

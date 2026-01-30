@@ -84,11 +84,11 @@ interface NotificationContextType {
   clearAllNotifications: () => void;
 }
 
-const NotificationContext = createContext(undefined);
+const NotificationContext = createContext(null);
 
 // Provider component
 export const NotificationProvider = ({ children }: { children: any }) => {
-  const [state, dispatch] = useReducer(notificationReducer, { notifications: [] });
+  const [state, dispatch] = useReducer(notificationReducer, { notifications: [] } as NotificationState);
 
   const addNotification = (notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => {
     dispatch({ type: 'ADD_NOTIFICATION', payload: notification });
@@ -133,7 +133,7 @@ export const NotificationProvider = ({ children }: { children: any }) => {
 // Hook to use the context
 export const useNotifications = () => {
   const context = useContext(NotificationContext);
-  if (!context) {
+  if (context === null) {
     throw new Error('useNotifications must be used within a NotificationProvider');
   }
   return context;

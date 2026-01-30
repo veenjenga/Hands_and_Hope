@@ -7,6 +7,7 @@ import { SchoolDashboard } from './components/SchoolDashboard';
 import { AdminDashboard } from './components/AdminDashboard';
 import { CaregiverDashboard } from './components/CaregiverDashboard';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { NotificationProvider } from './contexts/NotificationContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
 type Page = 'login' | 'register' | 'dashboard' | 'admin-dashboard';
@@ -14,7 +15,7 @@ type UserRole = 'seller' | 'teacher' | 'student' | 'school' | 'super-admin' | 'a
 
 function AppContent() {
   const { user, login: authLogin, logout: authLogout } = useAuth();
-  const [currentPage, setCurrentPage] = useState<Page>('login');
+  const [currentPage, setCurrentPage] = useState('login');
   const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
@@ -116,8 +117,10 @@ function AppContent() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <NotificationProvider>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </NotificationProvider>
   );
 }
