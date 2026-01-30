@@ -16,7 +16,7 @@ const router = express.Router();
 router.use(authMiddleware);
 
 // Middleware to check if user is admin or super-admin
-const requireAdmin = (req, res, next) => {
+export const requireAdmin = (req, res, next) => {
   if (req.user.role !== 'admin' && req.user.role !== 'super-admin') {
     return res.status(403).json({ error: 'Access denied. Admin privileges required.' });
   }
@@ -24,7 +24,7 @@ const requireAdmin = (req, res, next) => {
 };
 
 // Middleware to check if user is super-admin
-const requireSuperAdmin = (req, res, next) => {
+export const requireSuperAdmin = (req, res, next) => {
   if (req.user.role !== 'super-admin') {
     return res.status(403).json({ error: 'Access denied. Super admin privileges required.' });
   }

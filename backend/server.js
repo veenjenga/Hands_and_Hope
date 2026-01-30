@@ -24,6 +24,8 @@ import dashboardRoutes from "./routes/dashboardRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import caregiverRoutes from "./routes/caregiverRoutes.js";
 import caregiverAdminRoutes from "./routes/caregiverAdminRoutes.js";
+import activityRoutes from "./routes/activityRoutes.js";
+import notificationRoutes from "./routes/notificationRoutes.js";
 
 dotenv.config();
 
@@ -85,6 +87,8 @@ app.use("/api/caregiver", caregiverRoutes);
 // Mount admin routes and caregiver admin routes separately to avoid conflicts
 app.use("/api/admin", adminRoutes);
 app.use("/api/admin/caregivers", caregiverAdminRoutes);
+app.use('/api/activity', activityRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // Connect to MongoDB and start server
 connectDB();

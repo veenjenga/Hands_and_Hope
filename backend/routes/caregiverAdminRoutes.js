@@ -2,6 +2,8 @@ import express from 'express';
 import authMiddleware from '../middleware/authMiddleware.js';
 import User from '../models/User.js';
 import Caregiver from '../models/Caregiver.js';
+import Activity from '../models/Activity.js';
+import Notification from '../models/Notification.js';
 import bcrypt from 'bcryptjs';
 import mongoose from 'mongoose';
 
@@ -218,6 +220,24 @@ router.post('/', async (req, res) => {
 
     await caregiver.save();
 
+    // Log the caregiver creation activity
+    const activity = new Activity({
+      userId: req.user._id, // Admin user who created the caregiver
+      type: 'caregiver_created',
+      description: `Admin ${req.user.name} created caregiver account for ${fullName} (${email})`,
+      timestamp: new Date()
+    });
+    await activity.save();
+    
+    // Create a notification for the admin
+    const notification = new Notification({
+      userId: req.user._id, // Admin user who created the caregiver
+      title: 'Caregiver Account Created',
+      message: `Successfully created caregiver account for ${fullName} (${email})`,
+      type: 'success'
+    });
+    await notification.save();
+
     res.json({
       success: true,
       message: 'Caregiver account created successfully',
@@ -306,11 +326,33 @@ router.delete('/:caregiverId', async (req, res) => {
       return res.status(404).json({ error: 'Caregiver not found' });
     }
 
+    // Get caregiver user details for activity log
+    const caregiverUser = await User.findById(caregiver.user);
+    const caregiverName = caregiverUser ? caregiverUser.name : 'Unknown';
+    
     // Remove the caregiver document
     await Caregiver.findByIdAndDelete(caregiverId);
 
     // Optionally, also remove the user account (uncomment if desired)
     // await User.findByIdAndDelete(caregiver.user);
+    
+    // Log the removal activity
+    const activity = new Activity({
+      userId: req.user._id, // Admin user who removed the caregiver
+      type: 'caregiver_removed',
+      description: `Admin ${req.user.name} removed caregiver account for ${caregiverName}`,
+      timestamp: new Date()
+    });
+    await activity.save();
+    
+    // Create a notification for the admin
+    const notification = new Notification({
+      userId: req.user._id, // Admin user who removed the caregiver
+      title: 'Caregiver Account Removed',
+      message: `Successfully removed caregiver account for ${caregiverName}`,
+      type: 'info'
+    });
+    await notification.save();
 
     res.json({
       success: true,
@@ -373,6 +415,28 @@ router.post('/:caregiverId/assign-account', async (req, res) => {
     caregiver.managedAccounts.push(newAssignment);
     await caregiver.save();
 
+    // Get caregiver user details for activity log
+    const caregiverUser = await User.findById(caregiver.user);
+    const caregiverName = caregiverUser ? caregiverUser.name : 'Unknown';
+    
+    // Log the assignment activity
+    const activity = new Activity({
+      userId: req.user._id, // Admin user who assigned the account
+      type: 'caregiver_account_assigned',
+      description: `Admin ${req.user.name} assigned account ${accountId} to caregiver ${caregiverName}`,
+      timestamp: new Date()
+    });
+    await activity.save();
+    
+    // Create a notification for the admin
+    const notification = new Notification({
+      userId: req.user._id, // Admin user who assigned the account
+      title: 'Account Assigned to Caregiver',
+      message: `Successfully assigned account ${accountId} to caregiver ${caregiverName}`,
+      type: 'success'
+    });
+    await notification.save();
+
     res.json({
       success: true,
       message: 'Account assigned to caregiver successfully',
@@ -411,6 +475,28 @@ router.delete('/caregivers/:caregiverId/remove-account/:accountId', async (req, 
     }
 
     await caregiver.save();
+
+    // Get caregiver user details for activity log
+    const caregiverUser = await User.findById(caregiver.user);
+    const caregiverName = caregiverUser ? caregiverUser.name : 'Unknown';
+    
+    // Log the removal activity
+    const activity = new Activity({
+      userId: req.user._id, // Admin user who removed the account
+      type: 'caregiver_account_removed',
+      description: `Admin ${req.user.name} removed account ${accountId} from caregiver ${caregiverName}`,
+      timestamp: new Date()
+    });
+    await activity.save();
+    
+    // Create a notification for the admin
+    const notification = new Notification({
+      userId: req.user._id, // Admin user who removed the account
+      title: 'Account Removed from Caregiver',
+      message: `Successfully removed account ${accountId} from caregiver ${caregiverName}`,
+      type: 'info'
+    });
+    await notification.save();
 
     res.json({
       success: true,
