@@ -708,44 +708,18 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
                         <CheckCircle className="h-4 w-4 mr-2" />
                         Approve Account
                       </button>
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <button className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 rounded-md flex items-center justify-center gap-2">
-                            <XCircle className="h-4 w-4 mr-2" />
-                            Decline Account
-                          </button>
-                        </DialogTrigger>
-                        <DialogContent className="bg-gray-800 border-gray-700">
-                          <DialogHeader>
-                            <DialogTitle className="text-white">Decline Account - {account.name}</DialogTitle>
-                            <DialogDescription className="text-gray-400">
-                              Provide a valid reason for declining this account request.
-                            </DialogDescription>
-                          </DialogHeader>
-                          <div className="space-y-4">
-                            <div className="space-y-2">
-                              <Label className="text-gray-300">Reason for Declining *</Label>
-                              <Textarea 
-                                id={`decline-${account.id}`}
-                                placeholder="Explain why this account is being declined..."
-                                className="min-h-[100px] bg-gray-900 border-gray-700 text-white"
-                              />
-                            </div>
-                            <div className="flex gap-3">
-                              <button 
-                                className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-md"
-                                onClick={() => {
-                                  const textarea = document.getElementById(`decline-${account.id}`) as HTMLTextAreaElement;
-                                  handleDeclineAccount(account.id, textarea.value);
-                                }}
-                              >
-                                Confirm Decline
-                              </button>
-                              <button className="px-4 py-2 border border-gray-600 text-gray-300 rounded-md hover:bg-gray-700">Cancel</button>
-                            </div>
-                          </div>
-                        </DialogContent>
-                      </Dialog>
+                      <div>
+                        <button 
+                          className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 rounded-md flex items-center justify-center gap-2"
+                          onClick={() => {
+                            const reason = prompt('Reason for declining this account:');
+                            if (reason) handleDeclineAccount(account.id, reason);
+                          }}
+                        >
+                          <XCircle className="h-4 w-4 mr-2" />
+                          Decline Account
+                        </button>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -874,41 +848,18 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
                             Control Money
                           </button>
                         )}
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <button className="px-3 py-1 bg-red-600 hover:bg-red-700 rounded-md flex items-center gap-2 text-sm text-white">
-                              <Ban className="h-4 w-4" />
-                              Ban User
-                            </button>
-                          </DialogTrigger>
-                          <DialogContent className="bg-gray-800 border-gray-700">
-                            <DialogHeader>
-                              <DialogTitle className="text-white">Ban User - {user.name}</DialogTitle>
-                              <DialogDescription className="text-gray-400">
-                                Provide a valid reason for banning this user.
-                              </DialogDescription>
-                            </DialogHeader>
-                            <div className="space-y-4">
-                              <div className="space-y-2">
-                                <Label className="text-gray-300">Reason for Banning *</Label>
-                                <Textarea 
-                                  id={`ban-${user.id}`}
-                                  placeholder="Explain why this user is being banned..."
-                                  className="min-h-[100px] bg-gray-900 border-gray-700 text-white"
-                                />
-                              </div>
-                              <button 
-                                className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-md"
-                                onClick={() => {
-                                  const textarea = document.getElementById(`ban-${user.id}`) as HTMLTextAreaElement;
-                                  handleBanUser(user.id, textarea.value);
-                                }}
-                              >
-                                Confirm Ban
-                              </button>
-                            </div>
-                          </DialogContent>
-                        </Dialog>
+                        <div>
+                          <button 
+                            className="px-3 py-1 bg-red-600 hover:bg-red-700 rounded-md flex items-center gap-2 text-sm text-white"
+                            onClick={() => {
+                              const reason = prompt('Reason for banning this user:');
+                              if (reason) handleBanUser(user.id, reason);
+                            }}
+                          >
+                            <Ban className="h-4 w-4" />
+                            Ban User
+                          </button>
+                        </div>
                       </div>
                     </CardContent>
                   )}
@@ -960,38 +911,18 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
                         <CheckCircle className="h-4 w-4 mr-2" />
                         Approve Product
                       </button>
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <button className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 rounded-md flex items-center justify-center gap-2">
-                            <XCircle className="h-4 w-4 mr-2" />
-                            Decline Product
-                          </button>
-                        </DialogTrigger>
-                        <DialogContent className="bg-gray-800 border-gray-700">
-                          <DialogHeader>
-                            <DialogTitle className="text-white">Decline Product</DialogTitle>
-                            <DialogDescription className="text-gray-400">
-                              Provide a reason for declining this product.
-                            </DialogDescription>
-                          </DialogHeader>
-                          <div className="space-y-4">
-                            <Textarea 
-                              id={`decline-product-${product.id}`}
-                              placeholder="Explain why this product is being declined..."
-                              className="min-h-[100px] bg-gray-900 border-gray-700 text-white"
-                            />
-                            <button 
-                              className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-md w-full"
-                              onClick={() => {
-                                const textarea = document.getElementById(`decline-product-${product.id}`) as HTMLTextAreaElement;
-                                handleDeclineProduct(product.id, textarea.value);
-                              }}
-                            >
-                              Confirm Decline
-                            </button>
-                          </div>
-                        </DialogContent>
-                      </Dialog>
+                      <div>
+                        <button 
+                          className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 rounded-md flex items-center justify-center gap-2"
+                          onClick={() => {
+                            const reason = prompt('Reason for declining this product:');
+                            if (reason) handleDeclineProduct(product.id, reason);
+                          }}
+                        >
+                          <XCircle className="h-4 w-4 mr-2" />
+                          Decline Product
+                        </button>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -1267,65 +1198,28 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <p className="text-gray-400">Manage administrator accounts and permissions</p>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <button className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-md flex items-center gap-2 text-white">
-                      <Plus className="h-4 w-4" />
-                      Create New Admin
-                    </button>
-                  </DialogTrigger>
-                  <DialogContent className="bg-gray-800 border-gray-700">
-                    <DialogHeader>
-                      <DialogTitle className="text-white">Create New Administrator</DialogTitle>
-                      <DialogDescription className="text-gray-400">
-                        Add a new admin account to manage the platform
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label className="text-gray-300">Full Name *</Label>
-                        <Input 
-                          id="new-admin-name"
-                          placeholder="John Doe"
-                          className="bg-gray-900 border-gray-700 text-white"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-gray-300">Email Address *</Label>
-                        <Input 
-                          id="new-admin-email"
-                          type="email"
-                          placeholder="john.doe@handsandhope.com"
-                          className="bg-gray-900 border-gray-700 text-white"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-gray-300">Role *</Label>
-                        <Select value={newAdminRole} onValueChange={setNewAdminRole}>
-                          <SelectTrigger className="bg-gray-900 border-gray-700 text-white">
-                            <SelectValue placeholder="Select role" />
-                          </SelectTrigger>
-                          <SelectContent className="bg-gray-900 border-gray-700">
-                            <SelectItem value="admin">Admin</SelectItem>
-                            <SelectItem value="super-admin">Super Admin</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="bg-blue-900/20 border border-blue-600 p-4 rounded-lg">
-                        <p className="text-blue-200 text-sm">
-                          📧 A temporary password will be generated and emailed to the new admin
-                        </p>
-                      </div>
-                      <button 
-                        className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 rounded-md disabled:opacity-50"
-                        onClick={handleCreateAdmin}
-                        disabled={creatingAdmin}
-                      >
-                        {creatingAdmin ? 'Creating...' : 'Create Admin Account'}
-                      </button>
-                    </div>
-                  </DialogContent>
-                </Dialog>
+                <div>
+                  <button 
+                    className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-md flex items-center gap-2 text-white"
+                    onClick={() => {
+                      const name = prompt('Admin Full Name:');
+                      if (!name) return;
+                      const email = prompt('Admin Email Address:');
+                      if (!email) return;
+                      
+                      const nameInput = document.getElementById('new-admin-name') as HTMLInputElement;
+                      const emailInput = document.getElementById('new-admin-email') as HTMLInputElement;
+                      
+                      if (nameInput) nameInput.value = name;
+                      if (emailInput) emailInput.value = email;
+                      
+                      handleCreateAdmin();
+                    }}
+                  >
+                    <Plus className="h-4 w-4" />
+                    Create New Admin
+                  </button>
+                </div>
               </div>
 
               {/* Admin Accounts List */}
@@ -1385,32 +1279,20 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
                           <RefreshCw className="h-4 w-4" />
                           Reset Password
                         </button>
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <button className="px-3 py-1 bg-red-600 hover:bg-red-700 rounded-md flex items-center gap-2 text-sm text-white">
-                              <Trash2 className="h-4 w-4" />
-                              Delete Admin
-                            </button>
-                          </DialogTrigger>
-                          <DialogContent className="bg-gray-800 border-gray-700">
-                            <DialogHeader>
-                              <DialogTitle className="text-white">Delete Administrator - {admin.name}</DialogTitle>
-                              <DialogDescription className="text-gray-400">
-                                This action cannot be undone. This will permanently delete the admin account.
-                              </DialogDescription>
-                            </DialogHeader>
-                            <div className="space-y-4">
-                              <div className="bg-red-900/20 border border-red-600 p-4 rounded-lg">
-                                <p className="text-red-200 text-sm">
-                                  ⚠️ All actions performed by this admin will remain in the system logs.
-                                </p>
-                              </div>
-                              <button className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-md w-full">
-                                Confirm Delete
-                              </button>
-                            </div>
-                          </DialogContent>
-                        </Dialog>
+                        <div>
+                          <button 
+                            className="px-3 py-1 bg-red-600 hover:bg-red-700 rounded-md flex items-center gap-2 text-sm text-white"
+                            onClick={() => {
+                              if (confirm(`Are you sure you want to delete admin ${admin.name}? This action cannot be undone.`)) {
+                                // Handle delete logic here
+                                alert('Delete functionality would be implemented here');
+                              }
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            Delete Admin
+                          </button>
+                        </div>
                       </div>
                     )}
                     {admin.role === 'super-admin' && (
