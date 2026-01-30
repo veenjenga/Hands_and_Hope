@@ -113,23 +113,23 @@ const MOCK_ADMINS = [
 export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
   const [currentPage, setCurrentPage] = useState('dashboard');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedUser, setSelectedUser] = useState<any>(null);
-  const [impersonateUser, setImpersonateUser] = useState<any>(null);
-  const [expandedUser, setExpandedUser] = useState<any>(null);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [impersonateUser, setImpersonateUser] = useState(null);
+  const [expandedUser, setExpandedUser] = useState(null);
   const [timeFilter, setTimeFilter] = useState('monthly');
   const [showCreateAdmin, setShowCreateAdmin] = useState(false);
   const [newAdminRole, setNewAdminRole] = useState('admin');
   const [creatingAdmin, setCreatingAdmin] = useState(false);
   
   // Real data states
-  const [dashboardStats, setDashboardStats] = useState<any>(null);
-  const [pendingAccounts, setPendingAccounts] = useState<any[]>([]);
-  const [allUsers, setAllUsers] = useState<any[]>([]);
-  const [pendingProducts, setPendingProducts] = useState<any[]>([]);
-  const [reports, setReports] = useState<any[]>([]);
-  const [admins, setAdmins] = useState<any[]>([]);
+  const [dashboardStats, setDashboardStats] = useState(null);
+  const [pendingAccounts, setPendingAccounts] = useState([]);
+  const [allUsers, setAllUsers] = useState([]);
+  const [pendingProducts, setPendingProducts] = useState([]);
+  const [reports, setReports] = useState([]);
+  const [admins, setAdmins] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(null);
 
   // Load dashboard data
   useEffect(() => {
@@ -375,10 +375,10 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
           </div>
           <h2 className="text-xl font-bold text-white mb-2">Error Loading Dashboard</h2>
           <p className="text-gray-400 mb-4">{error}</p>
-          <Button onClick={loadDashboardData} className="bg-blue-600 hover:bg-blue-700">
+          <button onClick={loadDashboardData} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-md flex items-center">
             <RefreshCw className="h-4 w-4 mr-2" />
             Retry
-          </Button>
+          </button>
         </div>
       </div>
     );
@@ -444,14 +444,13 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
         </nav>
 
         <div className="p-4 border-t border-gray-700">
-          <Button 
-            variant="outline" 
-            className="w-full gap-2 border-gray-600 text-gray-300 hover:bg-gray-700"
+          <button 
+            className="w-full px-4 py-2 border border-gray-600 text-gray-300 hover:bg-gray-700 rounded-md flex items-center gap-2"
             onClick={onLogout}
           >
             <LogOut className="h-4 w-4" />
             Logout
-          </Button>
+          </button>
         </div>
       </aside>
 
@@ -471,20 +470,18 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
                 <div className="flex items-center gap-2 bg-orange-500 text-white px-4 py-2 rounded-lg">
                   <Eye className="h-4 w-4" />
                   <span className="text-sm font-semibold">Viewing as User</span>
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
-                    className="ml-2 h-6 text-xs"
+                  <button 
+                    className="ml-2 px-2 py-1 h-6 text-xs border border-gray-600 text-gray-300 hover:bg-gray-700 rounded-md"
                     onClick={() => setImpersonateUser(null)}
                   >
                     Exit
-                  </Button>
+                  </button>
                 </div>
               )}
-              <Button variant="outline" size="sm" className="gap-2 border-gray-600 text-gray-300">
+              <button className="px-3 py-1 border border-gray-600 text-gray-300 rounded-md flex items-center gap-2 hover:bg-gray-700">
                 <Bell className="h-4 w-4" />
                 <Badge variant="destructive" className="text-xs">3</Badge>
-              </Button>
+              </button>
             </div>
           </div>
         </header>
@@ -552,43 +549,43 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
                 </CardHeader>
                 <CardContent>
                   <div className="grid gap-4 md:grid-cols-4">
-                    <Button 
-                      className="h-20 bg-blue-600 hover:bg-blue-700"
+                    <button 
+                      className="h-20 bg-blue-600 hover:bg-blue-700 rounded-md flex items-center justify-center"
                       onClick={() => setCurrentPage('accounts-pending')}
                     >
                       <div className="text-center">
                         <CheckCircle className="h-6 w-6 mx-auto mb-1" />
                         <div className="text-sm">Review Approvals</div>
                       </div>
-                    </Button>
-                    <Button 
-                      className="h-20 bg-purple-600 hover:bg-purple-700"
+                    </button>
+                    <button 
+                      className="h-20 bg-purple-600 hover:bg-purple-700 rounded-md flex items-center justify-center"
                       onClick={() => setCurrentPage('users')}
                     >
                       <div className="text-center">
                         <Users className="h-6 w-6 mx-auto mb-1" />
                         <div className="text-sm">Manage Users</div>
                       </div>
-                    </Button>
-                    <Button 
-                      className="h-20 bg-green-600 hover:bg-green-700"
+                    </button>
+                    <button 
+                      className="h-20 bg-green-600 hover:bg-green-700 rounded-md flex items-center justify-center"
                       onClick={() => setCurrentPage('analytics')}
                     >
                       <div className="text-center">
                         <BarChart3 className="h-6 w-6 mx-auto mb-1" />
                         <div className="text-sm">View Analytics</div>
                       </div>
-                    </Button>
+                    </button>
                     {adminRole === 'super-admin' && (
-                      <Button 
-                        className="h-20 bg-orange-600 hover:bg-orange-700"
+                      <button 
+                        className="h-20 bg-orange-600 hover:bg-orange-700 rounded-md flex items-center justify-center"
                         onClick={() => setCurrentPage('admins')}
                       >
                         <div className="text-center">
                           <UserCog className="h-6 w-6 mx-auto mb-1" />
                           <div className="text-sm">Manage Admins</div>
                         </div>
-                      </Button>
+                      </button>
                     )}
                   </div>
                 </CardContent>
@@ -641,10 +638,10 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <p className="text-gray-400">Review and approve new account requests</p>
-                <Button variant="outline" className="gap-2 border-gray-600 text-gray-300">
+                <button className="px-4 py-2 border border-gray-600 text-gray-300 rounded-md flex items-center gap-2 hover:bg-gray-700">
                   <Download className="h-4 w-4" />
                   Export Report
-                </Button>
+                </button>
               </div>
 
               {pendingAccounts.map((account: any) => (
@@ -696,27 +693,27 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
                       <Label className="text-gray-400">Uploaded Documents</Label>
                       <div className="flex gap-2 mt-2">
                         {account.documents.map((doc, idx) => (
-                          <Button key={idx} variant="outline" size="sm" className="gap-2 border-gray-600 text-gray-300">
+                          <button key={idx} className="px-3 py-1 border border-gray-600 text-gray-300 rounded-md flex items-center gap-2 hover:bg-gray-700 text-sm">
                             <FileText className="h-4 w-4" />
                             {doc}
-                          </Button>
+                          </button>
                         ))}
                       </div>
                     </div>
                     <div className="flex gap-3 pt-4">
-                      <Button 
-                        className="flex-1 bg-green-600 hover:bg-green-700"
+                      <button 
+                        className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 rounded-md flex items-center justify-center gap-2"
                         onClick={() => handleApproveAccount(account.id)}
                       >
                         <CheckCircle className="h-4 w-4 mr-2" />
                         Approve Account
-                      </Button>
+                      </button>
                       <Dialog>
                         <DialogTrigger asChild>
-                          <Button variant="destructive" className="flex-1">
+                          <button className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 rounded-md flex items-center justify-center gap-2">
                             <XCircle className="h-4 w-4 mr-2" />
                             Decline Account
-                          </Button>
+                          </button>
                         </DialogTrigger>
                         <DialogContent className="bg-gray-800 border-gray-700">
                           <DialogHeader>
@@ -735,16 +732,16 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
                               />
                             </div>
                             <div className="flex gap-3">
-                              <Button 
-                                variant="destructive"
+                              <button 
+                                className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-md"
                                 onClick={() => {
                                   const textarea = document.getElementById(`decline-${account.id}`) as HTMLTextAreaElement;
                                   handleDeclineAccount(account.id, textarea.value);
                                 }}
                               >
                                 Confirm Decline
-                              </Button>
-                              <Button variant="outline" className="border-gray-600 text-gray-300">Cancel</Button>
+                              </button>
+                              <button className="px-4 py-2 border border-gray-600 text-gray-300 rounded-md hover:bg-gray-700">Cancel</button>
                             </div>
                           </div>
                         </DialogContent>
@@ -775,15 +772,15 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="w-80 h-12 bg-gray-800 border-gray-700 text-white"
                   />
-                  <Button variant="outline" className="gap-2 border-gray-600 text-gray-300">
+                  <button className="px-4 py-2 border border-gray-600 text-gray-300 rounded-md flex items-center gap-2 hover:bg-gray-700">
                     <Filter className="h-4 w-4" />
                     Filter
-                  </Button>
+                  </button>
                 </div>
-                <Button variant="outline" className="gap-2 border-gray-600 text-gray-300" onClick={() => handleExportData('users')}>
+                <button className="px-4 py-2 border border-gray-600 text-gray-300 rounded-md flex items-center gap-2 hover:bg-gray-700" onClick={() => handleExportData('users')}>
                   <Download className="h-4 w-4" />
                   Export Users
-                </Button>
+                </button>
               </div>
 
               {allUsers.filter((u: any) => u.active && !u.banned).map((user: any) => (
@@ -804,24 +801,20 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
                         </div>
                       </div>
                       <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="gap-2 border-gray-600 text-gray-300"
+                        <button
+                          className="px-3 py-1 border border-gray-600 text-gray-300 rounded-md flex items-center gap-2 hover:bg-gray-700 text-sm"
                           onClick={() => handleImpersonate(user.id)}
                         >
                           <Eye className="h-4 w-4" />
                           View as User
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="gap-2 border-gray-600 text-gray-300"
+                        </button>
+                        <button
+                          className="px-3 py-1 border border-gray-600 text-gray-300 rounded-md flex items-center gap-2 hover:bg-gray-700 text-sm"
                           onClick={() => setExpandedUser(expandedUser === user.id ? null : user.id)}
                         >
                           {expandedUser === user.id ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                           Details
-                        </Button>
+                        </button>
                       </div>
                     </div>
                   </CardHeader>
@@ -871,22 +864,22 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
                         )}
                       </div>
                       <div className="flex gap-3">
-                        <Button size="sm" variant="outline" className="gap-2 border-gray-600 text-gray-300">
+                        <button className="px-3 py-1 border border-gray-600 text-gray-300 rounded-md flex items-center gap-2 hover:bg-gray-700 text-sm">
                           <History className="h-4 w-4" />
                           View Transaction History
-                        </Button>
+                        </button>
                         {user.type === 'individual' && (
-                          <Button size="sm" variant="outline" className="gap-2 border-gray-600 text-gray-300">
+                          <button className="px-3 py-1 border border-gray-600 text-gray-300 rounded-md flex items-center gap-2 hover:bg-gray-700 text-sm">
                             <DollarSign className="h-4 w-4" />
                             Control Money
-                          </Button>
+                          </button>
                         )}
                         <Dialog>
                           <DialogTrigger asChild>
-                            <Button size="sm" variant="destructive" className="gap-2">
+                            <button className="px-3 py-1 bg-red-600 hover:bg-red-700 rounded-md flex items-center gap-2 text-sm text-white">
                               <Ban className="h-4 w-4" />
                               Ban User
-                            </Button>
+                            </button>
                           </DialogTrigger>
                           <DialogContent className="bg-gray-800 border-gray-700">
                             <DialogHeader>
@@ -904,15 +897,15 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
                                   className="min-h-[100px] bg-gray-900 border-gray-700 text-white"
                                 />
                               </div>
-                              <Button 
-                                variant="destructive"
+                              <button 
+                                className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-md"
                                 onClick={() => {
                                   const textarea = document.getElementById(`ban-${user.id}`) as HTMLTextAreaElement;
                                   handleBanUser(user.id, textarea.value);
                                 }}
                               >
                                 Confirm Ban
-                              </Button>
+                              </button>
                             </div>
                           </DialogContent>
                         </Dialog>
@@ -952,27 +945,27 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
                       <Label className="text-gray-400">Product Images</Label>
                       <div className="flex gap-2 mt-2">
                         {product.documents.map((doc, idx) => (
-                          <Button key={idx} variant="outline" size="sm" className="gap-2 border-gray-600 text-gray-300">
+                          <button key={idx} className="px-3 py-1 border border-gray-600 text-gray-300 rounded-md flex items-center gap-2 hover:bg-gray-700 text-sm">
                             <Eye className="h-4 w-4" />
                             Image {idx + 1}
-                          </Button>
+                          </button>
                         ))}
                       </div>
                     </div>
                     <div className="flex gap-3">
-                      <Button 
-                        className="flex-1 bg-green-600 hover:bg-green-700"
+                      <button 
+                        className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 rounded-md flex items-center justify-center gap-2"
                         onClick={() => handleApproveProduct(product.id)}
                       >
                         <CheckCircle className="h-4 w-4 mr-2" />
                         Approve Product
-                      </Button>
+                      </button>
                       <Dialog>
                         <DialogTrigger asChild>
-                          <Button variant="destructive" className="flex-1">
+                          <button className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 rounded-md flex items-center justify-center gap-2">
                             <XCircle className="h-4 w-4 mr-2" />
                             Decline Product
-                          </Button>
+                          </button>
                         </DialogTrigger>
                         <DialogContent className="bg-gray-800 border-gray-700">
                           <DialogHeader>
@@ -987,15 +980,15 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
                               placeholder="Explain why this product is being declined..."
                               className="min-h-[100px] bg-gray-900 border-gray-700 text-white"
                             />
-                            <Button 
-                              variant="destructive"
+                            <button 
+                              className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-md w-full"
                               onClick={() => {
                                 const textarea = document.getElementById(`decline-product-${product.id}`) as HTMLTextAreaElement;
                                 handleDeclineProduct(product.id, textarea.value);
                               }}
                             >
                               Confirm Decline
-                            </Button>
+                            </button>
                           </div>
                         </DialogContent>
                       </Dialog>
@@ -1035,10 +1028,10 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
                     </SelectContent>
                   </Select>
                 </div>
-                <Button variant="outline" className="gap-2 border-gray-600 text-gray-300" onClick={() => handleExportData('transactions')}>
+                <button className="px-4 py-2 border border-gray-600 text-gray-300 rounded-md flex items-center gap-2 hover:bg-gray-700" onClick={() => handleExportData('transactions')}>
                   <Download className="h-4 w-4" />
                   Export CSV
-                </Button>
+                </button>
               </div>
 
               <Card className="bg-gray-800 border-gray-700">
@@ -1091,9 +1084,9 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
                                 </Badge>
                               </td>
                               <td className="px-6 py-4">
-                                <Button size="sm" variant="ghost" className="text-blue-400 hover:text-blue-300">
+                                <button className="p-1 text-blue-400 hover:text-blue-300">
                                   <Eye className="h-4 w-4" />
-                                </Button>
+                                </button>
                               </td>
                             </tr>
                           )) || []
@@ -1276,10 +1269,10 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
                 <p className="text-gray-400">Manage administrator accounts and permissions</p>
                 <Dialog>
                   <DialogTrigger asChild>
-                    <Button className="gap-2 bg-green-600 hover:bg-green-700">
+                    <button className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-md flex items-center gap-2 text-white">
                       <Plus className="h-4 w-4" />
                       Create New Admin
-                    </Button>
+                    </button>
                   </DialogTrigger>
                   <DialogContent className="bg-gray-800 border-gray-700">
                     <DialogHeader>
@@ -1323,13 +1316,13 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
                           📧 A temporary password will be generated and emailed to the new admin
                         </p>
                       </div>
-                      <Button 
-                        className="w-full bg-green-600 hover:bg-green-700"
+                      <button 
+                        className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 rounded-md disabled:opacity-50"
                         onClick={handleCreateAdmin}
                         disabled={creatingAdmin}
                       >
                         {creatingAdmin ? 'Creating...' : 'Create Admin Account'}
-                      </Button>
+                      </button>
                     </div>
                   </DialogContent>
                 </Dialog>
@@ -1384,20 +1377,20 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
                     
                     {admin.role !== 'super-admin' && (
                       <div className="flex gap-3">
-                        <Button size="sm" variant="outline" className="gap-2 border-gray-600 text-gray-300">
+                        <button className="px-3 py-1 border border-gray-600 text-gray-300 rounded-md flex items-center gap-2 hover:bg-gray-700 text-sm">
                           <Edit className="h-4 w-4" />
                           Edit Permissions
-                        </Button>
-                        <Button size="sm" variant="outline" className="gap-2 border-gray-600 text-gray-300">
+                        </button>
+                        <button className="px-3 py-1 border border-gray-600 text-gray-300 rounded-md flex items-center gap-2 hover:bg-gray-700 text-sm">
                           <RefreshCw className="h-4 w-4" />
                           Reset Password
-                        </Button>
+                        </button>
                         <Dialog>
                           <DialogTrigger asChild>
-                            <Button size="sm" variant="destructive" className="gap-2">
+                            <button className="px-3 py-1 bg-red-600 hover:bg-red-700 rounded-md flex items-center gap-2 text-sm text-white">
                               <Trash2 className="h-4 w-4" />
                               Delete Admin
-                            </Button>
+                            </button>
                           </DialogTrigger>
                           <DialogContent className="bg-gray-800 border-gray-700">
                             <DialogHeader>
@@ -1412,9 +1405,9 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
                                   ⚠️ All actions performed by this admin will remain in the system logs.
                                 </p>
                               </div>
-                              <Button variant="destructive" className="w-full">
+                              <button className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-md w-full">
                                 Confirm Delete
-                              </Button>
+                              </button>
                             </div>
                           </DialogContent>
                         </Dialog>

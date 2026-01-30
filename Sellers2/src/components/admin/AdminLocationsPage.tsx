@@ -31,10 +31,10 @@ interface CountryData {
 export function AdminLocationsPage() {
   const [selectedCountry] = useState('Kenya');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedView, setSelectedView] = useState<'all' | 'sellers' | 'students' | 'buyers'>('all');
+  const [selectedView, setSelectedView] = useState('all');
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [counties, setCounties] = useState<CountyData[]>([
+  const [error, setError] = useState(null);
+  const [counties, setCounties] = useState([
     { name: 'Nairobi', sellers: 245, students: 1240, teachers: 180, schools: 25, buyers: 890, totalUsers: 2580 },
     { name: 'Mombasa', sellers: 156, students: 680, teachers: 95, schools: 15, buyers: 450, totalUsers: 1396 },
     { name: 'Kisumu', sellers: 98, students: 520, teachers: 78, schools: 12, buyers: 320, totalUsers: 1028 },
@@ -42,7 +42,7 @@ export function AdminLocationsPage() {
     { name: 'Machakos', sellers: 72, students: 380, teachers: 54, schools: 8, buyers: 210, totalUsers: 724 },
   ]);
   
-  const [countries, setCountries] = useState<CountryData[]>([
+  const [countries, setCountries] = useState([
     { country: 'Kenya', sellers: 2145, students: 12640, teachers: 1780, schools: 250, buyers: 8890, totalUsers: 25705, flag: '🇰🇪' },
     { country: 'Uganda', sellers: 856, students: 4580, teachers: 642, schools: 98, buyers: 3250, totalUsers: 9426, flag: '🇺🇬' },
   ]);
@@ -96,10 +96,10 @@ export function AdminLocationsPage() {
             <h1 className="text-2xl font-bold text-white">Location Analytics</h1>
             <p className="text-gray-400 mt-1">Loading location data...</p>
           </div>
-          <Button variant="outline" className="gap-2 border-gray-600 text-gray-300" disabled>
+          <button className="px-4 py-2 border border-gray-600 text-gray-300 rounded-md flex items-center gap-2 hover:bg-gray-700 opacity-50 cursor-not-allowed" disabled>
             <Globe className="h-4 w-4" />
             Export Map Data
-          </Button>
+          </button>
         </div>
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
@@ -123,12 +123,12 @@ export function AdminLocationsPage() {
         <Card className="bg-gray-800 border-gray-700">
           <CardContent className="p-6 text-center">
             <p className="text-red-400">Failed to load location data. Please try again.</p>
-            <Button 
-              className="mt-4" 
+            <button 
+              className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md" 
               onClick={loadLocationData}
             >
               Retry
-            </Button>
+            </button>
           </CardContent>
         </Card>
       </div>
@@ -142,10 +142,10 @@ export function AdminLocationsPage() {
           <h1 className="text-2xl font-bold text-white">Location Analytics</h1>
           <p className="text-gray-400 mt-1">Geographic distribution of users across countries and regions</p>
         </div>
-        <Button variant="outline" className="gap-2 border-gray-600 text-gray-300">
+        <button className="px-4 py-2 border border-gray-600 text-gray-300 rounded-md flex items-center gap-2 hover:bg-gray-700">
           <Globe className="h-4 w-4" />
           Export Map Data
-        </Button>
+        </button>
       </div>
 
       <Tabs defaultValue="countries" className="space-y-6">
@@ -214,38 +214,30 @@ export function AdminLocationsPage() {
                   />
                 </div>
                 <div className="flex gap-2">
-                  <Button
-                    variant={selectedView === 'all' ? 'default' : 'outline'}
-                    size="sm"
+                  <button
                     onClick={() => setSelectedView('all')}
-                    className={selectedView === 'all' ? '' : 'border-gray-600 text-gray-300'}
+                    className={`px-3 py-1 rounded-md text-sm ${selectedView === 'all' ? 'bg-blue-600 text-white' : 'border border-gray-600 text-gray-300 hover:bg-gray-700'}`}
                   >
                     All Users
-                  </Button>
-                  <Button
-                    variant={selectedView === 'sellers' ? 'default' : 'outline'}
-                    size="sm"
+                  </button>
+                  <button
                     onClick={() => setSelectedView('sellers')}
-                    className={selectedView === 'sellers' ? '' : 'border-gray-600 text-gray-300'}
+                    className={`px-3 py-1 rounded-md text-sm ${selectedView === 'sellers' ? 'bg-blue-600 text-white' : 'border border-gray-600 text-gray-300 hover:bg-gray-700'}`}
                   >
                     Sellers
-                  </Button>
-                  <Button
-                    variant={selectedView === 'students' ? 'default' : 'outline'}
-                    size="sm"
+                  </button>
+                  <button
                     onClick={() => setSelectedView('students')}
-                    className={selectedView === 'students' ? '' : 'border-gray-600 text-gray-300'}
+                    className={`px-3 py-1 rounded-md text-sm ${selectedView === 'students' ? 'bg-blue-600 text-white' : 'border border-gray-600 text-gray-300 hover:bg-gray-700'}`}
                   >
                     Students
-                  </Button>
-                  <Button
-                    variant={selectedView === 'buyers' ? 'default' : 'outline'}
-                    size="sm"
+                  </button>
+                  <button
                     onClick={() => setSelectedView('buyers')}
-                    className={selectedView === 'buyers' ? '' : 'border-gray-600 text-gray-300'}
+                    className={`px-3 py-1 rounded-md text-sm ${selectedView === 'buyers' ? 'bg-blue-600 text-white' : 'border border-gray-600 text-gray-300 hover:bg-gray-700'}`}
                   >
                     Buyers
-                  </Button>
+                  </button>
                 </div>
               </div>
             </CardContent>

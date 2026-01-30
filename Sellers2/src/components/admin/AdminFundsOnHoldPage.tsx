@@ -23,7 +23,7 @@ interface Fund {
 }
 
 export function AdminFundsOnHoldPage() {
-  const [funds, setFunds] = useState<Fund[]>([]);
+  const [funds, setFunds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [filters, setFilters] = useState({
@@ -89,10 +89,10 @@ export function AdminFundsOnHoldPage() {
           <h1 className="text-2xl font-bold text-white">Funds On Hold</h1>
           <p className="text-gray-400 mt-1">Manage held funds and releases</p>
         </div>
-        <Button variant="outline" className="gap-2 border-gray-600 text-gray-300">
+        <button className="px-4 py-2 border border-gray-600 text-gray-300 rounded-md flex items-center gap-2 hover:bg-gray-700">
           <Download className="h-4 w-4" />
           Export Funds
-        </Button>
+        </button>
       </div>
 
       <Card className="bg-gray-800 border-gray-700">
@@ -117,10 +117,10 @@ export function AdminFundsOnHoldPage() {
                 <SelectItem value="released">Released</SelectItem>
               </SelectContent>
             </Select>
-            <Button variant="outline" className="gap-2 border-gray-600 text-gray-300">
+            <button className="px-4 py-2 border border-gray-600 text-gray-300 rounded-md flex items-center gap-2 hover:bg-gray-700">
               <Filter className="h-4 w-4" />
               More Filters
-            </Button>
+            </button>
           </div>
         </CardContent>
       </Card>
@@ -169,84 +169,42 @@ export function AdminFundsOnHoldPage() {
               </div>
               
               <div className="flex gap-3">
-                <Button size="sm" variant="outline" className="gap-2 border-gray-600 text-gray-300">
+                <button className="px-3 py-1 border border-gray-600 text-gray-300 rounded-md flex items-center gap-2 hover:bg-gray-700 text-sm">
                   <Eye className="h-4 w-4" />
                   View Details
-                </Button>
+                </button>
                 
                 {fund.status === 'held' && (
                   <>
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button size="sm" variant="default" className="gap-2 bg-green-600 hover:bg-green-700">
-                          <DollarSign className="h-4 w-4" />
-                          Release Funds
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="bg-gray-800 border-gray-700">
-                        <DialogHeader>
-                          <DialogTitle className="text-white">Release Funds</DialogTitle>
-                          <DialogDescription className="text-gray-400">
-                            Confirm releasing these funds and add release notes
-                          </DialogDescription>
-                        </DialogHeader>
-                        <div className="space-y-4">
-                          <div className="space-y-2">
-                            <Label className="text-gray-300">Release Notes</Label>
-                            <Textarea 
-                              id={`release-${fund.id}`}
-                              placeholder="Explain why these funds are being released..."
-                              className="min-h-[100px] bg-gray-900 border-gray-700 text-white"
-                            />
-                          </div>
-                          <Button 
-                            onClick={() => {
-                              const textarea = document.getElementById(`release-${fund.id}`) as HTMLTextAreaElement;
-                              handleUpdateFundStatus(fund.id, 'released', textarea.value);
-                            }}
-                            className="w-full bg-green-600 hover:bg-green-700"
-                          >
-                            Confirm Release
-                          </Button>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
+                    <div>
+                      <button 
+                        onClick={() => {
+                          const notes = prompt('Enter release notes:');
+                          if (notes !== null) {
+                            handleUpdateFundStatus(fund.id, 'released', notes);
+                          }
+                        }}
+                        className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded-md flex items-center gap-2 text-sm"
+                      >
+                        <DollarSign className="h-4 w-4" />
+                        Release Funds
+                      </button>
+                    </div>
                     
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button size="sm" variant="destructive" className="gap-2">
-                          <AlertTriangle className="h-4 w-4" />
-                          Extend Hold
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="bg-gray-800 border-gray-700">
-                        <DialogHeader>
-                          <DialogTitle className="text-white">Extend Hold</DialogTitle>
-                          <DialogDescription className="text-gray-400">
-                            Extend the hold on these funds and add extension notes
-                          </DialogDescription>
-                        </DialogHeader>
-                        <div className="space-y-4">
-                          <div className="space-y-2">
-                            <Label className="text-gray-300">Extension Reason</Label>
-                            <Textarea 
-                              id={`extend-${fund.id}`}
-                              placeholder="Explain why the hold is being extended..."
-                              className="min-h-[100px] bg-gray-900 border-gray-700 text-white"
-                            />
-                          </div>
-                          <Button 
-                            variant="destructive"
-                            onClick={() => {
-                              const textarea = document.getElementById(`extend-${fund.id}`) as HTMLTextAreaElement;
-                              handleUpdateFundStatus(fund.id, 'extended', textarea.value);
-                            }}
-                          >
-                            Confirm Extension
-                          </Button>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
+                    <div>
+                      <button 
+                        onClick={() => {
+                          const notes = prompt('Enter extension reason:');
+                          if (notes !== null) {
+                            handleUpdateFundStatus(fund.id, 'extended', notes);
+                          }
+                        }}
+                        className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-md flex items-center gap-2 text-sm"
+                      >
+                        <AlertTriangle className="h-4 w-4" />
+                        Extend Hold
+                      </button>
+                    </div>
                   </>
                 )}
               </div>

@@ -39,10 +39,10 @@ interface CommissionStats {
 }
 
 export function AdminTransactionsCommissionPage({ adminRole }: AdminTransactionsCommissionPageProps) {
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [stats, setStats] = useState<CommissionStats | null>(null);
+  const [error, setError] = useState(null);
+  const [stats, setStats] = useState(null);
   const [filters, setFilters] = useState({
     status: 'all',
     type: 'all',
@@ -226,10 +226,10 @@ export function AdminTransactionsCommissionPage({ adminRole }: AdminTransactions
                     <SelectItem value="commission">Commission</SelectItem>
                   </SelectContent>
                 </Select>
-                <Button variant="outline" className="gap-2 border-gray-600 text-gray-300">
+                <button className="px-4 py-2 border border-gray-600 text-gray-300 rounded-md flex items-center gap-2 hover:bg-gray-700">
                   <Download className="h-4 w-4" />
                   Export
-                </Button>
+                </button>
               </div>
 
               <div className="overflow-x-auto">
@@ -294,9 +294,9 @@ export function AdminTransactionsCommissionPage({ adminRole }: AdminTransactions
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <Button size="sm" variant="ghost" className="text-blue-400 hover:text-blue-300">
+                          <button className="p-1 text-blue-400 hover:text-blue-300">
                             <Eye className="h-4 w-4" />
-                          </Button>
+                          </button>
                         </TableCell>
                       </TableRow>
                     ))}

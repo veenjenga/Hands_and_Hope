@@ -37,10 +37,15 @@ const corsOptions = {
     "http://127.0.0.1:3001",
     "http://127.0.0.1:3002",
     "https://hands-and-hope.onrender.com",
-    "https://sellers-awb5.onrender.com"
+    "https://sellers-awb5.onrender.com",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "https://your-frontend-domain.com"
   ],
   credentials: true,
-  optionsSuccessStatus: 200
+  optionsSuccessStatus: 200,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization']
 };
 app.use(cors(corsOptions));
 app.use(express.json());

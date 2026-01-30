@@ -11,9 +11,9 @@ import { AlertTriangle, Eye, CheckCircle, XCircle, Search, Filter, Download } fr
 import adminApi from '../../services/adminApi';
 
 export function AdminReportsPage() {
-  const [reports, setReports] = useState<any[]>([]);
+  const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(null);
   const [filters, setFilters] = useState({
     status: 'all',
     type: 'all',
@@ -77,10 +77,10 @@ export function AdminReportsPage() {
           <h1 className="text-2xl font-bold text-white">Reports</h1>
           <p className="text-gray-400 mt-1">Manage user reports and complaints</p>
         </div>
-        <Button variant="outline" className="gap-2 border-gray-600 text-gray-300">
+        <button className="px-4 py-2 border border-gray-600 text-gray-300 rounded-md flex items-center gap-2 hover:bg-gray-700">
           <Download className="h-4 w-4" />
           Export Reports
-        </Button>
+        </button>
       </div>
 
       <Card className="bg-gray-800 border-gray-700">
@@ -106,10 +106,10 @@ export function AdminReportsPage() {
                 <SelectItem value="escalated">Escalated</SelectItem>
               </SelectContent>
             </Select>
-            <Button variant="outline" className="gap-2 border-gray-600 text-gray-300">
+            <button className="px-4 py-2 border border-gray-600 text-gray-300 rounded-md flex items-center gap-2 hover:bg-gray-700">
               <Filter className="h-4 w-4" />
               More Filters
-            </Button>
+            </button>
           </div>
         </CardContent>
       </Card>
@@ -141,84 +141,26 @@ export function AdminReportsPage() {
               </div>
               
               <div className="flex gap-3">
-                <Button size="sm" variant="outline" className="gap-2 border-gray-600 text-gray-300">
+                <button className="px-3 py-1 border border-gray-600 text-gray-300 rounded-md flex items-center gap-2 hover:bg-gray-700 text-sm">
                   <Eye className="h-4 w-4" />
                   View Details
-                </Button>
+                </button>
                 
                 {report.status === 'pending' && (
                   <>
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button size="sm" variant="default" className="gap-2 bg-green-600 hover:bg-green-700">
-                          <CheckCircle className="h-4 w-4" />
-                          Mark Resolved
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="bg-gray-800 border-gray-700">
-                        <DialogHeader>
-                          <DialogTitle className="text-white">Resolve Report</DialogTitle>
-                          <DialogDescription className="text-gray-400">
-                            Mark this report as resolved and add resolution notes
-                          </DialogDescription>
-                        </DialogHeader>
-                        <div className="space-y-4">
-                          <div className="space-y-2">
-                            <Label className="text-gray-300">Resolution Notes</Label>
-                            <Textarea 
-                              id={`resolve-${report._id}`}
-                              placeholder="Explain how this report was resolved..."
-                              className="min-h-[100px] bg-gray-900 border-gray-700 text-white"
-                            />
-                          </div>
-                          <Button 
-                            onClick={() => {
-                              const textarea = document.getElementById(`resolve-${report._id}`) as HTMLTextAreaElement;
-                              handleUpdateReportStatus(report._id, 'resolved', textarea.value);
-                            }}
-                            className="w-full bg-green-600 hover:bg-green-700"
-                          >
-                            Confirm Resolution
-                          </Button>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
+                    <div>
+                      <button className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded-md flex items-center gap-2 text-sm">
+                        <CheckCircle className="h-4 w-4" />
+                        Mark Resolved
+                      </button>
+                    </div>
                     
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button size="sm" variant="destructive" className="gap-2">
-                          <XCircle className="h-4 w-4" />
-                          Escalate
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="bg-gray-800 border-gray-700">
-                        <DialogHeader>
-                          <DialogTitle className="text-white">Escalate Report</DialogTitle>
-                          <DialogDescription className="text-gray-400">
-                            Escalate this report to higher authorities
-                          </DialogDescription>
-                        </DialogHeader>
-                        <div className="space-y-4">
-                          <div className="space-y-2">
-                            <Label className="text-gray-300">Escalation Reason</Label>
-                            <Textarea 
-                              id={`escalate-${report._id}`}
-                              placeholder="Explain why this report needs escalation..."
-                              className="min-h-[100px] bg-gray-900 border-gray-700 text-white"
-                            />
-                          </div>
-                          <Button 
-                            variant="destructive"
-                            onClick={() => {
-                              const textarea = document.getElementById(`escalate-${report._id}`) as HTMLTextAreaElement;
-                              handleUpdateReportStatus(report._id, 'escalated', textarea.value);
-                            }}
-                          >
-                            Confirm Escalation
-                          </Button>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
+                    <div>
+                      <button className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-md flex items-center gap-2 text-sm">
+                        <XCircle className="h-4 w-4" />
+                        Escalate
+                      </button>
+                    </div>
                   </>
                 )}
               </div>
