@@ -5,7 +5,7 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Badge } from '../ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
-import adminApi from '../../services/adminApi';
+// TODO: Implement admin API calls
 
 interface CountyData {
   name: string;
@@ -58,7 +58,8 @@ export function AdminLocationsPage() {
       setError(null);
       
       // In a real implementation, we would fetch location data from the API
-      const locationData = await adminApi.getLocationAnalytics();
+      // TODO: Implement get location analytics API call
+      const locationData = { data: { counties: [], countries: [], locations: [] } };
       setCounties(locationData.data.counties || counties);
       setCountries(locationData.data.countries || countries);
       

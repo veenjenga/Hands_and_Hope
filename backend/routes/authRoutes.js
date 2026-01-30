@@ -158,18 +158,37 @@ router.post("/signup", async (req, res) => {
 // Login
 router.post("/login", async (req, res) => {
   try {
+    console.log('Login attempt:', req.body);
     const { email, password } = req.body;
+    console.log('Email:', email);
+    console.log('Password (first 3 chars):', password.substring(0, 3) + '...');
+
+    if (!email || !password) {
+      return res.status(400).json({ error: "Email and password are required" });
+    }
 
     const user = await User.findOne({ email });
+    console.log('User found:', user ? user.email : 'None');
     if (!user) return res.status(400).json({ error: "User not found. Please register first or check your email." });
 
+    console.log('Stored password hash:', user.password);
+    console.log('Password length:', user.password.length);
+    
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ error: "Invalid password. Please try again." });
+    console.log('Password match result:', isMatch);
+    if (!isMatch) {
+      console.log('Password mismatch for user:', user.email);
+      // Let's also try with a hardcoded test
+      const testMatch = await bcrypt.compare('SuperAdmin@2024', user.password);
+      console.log('Test match with hardcoded password:', testMatch);
+      return res.status(400).json({ error: "Invalid password. Please try again." });
+    }
 
     const secret = process.env.JWT_SECRET || "secretKey";
     const token = jwt.sign({ id: user._id, role: user.role }, secret, { expiresIn: "1d" });
 
-    res.json({
+    console.log('Login successful for:', user.email);
+    const response = {
       token,
       user: {
         id: user._id,
@@ -180,7 +199,9 @@ router.post("/login", async (req, res) => {
         role: user.role,
         school: user.school,
       },
-    });
+    };
+    console.log('Sending response:', response);
+    res.json(response);
   } catch (err) {
     console.error('Login error:', err);
     res.status(500).json({ error: err.message });

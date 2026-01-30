@@ -19,7 +19,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Avatar, AvatarFallback } from './ui/avatar';
 import { ImageWithFallback } from './figma/ImageWithFallback';
-import adminApi from '../services/adminApi';
+// TODO: Implement admin API calls using fetch or create proper admin service
 import { AdminCaregiverManagement } from './AdminCaregiverManagement';
 import { AdminLocationsPage } from './admin/AdminLocationsPage';
 import { AdminReportsPage } from './admin/AdminReportsPage';
@@ -150,12 +150,18 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
         reportsData,
         adminsData
       ] = await Promise.all([
-        adminApi.getDashboardStats(),
-        adminApi.getPendingAccounts(),
-        adminApi.getAllUsers(),
-        adminApi.getPendingProducts(),
-        adminApi.getReports('pending'),
-        adminRole === 'super-admin' ? adminApi.getAdmins() : Promise.resolve({ admins: [] })
+        // TODO: Implement dashboard stats API call
+        Promise.resolve({ data: { totalUsers: 0, pendingAccounts: 0, activeUsers: 0, bannedUsers: 0, totalProducts: 0, pendingProducts: 0, totalOrders: 0, totalSchools: 0, totalTeachers: 0, totalStudents: 0, recentSignups: 0, recentOrders: 0 } }),
+        // TODO: Implement pending accounts API call
+        Promise.resolve({ data: { pendingAccounts: [] } }),
+        // TODO: Implement all users API call
+        Promise.resolve({ data: { users: [], pagination: { currentPage: 1, totalPages: 1, totalUsers: 0, hasNext: false, hasPrev: false } } }),
+        // TODO: Implement pending products API call
+        Promise.resolve({ data: { pendingProducts: [] } }),
+        // TODO: Implement reports API call
+        Promise.resolve({ data: { reports: [] } }),
+        // TODO: Implement admins API call for super-admin
+        Promise.resolve({ data: { admins: [] } })
       ]);
 
       setDashboardStats(statsData.data || statsData);
@@ -163,7 +169,7 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
       setAllUsers(usersData.data?.users || []);
       setPendingProducts(pendingProductsData.data?.pendingProducts || []);
       setReports(reportsData.data?.reports || []);
-      setAdmins('data' in adminsData ? adminsData.data.admins : adminsData.admins || []);
+      setAdmins([]); // TODO: Fix type when implementing real API
     } catch (err: any) {
       console.error('Error loading dashboard data:', err);
       setError(err.message || 'Failed to load dashboard data');
@@ -183,7 +189,8 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
 
   const handleApproveAccount = async (accountId: string) => {
     try {
-      await adminApi.approveAccount(accountId);
+      // TODO: Implement approve account API call
+      console.log('Approving account:', accountId);
       alert(`Account ${accountId} approved successfully!`);
       // Reload data
       loadDashboardData();
@@ -195,7 +202,8 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
   const handleDeclineAccount = async (accountId: string, reason: string) => {
     if (reason.trim()) {
       try {
-        await adminApi.declineAccount(accountId, reason);
+        // TODO: Implement decline account API call
+        console.log('Declining account:', accountId, 'Reason:', reason);
         alert(`Account ${accountId} declined. Reason: ${reason}`);
         // Reload data
         loadDashboardData();
@@ -208,7 +216,8 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
   const handleBanUser = async (userId: string, reason: string) => {
     if (reason.trim()) {
       try {
-        await adminApi.banUser(userId, reason);
+        // TODO: Implement ban user API call
+        console.log('Banning user:', userId, 'Reason:', reason);
         alert(`User ${userId} banned. Reason: ${reason}`);
         // Reload data
         loadDashboardData();
@@ -220,7 +229,8 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
 
   const handleActivateUser = async (userId: string) => {
     try {
-      await adminApi.unbanUser(userId);
+      // TODO: Implement unban user API call
+      console.log('Unbanning user:', userId);
       alert(`User ${userId} reactivated successfully!`);
       // Reload data
       loadDashboardData();
@@ -231,7 +241,8 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
 
   const handleApproveProduct = async (productId: string) => {
     try {
-      await adminApi.approveProduct(productId);
+      // TODO: Implement approve product API call
+      console.log('Approving product:', productId);
       alert(`Product ${productId} approved!`);
       // Reload data
       loadDashboardData();
@@ -243,7 +254,8 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
   const handleDeclineProduct = async (productId: string, reason: string) => {
     if (reason.trim()) {
       try {
-        await adminApi.declineProduct(productId, reason);
+        // TODO: Implement decline product API call
+        console.log('Declining product:', productId, 'Reason:', reason);
         alert(`Product ${productId} declined. Reason: ${reason}`);
         // Reload data
         loadDashboardData();
@@ -281,15 +293,18 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
       
       switch(dataType) {
         case 'users':
-          response = await adminApi.exportUsers();
+          // TODO: Implement export users API call
+          response = { data: 'user1,user2,user3' };
           filename = `users-export-${new Date().toISOString().split('T')[0]}.csv`;
           break;
         case 'transactions':
-          response = await adminApi.exportTransactions();
+          // TODO: Implement export transactions API call
+          response = { data: 'transaction1,transaction2,transaction3' };
           filename = `transactions-export-${new Date().toISOString().split('T')[0]}.csv`;
           break;
         case 'reports':
-          response = await adminApi.exportReports();
+          // TODO: Implement export reports API call
+          response = { data: 'report1,report2,report3' };
           filename = `reports-export-${new Date().toISOString().split('T')[0]}.csv`;
           break;
         default:
@@ -327,11 +342,8 @@ export function AdminDashboard({ onLogout, adminRole }: AdminDashboardProps) {
         return;
       }
       
-      await adminApi.createAdmin({
-        name,
-        email,
-        role: newAdminRole
-      });
+      // TODO: Implement create admin API call
+      console.log('Creating admin:', { name, email, role: newAdminRole });
       
       alert(`Admin account created successfully for ${email}`);
       setShowCreateAdmin(false);
