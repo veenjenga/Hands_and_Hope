@@ -6,15 +6,21 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 3001,
-    host: 'localhost',
+    host: '0.0.0.0', // Bind to all interfaces for Render deployment
     strictPort: false,
+    open: true,
     proxy: {
       '/api': {
         target: 'http://localhost:5000',
         changeOrigin: true,
+        secure: false,
         rewrite: (path) => path,
       }
-    }
+    },
+    allowedHosts: [
+      'sellers-awb5.onrender.com',
+      'localhost'
+    ]
   },
   resolve: {
     extensions: ['.js', '.jsx', '.ts', '.tsx', '.json'],
@@ -67,22 +73,5 @@ export default defineConfig({
   build: {
     target: 'esnext',
     outDir: 'build',
-  },
-  server: {
-    host: '0.0.0.0', // Bind to all interfaces for Render deployment
-    // Use a different port than Buyers2 to avoid conflicts
-    port: 3001,
-    open: true,
-    proxy: {
-      '/api': {
-        target: 'http://localhost:5000',
-        changeOrigin: true,
-        secure: false,
-      }
-    },
-    allowedHosts: [
-      'sellers-awb5.onrender.com',
-      'localhost'
-    ]
   },
 });
