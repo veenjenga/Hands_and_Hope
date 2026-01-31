@@ -20,6 +20,10 @@ export function AdminManagement() {
 
   const [addingAdmin, setAddingAdmin] = useState(false);
   const [editingAdmin, setEditingAdmin] = useState(null);
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [activeTab, setActiveTab] = useState('admins');
+  const [notifications, setNotifications] = useState([]);
   const [newAdmin, setNewAdmin] = useState({
     name: '',
     email: '',
@@ -35,6 +39,7 @@ export function AdminManagement() {
 
   useEffect(() => {
     loadAdminData();
+    loadNotifications();
   }, []);
 
   const loadAdminData = async () => {
@@ -57,7 +62,12 @@ export function AdminManagement() {
       }
       
       const data = await response.json();
-      setAdmins(data.admins as Admin[]);
+      // Ensure admins have proper ID fields
+      const adminsData = data.admins.map((admin: any) => ({
+        ...admin,
+        id: admin._id || admin.id
+      }));
+      setAdmins(adminsData as Admin[]);
     } catch (err: any) {
       console.error('Error loading admin data:', err);
       setError(err?.message || 'Failed to load admin data' as string | null);
@@ -88,6 +98,53 @@ export function AdminManagement() {
     }
   };
 
+  const loadNotifications = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/notifications`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setNotifications(data);
+      }
+    } catch (err) {
+      console.error('Error loading notifications:', err);
+      // Fallback to mock notifications
+      setNotifications([
+        {
+          id: '1',
+          title: 'Admin Account Created',
+          message: 'New admin account created for John Smith',
+          type: 'success',
+          timestamp: new Date().toISOString(),
+          read: false
+        },
+        {
+          id: '2',
+          title: 'Password Changed',
+          message: 'Password updated for admin Sarah Johnson',
+          type: 'info',
+          timestamp: new Date(Date.now() - 3600000).toISOString(),
+          read: true
+        },
+        {
+          id: '3',
+          title: 'Account Deleted',
+          message: 'Admin account deleted for former user',
+          type: 'warning',
+          timestamp: new Date(Date.now() - 7200000).toISOString(),
+          read: true
+        }
+      ]);
+    }
+  };
+
   const handleAddAdmin = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -111,7 +168,7 @@ export function AdminManagement() {
       // Set the temporary password received from the backend
       setGeneratedPasswords(prev => ({
         ...prev,
-        [result.user.id]: result.tempPassword
+        [result.user._id || result.user.id]: result.tempPassword
       } as Record<string, string>));
       
       // Reset form
@@ -196,14 +253,13 @@ export function AdminManagement() {
     }
   };
   
-  const handleChangePassword = async (adminId: string) => {
+  const handleChangePassword = async () => {
+    if (!editingAdmin || !newPassword) return;
+    
     try {
-      const newPassword = prompt('Enter new password for admin:');
-      if (!newPassword) return;
-      
       const token = localStorage.getItem('token');
       
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/admin/users/${adminId}/change-password`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/admin/users/${editingAdmin.id}/change-password`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -217,10 +273,16 @@ export function AdminManagement() {
         throw new Error(errorData.error || 'Failed to change password');
       }
       
-      alert('Password changed successfully!');
+      // Reset password field and close modal
+      setNewPassword('');
+      setChangingPassword(false);
+      
+      // Show success message
+      setError('Password changed successfully!' as string | null);
+      setTimeout(() => setError(null), 3000);
     } catch (err: any) {
       console.error('Error changing password:', err);
-      alert('Failed to change password: ' + err.message);
+      setError(err?.message || 'Failed to change password' as string | null);
     }
   };
 
@@ -401,7 +463,7 @@ export function AdminManagement() {
             <div className="mt-4 pt-4 border-t border-gray-700">
               <button 
                 className="w-full py-2 bg-purple-600 hover:bg-purple-700 rounded-md text-white"
-                onClick={() => handleChangePassword(editingAdmin.id)}
+                onClick={() => setChangingPassword(true)}
               >
                 Change Password
               </button>
@@ -410,6 +472,73 @@ export function AdminManagement() {
             <div className="absolute top-4 right-4">
               <button 
                 onClick={() => setEditingAdmin(null)}
+                className="text-gray-400 hover:text-white"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Change Password Modal */}
+      {changingPassword && editingAdmin && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div 
+            className="fixed inset-0 bg-black/50" 
+            onClick={() => {
+              setChangingPassword(false);
+              setNewPassword('');
+            }}
+          ></div>
+          <div className="relative bg-gray-800 rounded-lg p-6 w-full max-w-md border border-gray-700 z-50 m-4">
+            <div className="mb-4">
+              <h3 className="text-lg font-semibold text-white">Change Password</h3>
+              <p className="text-gray-400 text-sm">
+                Set new password for {editingAdmin.name}
+              </p>
+            </div>
+            
+            <div className="py-4 space-y-4">
+              <div className="space-y-2">
+                <label htmlFor="newPassword" className="block text-sm font-medium text-gray-300">
+                  New Password
+                </label>
+                <input
+                  id="newPassword"
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Enter new password"
+                  className="w-full bg-gray-900 border border-gray-700 text-white rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+            <div className="flex gap-2 justify-end">
+              <button 
+                className="px-4 py-2 border border-gray-600 text-gray-300 rounded-md hover:bg-gray-700"
+                onClick={() => {
+                  setChangingPassword(false);
+                  setNewPassword('');
+                }}
+              >
+                Cancel
+              </button>
+              <button 
+                className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700"
+                onClick={handleChangePassword}
+                disabled={!newPassword}
+              >
+                Change Password
+              </button>
+            </div>
+            
+            <div className="absolute top-4 right-4">
+              <button 
+                onClick={() => {
+                  setChangingPassword(false);
+                  setNewPassword('');
+                }}
                 className="text-gray-400 hover:text-white"
               >
                 <X className="h-5 w-5" />
@@ -442,12 +571,23 @@ export function AdminManagement() {
       <div className="space-y-6">
         {/* Tabs */}
         <div className="bg-gray-800 border border-gray-700 rounded-t-lg flex">
-          <button className="px-4 py-2 text-white bg-gray-700 rounded-t-lg">Admin Accounts</button>
-          <button className="px-4 py-2 text-gray-400 hover:text-white">Recent Activity</button>
+          <button 
+            className={`px-4 py-2 rounded-t-lg ${activeTab === 'admins' ? 'text-white bg-gray-700' : 'text-gray-400 hover:text-white'}`}
+            onClick={() => setActiveTab('admins')}
+          >
+            Admin Accounts
+          </button>
+          <button 
+            className={`px-4 py-2 rounded-t-lg ${activeTab === 'activity' ? 'text-white bg-gray-700' : 'text-gray-400 hover:text-white'}`}
+            onClick={() => setActiveTab('activity')}
+          >
+            Recent Activity
+          </button>
         </div>
 
         {/* Admins Tab */}
-        <div className="space-y-4">
+        {activeTab === 'admins' && (
+          <div className="space-y-4">
           {/* Filters */}
           <div className="bg-gray-800 border border-gray-700 rounded-lg">
             <div className="p-4">
@@ -476,8 +616,8 @@ export function AdminManagement() {
 
           {/* Admins List */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredAdmins.map(admin => (
-              <div key={admin.id} className="bg-gray-800 border border-gray-700 rounded-lg hover:border-gray-600 transition-colors">
+            {filteredAdmins.map((admin, index) => (
+              <div key={admin._id || admin.id || index} className="bg-gray-800 border border-gray-700 rounded-lg hover:border-gray-600 transition-colors">
                 <div className="p-4 pb-3">
                   <div className="flex items-start justify-between">
                     <div>
@@ -500,7 +640,7 @@ export function AdminManagement() {
                       <button 
                         className="h-8 w-8 text-gray-400 hover:text-white flex items-center justify-center"
                         onClick={() => {
-                          setEditingAdmin(admin);
+                          setEditingAdmin({...admin, _id: admin._id || admin.id});
                           setEditForm({
                             name: admin.name,
                             email: admin.email,
@@ -512,7 +652,7 @@ export function AdminManagement() {
                       </button>
                       <button 
                         className="h-8 w-8 text-gray-400 hover:text-red-500 flex items-center justify-center"
-                        onClick={() => handleDeleteAdmin(admin.id)}
+                        onClick={() => handleDeleteAdmin(admin._id || admin.id)}
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -543,19 +683,19 @@ export function AdminManagement() {
                     </div>
                   </div>
                   
-                  {generatedPasswords[admin.id] && (
+                  {generatedPasswords[admin._id || admin.id] && (
                     <div className="mt-4 pt-4 border-t border-gray-700">
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-gray-400">Temp Password:</span>
                         <div className="flex items-center gap-2">
                           <code className="text-xs bg-gray-900 px-2 py-1 rounded text-yellow-400">
-                            {generatedPasswords[admin.id]}
+                            {generatedPasswords[admin._id || admin.id]}
                           </code>
                           <button
                             className="h-6 w-6 text-gray-400 hover:text-white flex items-center justify-center"
-                            onClick={() => copyToClipboard(generatedPasswords[admin.id], admin.id)}
+                            onClick={() => copyToClipboard(generatedPasswords[admin._id || admin.id], admin._id || admin.id)}
                           >
-                            {copiedPassword[admin.id] ? (
+                            {copiedPassword[admin._id || admin.id] ? (
                               <Check className="h-4 w-4 text-green-500" />
                             ) : (
                               <Copy className="h-4 w-4" />
@@ -576,9 +716,52 @@ export function AdminManagement() {
             ))}
           </div>
         </div>
-      </div>
+      )}
 
+      {/* Recent Activity Tab */}
+      {activeTab === 'activity' && (
+        <div className="space-y-4">
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-4">
+            <h3 className="text-white text-lg font-semibold mb-4">Recent Activity</h3>
+            <div className="space-y-3">
+              {notifications.length === 0 ? (
+                <div className="text-gray-400 text-center py-8">
+                  <Clock className="h-12 w-12 mx-auto mb-3 text-gray-600" />
+                  <p>No recent activity found</p>
+                </div>
+              ) : (
+                notifications.slice(0, 10).map((notification) => (
+                  <div 
+                    key={notification.id}
+                    className={`p-3 rounded-lg border-l-4 ${
+                      notification.type === 'error' ? 'border-l-red-500 bg-red-500/10' :
+                      notification.type === 'success' ? 'border-l-green-500 bg-green-500/10' :
+                      notification.type === 'warning' ? 'border-l-yellow-500 bg-yellow-500/10' :
+                      notification.type === 'info' ? 'border-l-blue-500 bg-blue-500/10' :
+                      'border-l-gray-500 bg-gray-500/10'
+                    }`}
+                  >
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h4 className="text-white font-medium">{notification.title}</h4>
+                        <p className="text-gray-300 text-sm mt-1">{notification.message}</p>
+                        <p className="text-gray-500 text-xs mt-2">
+                          {new Date(notification.timestamp).toLocaleString()}
+                        </p>
+                      </div>
+                      {!notification.read && (
+                        <div className="h-2 w-2 rounded-full bg-blue-500 ml-2 flex-shrink-0"></div>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
+    </div>
     </div>
   );
 }

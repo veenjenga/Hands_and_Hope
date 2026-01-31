@@ -596,7 +596,8 @@ router.post('/create-admin', async (req, res) => {
     res.status(201).json({
       message: 'Admin account created successfully',
       user: {
-        id: newUser._id,
+        _id: newUser._id,
+        id: newUser._id.toString(),
         name: newUser.name,
         email: newUser.email,
         role: newUser.role
@@ -641,7 +642,13 @@ router.put('/users/:id', requireSuperAdmin, async (req, res) => {
     
     res.json({
       message: 'Admin account updated successfully',
-      user: updatedUser
+      user: {
+        _id: updatedUser._id,
+        id: updatedUser._id.toString(),
+        name: updatedUser.name,
+        email: updatedUser.email,
+        role: updatedUser.role
+      }
     });
   } catch (err) {
     console.error('Update admin error:', err);
@@ -684,7 +691,13 @@ router.put('/users/:id/change-password', requireSuperAdmin, async (req, res) => 
     
     res.json({
       message: 'Admin password updated successfully',
-      user: updatedUser
+      user: {
+        _id: updatedUser._id,
+        id: updatedUser._id.toString(),
+        name: updatedUser.name,
+        email: updatedUser.email,
+        role: updatedUser.role
+      }
     });
   } catch (err) {
     console.error('Change password error:', err);
