@@ -19,7 +19,13 @@ export function AdminManagement() {
   const [admins, setAdmins] = useState([]);
 
   const [addingAdmin, setAddingAdmin] = useState(false);
+  const [editingAdmin, setEditingAdmin] = useState(null);
   const [newAdmin, setNewAdmin] = useState({
+    name: '',
+    email: '',
+    role: 'admin' as 'admin' | 'super-admin'
+  });
+  const [editForm, setEditForm] = useState({
     name: '',
     email: '',
     role: 'admin' as 'admin' | 'super-admin'
@@ -130,6 +136,93 @@ export function AdminManagement() {
       console.error('Failed to copy to clipboard:', err);
     }
   };
+  
+  const handleEditAdmin = async () => {
+    if (!editingAdmin) return;
+    
+    try {
+      const token = localStorage.getItem('token');
+      
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/admin/users/${editingAdmin.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(editForm)
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update admin');
+      }
+      
+      // Reload data
+      loadAdminData();
+      
+      // Close the edit modal
+      setEditingAdmin(null);
+    } catch (err: any) {
+      console.error('Error updating admin:', err);
+      setError(err?.message || 'Failed to update admin' as string | null);
+    }
+  };
+  
+  const handleDeleteAdmin = async (adminId: string) => {
+    if (!window.confirm('Are you sure you want to delete this admin? This action cannot be undone.')) {
+      return;
+    }
+    
+    try {
+      const token = localStorage.getItem('token');
+      
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/admin/users/${adminId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete admin');
+      }
+      
+      // Reload data
+      loadAdminData();
+    } catch (err: any) {
+      console.error('Error deleting admin:', err);
+      setError(err?.message || 'Failed to delete admin' as string | null);
+    }
+  };
+  
+  const handleChangePassword = async (adminId: string) => {
+    try {
+      const newPassword = prompt('Enter new password for admin:');
+      if (!newPassword) return;
+      
+      const token = localStorage.getItem('token');
+      
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/admin/users/${adminId}/change-password`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ newPassword })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to change password');
+      }
+      
+      alert('Password changed successfully!');
+    } catch (err: any) {
+      console.error('Error changing password:', err);
+      alert('Failed to change password: ' + err.message);
+    }
+  };
 
   const filteredAdmins = admins.filter((admin) =>
     admin.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -235,6 +328,96 @@ export function AdminManagement() {
           </div>
         </div>
       )}
+      
+      {/* Edit Admin Modal */}
+      {editingAdmin && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div 
+            className="fixed inset-0 bg-black/50" 
+            onClick={() => setEditingAdmin(null)}
+          ></div>
+          <div className="relative bg-gray-800 rounded-lg p-6 w-full max-w-md border border-gray-700 z-50 m-4">
+            <div className="mb-4">
+              <h3 className="text-lg font-semibold text-white">Edit Admin</h3>
+              <p className="text-gray-400 text-sm">
+                Update admin account information
+              </p>
+            </div>
+            
+            <div className="py-4 space-y-4">
+              <div className="space-y-2">
+                <label htmlFor="editFullName" className="block text-sm font-medium text-gray-300">
+                  Full Name
+                </label>
+                <input
+                  id="editFullName"
+                  value={editForm.name}
+                  onChange={(e) => setEditForm({...editForm, name: e.target.value})}
+                  className="w-full bg-gray-900 border border-gray-700 text-white rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="editEmail" className="block text-sm font-medium text-gray-300">
+                  Email
+                </label>
+                <input
+                  id="editEmail"
+                  type="email"
+                  value={editForm.email}
+                  onChange={(e) => setEditForm({...editForm, email: e.target.value})}
+                  className="w-full bg-gray-900 border border-gray-700 text-white rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="editRole" className="block text-sm font-medium text-gray-300">
+                  Role
+                </label>
+                <select 
+                  id="editRole"
+                  value={editForm.role} 
+                  onChange={(e) => setEditForm({...editForm, role: e.target.value as 'admin' | 'super-admin'})}
+                  className="w-full bg-gray-900 border border-gray-700 text-white rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="admin">Admin</option>
+                  <option value="super-admin">Super Admin</option>
+                </select>
+              </div>
+            </div>
+            <div className="flex gap-2 justify-end">
+              <button 
+                className="px-4 py-2 border border-gray-600 text-gray-300 rounded-md hover:bg-gray-700"
+                onClick={() => setEditingAdmin(null)}
+              >
+                Cancel
+              </button>
+              <button 
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                onClick={handleEditAdmin}
+              >
+                Save Changes
+              </button>
+            </div>
+            
+            <div className="mt-4 pt-4 border-t border-gray-700">
+              <button 
+                className="w-full py-2 bg-purple-600 hover:bg-purple-700 rounded-md text-white"
+                onClick={() => handleChangePassword(editingAdmin.id)}
+              >
+                Change Password
+              </button>
+            </div>
+            
+            <div className="absolute top-4 right-4">
+              <button 
+                onClick={() => setEditingAdmin(null)}
+                className="text-gray-400 hover:text-white"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {error && (
         <div className="border border-red-200 bg-red-50/10 rounded-md p-4">
@@ -314,10 +497,23 @@ export function AdminManagement() {
                       </p>
                     </div>
                     <div className="flex gap-1">
-                      <button className="h-8 w-8 text-gray-400 hover:text-white flex items-center justify-center">
+                      <button 
+                        className="h-8 w-8 text-gray-400 hover:text-white flex items-center justify-center"
+                        onClick={() => {
+                          setEditingAdmin(admin);
+                          setEditForm({
+                            name: admin.name,
+                            email: admin.email,
+                            role: admin.role
+                          });
+                        }}
+                      >
                         <Edit className="h-4 w-4" />
                       </button>
-                      <button className="h-8 w-8 text-gray-400 hover:text-red-500 flex items-center justify-center">
+                      <button 
+                        className="h-8 w-8 text-gray-400 hover:text-red-500 flex items-center justify-center"
+                        onClick={() => handleDeleteAdmin(admin.id)}
+                      >
                         <Trash2 className="h-4 w-4" />
                       </button>
                     </div>

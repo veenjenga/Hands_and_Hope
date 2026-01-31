@@ -609,6 +609,123 @@ router.post('/create-admin', async (req, res) => {
   }
 });
 
+// PUT /api/admin/users/:id - Update admin account
+router.put('/users/:id', requireSuperAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, email, role } = req.body;
+    
+    // Prevent demoting oneself from super-admin
+    if (id === req.user._id && role !== 'super-admin') {
+      return res.status(400).json({ error: 'You cannot change your own role' });
+    }
+    
+    const updatedUser = await User.findByIdAndUpdate(
+      id,
+      { name, email, role },
+      { new: true, select: '-password' }
+    );
+    
+    if (!updatedUser) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    // Create a notification for the action
+    const notification = new Notification({
+      userId: req.user._id, // Admin who made the change
+      title: 'Admin Account Updated',
+      message: `Admin ${req.user.name} updated account for ${updatedUser.name} (${updatedUser.email})`,
+      type: 'info'
+    });
+    await notification.save();
+    
+    res.json({
+      message: 'Admin account updated successfully',
+      user: updatedUser
+    });
+  } catch (err) {
+    console.error('Update admin error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PUT /api/admin/users/:id/change-password - Change admin password
+router.put('/users/:id/change-password', requireSuperAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { newPassword } = req.body;
+    
+    if (!newPassword) {
+      return res.status(400).json({ error: 'New password is required' });
+    }
+    
+    // Hash the new password
+    const salt = await bcrypt.genSalt(12);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+    
+    const updatedUser = await User.findByIdAndUpdate(
+      id,
+      { password: hashedPassword },
+      { new: true, select: '-password' }
+    );
+    
+    if (!updatedUser) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    // Create a notification for the action
+    const notification = new Notification({
+      userId: req.user._id, // Admin who made the change
+      title: 'Admin Password Changed',
+      message: `Admin ${req.user.name} changed password for ${updatedUser.name} (${updatedUser.email})`,
+      type: 'info'
+    });
+    await notification.save();
+    
+    res.json({
+      message: 'Admin password updated successfully',
+      user: updatedUser
+    });
+  } catch (err) {
+    console.error('Change password error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE /api/admin/users/:id - Delete admin account
+router.delete('/users/:id', requireSuperAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Prevent deleting oneself
+    if (id === req.user._id) {
+      return res.status(400).json({ error: 'You cannot delete your own account' });
+    }
+    
+    const deletedUser = await User.findByIdAndDelete(id);
+    
+    if (!deletedUser) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    // Create a notification for the action
+    const notification = new Notification({
+      userId: req.user._id, // Admin who made the change
+      title: 'Admin Account Deleted',
+      message: `Admin ${req.user.name} deleted account for ${deletedUser.name} (${deletedUser.email})`,
+      type: 'warning'
+    });
+    await notification.save();
+    
+    res.json({
+      message: 'Admin account deleted successfully'
+    });
+  } catch (err) {
+    console.error('Delete admin error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // GET /api/admin/admins - Get all admin accounts
 router.get('/admins', async (req, res) => {
   try {
