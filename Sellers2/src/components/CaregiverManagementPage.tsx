@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Users, Plus, Shield, Trash2, Edit, Eye, AlertCircle, Clock, Activity, Check, X, UserPlus, Mail, Lock } from 'lucide-react';
 import { Card } from './ui/card';
 import { Button } from './ui/button';
@@ -13,6 +13,7 @@ import { Alert, AlertDescription } from './ui/alert';
 import { toast } from 'sonner';
 
 interface Caregiver {
+  id: string;
   userId: string;
   fullName: string;
   email: string;
@@ -50,90 +51,9 @@ interface CaregiverActivity {
 }
 
 export function CaregiverManagementPage() {
-  const [caregivers, setCaregivers] = useState<Caregiver[]>([
-    {
-      userId: 'cgv_001',
-      fullName: 'Maria Garcia',
-      email: 'maria.garcia@email.com',
-      relationshipType: 'parent',
-      relationshipDetails: 'Mother',
-      addedDate: '2024-12-01T10:00:00Z',
-      lastLogin: '2024-12-06T14:30:00Z',
-      status: 'active',
-      permissionLevel: 'full',
-      permissions: {
-        viewProfile: true,
-        editProfile: true,
-        viewProducts: true,
-        manageProducts: true,
-        respondToInquiries: true,
-        viewFinancials: true,
-        withdrawMoney: true,
-        manageShipments: true,
-        viewAnalytics: true,
-        editBio: true,
-        editStoreName: true
-      },
-      totalActions: 45,
-      lastActionDate: '2024-12-06T14:00:00Z'
-    },
-    {
-      userId: 'cgv_002',
-      fullName: 'Robert Johnson',
-      email: 'robert.j@email.com',
-      relationshipType: 'caregiver',
-      relationshipDetails: 'Professional Caregiver',
-      addedDate: '2024-11-20T09:00:00Z',
-      lastLogin: '2024-12-05T16:00:00Z',
-      status: 'active',
-      permissionLevel: 'product_management',
-      permissions: {
-        viewProfile: true,
-        editProfile: false,
-        viewProducts: true,
-        manageProducts: true,
-        respondToInquiries: true,
-        viewFinancials: false,
-        withdrawMoney: false,
-        manageShipments: true,
-        viewAnalytics: true,
-        editBio: false,
-        editStoreName: false
-      },
-      totalActions: 23,
-      lastActionDate: '2024-12-05T15:30:00Z'
-    }
-  ]);
+  const [caregivers, setCaregivers] = useState<Caregiver[]>([]);
 
-  const [activities, setActivities] = useState<CaregiverActivity[]>([
-    {
-      activityId: 'cga_001',
-      caregiverName: 'Maria Garcia',
-      action: 'edited_product',
-      actionDetails: 'Updated product description and price',
-      timestamp: '2024-12-06T14:30:00Z',
-      resourceType: 'product',
-      resourceName: 'Handmade Ceramic Bowl'
-    },
-    {
-      activityId: 'cga_002',
-      caregiverName: 'Maria Garcia',
-      action: 'responded_to_inquiry',
-      actionDetails: 'Responded to buyer inquiry about shipping',
-      timestamp: '2024-12-06T13:15:00Z',
-      resourceType: 'message',
-      resourceName: 'Inquiry #456'
-    },
-    {
-      activityId: 'cga_003',
-      caregiverName: 'Robert Johnson',
-      action: 'added_product',
-      actionDetails: 'Added new product',
-      timestamp: '2024-12-05T15:30:00Z',
-      resourceType: 'product',
-      resourceName: 'Handmade Bookmark Set'
-    }
-  ]);
+  const [activities, setActivities] = useState<CaregiverActivity[]>([]);
 
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -163,6 +83,35 @@ export function CaregiverManagementPage() {
     editStoreName: false
   });
 
+  const API_URL = ((import.meta as any).env?.VITE_API_URL as string) || 'http://localhost:5000';
+
+  useEffect(() => {
+    const fetchCaregivers = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const [caregiversRes, activitiesRes] = await Promise.all([
+          fetch(`${API_URL}/api/dashboard/caregivers`, {
+            headers: { Authorization: `Bearer ${token}` }
+          }),
+          fetch(`${API_URL}/api/dashboard/caregivers/activity`, {
+            headers: { Authorization: `Bearer ${token}` }
+          })
+        ]);
+
+        const caregiversData = await caregiversRes.json();
+        const activitiesData = await activitiesRes.json();
+
+        setCaregivers(caregiversData || []);
+        setActivities(activitiesData || []);
+      } catch (error) {
+        console.error('Error loading caregivers:', error);
+        toast.error('Failed to load caregivers');
+      }
+    };
+
+    fetchCaregivers();
+  }, [API_URL]);
+
   const permissionPresets = {
     full: {
       label: 'Full Access',
@@ -190,78 +139,123 @@ export function CaregiverManagementPage() {
     }
   };
 
-  const handleAddCaregiver = () => {
+  const handleAddCaregiver = async () => {
     if (!newCaregiver.fullName || !newCaregiver.email) {
       toast.error('Please fill in all required fields');
       return;
     }
 
-    // Generate temporary password
-    const tempPassword = generateSecurePassword();
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_URL}/api/dashboard/caregivers`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          fullName: newCaregiver.fullName,
+          email: newCaregiver.email,
+          relationshipType: newCaregiver.relationshipType,
+          relationshipDetails: newCaregiver.relationshipDetails,
+          permissionLevel: newCaregiver.permissionLevel,
+          permissions: newCaregiver.permissionLevel === 'custom' ? customPermissions : undefined
+        })
+      });
 
-    // Create new caregiver
-    const caregiver: Caregiver = {
-      userId: `cgv_${Date.now()}`,
-      fullName: newCaregiver.fullName,
-      email: newCaregiver.email,
-      relationshipType: newCaregiver.relationshipType,
-      relationshipDetails: newCaregiver.relationshipDetails,
-      addedDate: new Date().toISOString(),
-      status: 'pending',
-      permissionLevel: newCaregiver.permissionLevel,
-      permissions: getPermissionsForLevel(newCaregiver.permissionLevel),
-      totalActions: 0
-    };
-
-    setCaregivers([...caregivers, caregiver]);
-    setAddDialogOpen(false);
-    
-    // Reset form
-    setNewCaregiver({
-      fullName: '',
-      email: '',
-      relationshipType: 'parent',
-      relationshipDetails: '',
-      permissionLevel: 'full'
-    });
-
-    toast.success(
-      'Caregiver added successfully!',
-      {
-        description: `An email with login credentials has been sent to ${newCaregiver.email}. Temporary password: ${tempPassword}`
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error || 'Failed to add caregiver');
+        return;
       }
-    );
-  };
 
-  const handleUpdatePermissions = () => {
-    if (!selectedCaregiver) return;
+      const caregiversRes = await fetch(`${API_URL}/api/dashboard/caregivers`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const caregiversData = await caregiversRes.json();
+      setCaregivers(caregiversData || []);
 
-    setCaregivers(caregivers.map(c => 
-      c.userId === selectedCaregiver.userId 
-        ? { ...c, permissions: customPermissions, permissionLevel: 'custom' }
-        : c
-    ));
+      setAddDialogOpen(false);
+      setNewCaregiver({
+        fullName: '',
+        email: '',
+        relationshipType: 'parent',
+        relationshipDetails: '',
+        permissionLevel: 'full'
+      });
 
-    setEditDialogOpen(false);
-    toast.success('Permissions updated successfully');
-  };
-
-  const handleRemoveCaregiver = () => {
-    if (!selectedCaregiver) return;
-
-    setCaregivers(caregivers.filter(c => c.userId !== selectedCaregiver.userId));
-    setRemoveDialogOpen(false);
-    toast.success(`${selectedCaregiver.fullName} has been removed`);
-    setSelectedCaregiver(null);
-  };
-
-  const generateSecurePassword = () => {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
-    let password = '';
-    for (let i = 0; i < 16; i++) {
-      password += chars.charAt(Math.floor(Math.random() * chars.length));
+      toast.success('Caregiver added successfully!', {
+        description: data.tempPassword
+          ? `Temporary password: ${data.tempPassword}`
+          : 'Caregiver account linked successfully.'
+      });
+    } catch (error) {
+      console.error('Add caregiver error:', error);
+      toast.error('Failed to add caregiver');
     }
-    return password;
+  };
+
+  const handleUpdatePermissions = async () => {
+    if (!selectedCaregiver) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_URL}/api/dashboard/caregivers/${selectedCaregiver.id}/permissions`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          permissionLevel: 'custom',
+          permissions: customPermissions
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error || 'Failed to update permissions');
+        return;
+      }
+
+      const caregiversRes = await fetch(`${API_URL}/api/dashboard/caregivers`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const caregiversData = await caregiversRes.json();
+      setCaregivers(caregiversData || []);
+
+      setEditDialogOpen(false);
+      toast.success('Permissions updated successfully');
+    } catch (error) {
+      console.error('Update permissions error:', error);
+      toast.error('Failed to update permissions');
+    }
+  };
+
+  const handleRemoveCaregiver = async () => {
+    if (!selectedCaregiver) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_URL}/api/dashboard/caregivers/${selectedCaregiver.id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error || 'Failed to remove caregiver');
+        return;
+      }
+
+      setCaregivers(caregivers.filter(c => c.id !== selectedCaregiver.id));
+      setRemoveDialogOpen(false);
+      toast.success(`${selectedCaregiver.fullName} has been removed`);
+      setSelectedCaregiver(null);
+    } catch (error) {
+      console.error('Remove caregiver error:', error);
+      toast.error('Failed to remove caregiver');
+    }
   };
 
   const getPermissionsForLevel = (level: string) => {
@@ -407,7 +401,7 @@ export function CaregiverManagementPage() {
           ) : (
             <div className="grid gap-4">
               {caregivers.map((caregiver) => (
-                <Card key={caregiver.userId} className="p-6">
+                <Card key={caregiver.id} className="p-6">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">

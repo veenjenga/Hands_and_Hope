@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Camera, Mail, Phone, MapPin, Calendar, User, Building, GraduationCap, Briefcase, Save, Edit2, Upload } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -77,16 +77,71 @@ const getProfileDataForRole = (role: string) => {
 };
 
 export function ProfilePage({ userRole, highContrast }: ProfilePageProps) {
-  const [profileData, setProfileData] = useState(getProfileDataForRole(userRole));
+  const [profileData, setProfileData] = useState<any>(null);
+  const [formData, setFormData] = useState<any>(null);
+  const [skillsInput, setSkillsInput] = useState('');
   const [isEditing, setIsEditing] = useState(false);
-  const [profilePhoto, setProfilePhoto] = useState(profileData?.profilePhoto || '');
+  const [profilePhoto, setProfilePhoto] = useState('');
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  if (!profileData) return null;
+  const API_URL = ((import.meta as any).env?.VITE_API_URL as string) || 'http://localhost:5000';
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`${API_URL}/api/dashboard/profile`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const data = await res.json();
+
+        let profile = data.profile || getProfileDataForRole(userRole);
+        if (profile?.joinDate) {
+          profile.joinDate = new Date(profile.joinDate).toLocaleDateString();
+        }
+
+        // Construct full URL for profile photo if it's a relative path
+        let photoUrl = profile?.profilePhoto;
+        if (photoUrl && !photoUrl.startsWith('http')) {
+          photoUrl = `${API_URL}${photoUrl.startsWith('/') ? '' : '/'}${photoUrl}`;
+        }
+
+        setProfileData(profile);
+        setFormData(profile);
+        setProfilePhoto(photoUrl || '');
+        setSkillsInput(Array.isArray(profile?.skills) ? profile.skills.join(', ') : '');
+        console.log('Profile loaded. Photo URL:', photoUrl);
+      } catch (error) {
+        console.error('Error loading profile:', error);
+        const fallback = getProfileDataForRole(userRole);
+        setProfileData(fallback);
+        setFormData(fallback);
+        setProfilePhoto(fallback?.profilePhoto || '');
+        setSkillsInput(Array.isArray(fallback?.skills) ? fallback.skills.join(', ') : '');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, [API_URL, userRole]);
+
+  if (isLoading) {
+    return (
+      <div className={`flex min-h-[300px] items-center justify-center ${highContrast ? 'bg-black text-white' : 'bg-gray-50'}`}>
+        <p>Loading profile...</p>
+      </div>
+    );
+  }
+
+  if (!profileData || !formData) return null;
 
   const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      setPhotoFile(file);
       // Create a preview URL for the uploaded image
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -96,11 +151,96 @@ export function ProfilePage({ userRole, highContrast }: ProfilePageProps) {
     }
   };
 
-  const handleSave = () => {
-    // In a real app, this would save to a backend
-    setIsEditing(false);
-    // Show success message
-    alert('Profile updated successfully!');
+  const handleSave = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      let uploadedPhoto = formData.profilePhoto;
+
+      // Step 1: Upload photo if selected
+      if (photoFile) {
+        const form = new FormData();
+        form.append('files', photoFile);
+        const uploadRes = await fetch(`${API_URL}/api/uploads`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`
+          },
+          body: form
+        });
+        if (!uploadRes.ok) {
+          const errorData = await uploadRes.json();
+          throw new Error(`Upload failed: ${errorData.error || uploadRes.statusText}`);
+        }
+        const uploadData = await uploadRes.json();
+        // Get the URL from the upload response
+        const photoUrl = uploadData.files?.[0]?.url || uploadData.url;
+        if (!photoUrl) {
+          throw new Error('No URL returned from upload');
+        }
+        // Construct full URL - if relative, prepend API_URL
+        uploadedPhoto = photoUrl.startsWith('http') 
+          ? photoUrl 
+          : `${API_URL}${photoUrl.startsWith('/') ? '' : '/'}${photoUrl}`;
+        console.log('Photo uploaded successfully. URL:', uploadedPhoto);
+      }
+
+      // Step 2: Update profile with photo URL
+      console.log('Saving profile with photo URL:', uploadedPhoto);
+      const updateRes = await fetch(`${API_URL}/api/dashboard/profile`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          address: formData.address,
+          bio: formData.bio,
+          skills: skillsInput,
+          profilePhoto: uploadedPhoto,
+          disabilityId: formData.disabilityId
+        })
+      });
+
+      if (!updateRes.ok) {
+        const errorData = await updateRes.json();
+        throw new Error(`Profile update failed: ${errorData.error || updateRes.statusText}`);
+      }
+
+      const updateResponse = await updateRes.json();
+      console.log('Profile update response:', updateResponse);
+
+      // Step 3: Fetch the updated profile to confirm it was saved
+      const getRes = await fetch(`${API_URL}/api/dashboard/profile`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const updatedData = await getRes.json();
+      const savedProfile = updatedData.profile;
+      console.log('Fetched profile from database. Photo URL:', savedProfile?.profilePhoto);
+
+      // Step 4: Update UI with the saved data from database
+      const updatedProfile = {
+        ...savedProfile,
+        skills: Array.isArray(savedProfile?.skills) ? savedProfile.skills : skillsInput.split(',').map(s => s.trim()).filter(Boolean)
+      };
+      
+      setProfileData(updatedProfile);
+      // Construct full URL for display
+      const displayPhoto = savedProfile?.profilePhoto?.startsWith('http')
+        ? savedProfile.profilePhoto
+        : `${API_URL}${savedProfile?.profilePhoto?.startsWith('/') ? '' : '/'}${savedProfile?.profilePhoto}`;
+      setProfilePhoto(displayPhoto || '');
+      setFormData(updatedProfile);
+      setPhotoFile(null);
+      setIsEditing(false);
+      console.log('Profile saved and verified. Displaying photo from:', displayPhoto);
+      alert('Profile updated successfully!');
+    } catch (error) {
+      console.error('Save profile error:', error);
+      alert(`Failed to update profile: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   };
 
   const getRoleIcon = () => {
@@ -301,7 +441,8 @@ export function ProfilePage({ userRole, highContrast }: ProfilePageProps) {
                       <User className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
                       <Input
                         id="name"
-                        defaultValue={profileData.name}
+                        value={formData.name || ''}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                         disabled={!isEditing}
                         className="pl-10 h-12"
                       />
@@ -317,7 +458,8 @@ export function ProfilePage({ userRole, highContrast }: ProfilePageProps) {
                       <Input
                         id="email"
                         type="email"
-                        defaultValue={profileData.email}
+                        value={formData.email || ''}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                         disabled={!isEditing}
                         className="pl-10 h-12"
                       />
@@ -333,7 +475,8 @@ export function ProfilePage({ userRole, highContrast }: ProfilePageProps) {
                       <Input
                         id="phone"
                         type="tel"
-                        defaultValue={profileData.phone}
+                        value={formData.phone || ''}
+                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                         disabled={!isEditing}
                         className="pl-10 h-12"
                       />
@@ -348,7 +491,7 @@ export function ProfilePage({ userRole, highContrast }: ProfilePageProps) {
                       <Calendar className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
                       <Input
                         id="joinDate"
-                        defaultValue={profileData.joinDate}
+                        value={formData.joinDate || ''}
                         disabled
                         className="pl-10 h-12"
                       />
@@ -363,12 +506,28 @@ export function ProfilePage({ userRole, highContrast }: ProfilePageProps) {
                       <MapPin className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
                       <Input
                         id="address"
-                        defaultValue={profileData.address}
+                        value={formData.address || ''}
+                        onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                         disabled={!isEditing}
                         className="pl-10 h-12"
                       />
                     </div>
                   </div>
+
+                  {(userRole === 'seller' || userRole === 'student') && (
+                    <div className="space-y-2">
+                      <Label htmlFor="disabilityId" className={highContrast ? 'text-gray-300' : ''}>
+                        Disability ID
+                      </Label>
+                      <Input
+                        id="disabilityId"
+                        value={formData.disabilityId || ''}
+                        onChange={(e) => setFormData({ ...formData, disabilityId: e.target.value })}
+                        disabled={!isEditing}
+                        className="h-12"
+                      />
+                    </div>
+                  )}
 
                   {userRole === 'student' && 'school' in profileData && (
                     <>
@@ -380,7 +539,7 @@ export function ProfilePage({ userRole, highContrast }: ProfilePageProps) {
                           <Building className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
                           <Input
                             id="school"
-                            defaultValue={profileData.school}
+                            value={formData.school || ''}
                             disabled
                             className="pl-10 h-12"
                           />
@@ -394,7 +553,7 @@ export function ProfilePage({ userRole, highContrast }: ProfilePageProps) {
                           <GraduationCap className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
                           <Input
                             id="teacher"
-                            defaultValue={profileData.teacher}
+                            value={formData.teacher || ''}
                             disabled
                             className="pl-10 h-12"
                           />
@@ -413,7 +572,7 @@ export function ProfilePage({ userRole, highContrast }: ProfilePageProps) {
                           <Building className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
                           <Input
                             id="school"
-                            defaultValue={profileData.school}
+                            value={formData.school || ''}
                             disabled
                             className="pl-10 h-12"
                           />
@@ -425,7 +584,8 @@ export function ProfilePage({ userRole, highContrast }: ProfilePageProps) {
                         </Label>
                         <Input
                           id="department"
-                          defaultValue={profileData.department}
+                          value={formData.department || ''}
+                          onChange={(e) => setFormData({ ...formData, department: e.target.value })}
                           disabled={!isEditing}
                           className="h-12"
                         />
@@ -443,7 +603,8 @@ export function ProfilePage({ userRole, highContrast }: ProfilePageProps) {
                     </Label>
                     <Textarea
                       id="bio"
-                      defaultValue={profileData.bio}
+                      value={formData.bio || ''}
+                      onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
                       disabled={!isEditing}
                       rows={4}
                       className="resize-none"
@@ -455,19 +616,23 @@ export function ProfilePage({ userRole, highContrast }: ProfilePageProps) {
                       <Label htmlFor="skills" className={highContrast ? 'text-gray-300' : ''}>
                         Skills & Interests
                       </Label>
-                      <div className="flex flex-wrap gap-2">
-                        {profileData.skills.map((skill, index) => (
-                          <Badge key={index} variant="secondary" className="px-4 py-2">
-                            {skill}
-                          </Badge>
-                        ))}
-                        {isEditing && (
-                          <Button variant="outline" size="sm" className="gap-2">
-                            <Edit2 className="h-4 w-4" />
-                            Edit Skills
-                          </Button>
-                        )}
-                      </div>
+                      {isEditing ? (
+                        <Input
+                          id="skills"
+                          value={skillsInput}
+                          onChange={(e) => setSkillsInput(e.target.value)}
+                          placeholder="e.g. Pottery, Ceramics, Painting"
+                          className="h-12"
+                        />
+                      ) : (
+                        <div className="flex flex-wrap gap-2">
+                          {(profileData.skills || []).map((skill: string, index: number) => (
+                            <Badge key={index} variant="secondary" className="px-4 py-2">
+                              {skill}
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   )}
 
@@ -478,7 +643,8 @@ export function ProfilePage({ userRole, highContrast }: ProfilePageProps) {
                       </Label>
                       <Input
                         id="specialization"
-                        defaultValue={profileData.specialization}
+                        value={formData.specialization || ''}
+                        onChange={(e) => setFormData({ ...formData, specialization: e.target.value })}
                         disabled={!isEditing}
                         className="h-12"
                       />
@@ -493,7 +659,7 @@ export function ProfilePage({ userRole, highContrast }: ProfilePageProps) {
                         </Label>
                         <Input
                           id="schoolId"
-                          defaultValue={profileData.schoolId}
+                          value={formData.schoolId || ''}
                           disabled
                           className="h-12"
                         />
@@ -504,7 +670,8 @@ export function ProfilePage({ userRole, highContrast }: ProfilePageProps) {
                         </Label>
                         <Input
                           id="accreditation"
-                          defaultValue={profileData.accreditation}
+                          value={formData.accreditation || ''}
+                          onChange={(e) => setFormData({ ...formData, accreditation: e.target.value })}
                           disabled={!isEditing}
                           className="h-12"
                         />

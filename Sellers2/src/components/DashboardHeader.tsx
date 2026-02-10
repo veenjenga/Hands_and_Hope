@@ -3,6 +3,8 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { NotificationPanel } from './NotificationPanel';
+import { useAuth } from '../contexts/AuthContext';
+import { useEffect, useState } from 'react';
 
 interface DashboardHeaderProps {
   onLogout: () => void;
@@ -14,6 +16,28 @@ interface DashboardHeaderProps {
 }
 
 export function DashboardHeader({ onLogout, highContrast, userRole = 'seller', onProfileClick, onNotificationsClick, onAddProductClick }: DashboardHeaderProps) {
+  const { user } = useAuth();
+  const [userData, setUserData] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const API_URL = ((import.meta as any).env?.VITE_API_URL as string) || 'http://localhost:5000';
+        const res = await fetch(`${API_URL}/api/dashboard/profile`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const data = await res.json();
+        setUserData(data.profile);
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
+    };
+
+    if (user?.id) {
+      fetchUserData();
+    }
+  }, [user?.id]);
   return (
     <header 
       className={`sticky top-0 z-40 border-b ${highContrast ? 'border-white bg-black' : 'border-gray-200 bg-white'} px-6 py-4`}
@@ -53,11 +77,11 @@ export function DashboardHeader({ onLogout, highContrast, userRole = 'seller', o
             aria-label="View your profile"
           >
             <Avatar className="h-9 w-9">
-              <AvatarImage src="https://api.dicebear.com/7.x/avataaars/svg?seed=johndoe" alt="John Doe's profile" />
-              <AvatarFallback>JD</AvatarFallback>
+              <AvatarImage src={userData?.profilePhoto || `https://api.dicebear.com/7.x/avataaars/svg?seed=${userData?.name || 'user'}`} alt={`${userData?.name || 'User'}'s profile`} />
+              <AvatarFallback>{userData?.name?.split(' ').map((n: string) => n[0]).join('') || 'U'}</AvatarFallback>
             </Avatar>
             <div className="hidden lg:block">
-              <p className="leading-none">John Doe</p>
+              <p className="leading-none">{userData?.name || 'User'}</p>
             </div>
           </button>
 

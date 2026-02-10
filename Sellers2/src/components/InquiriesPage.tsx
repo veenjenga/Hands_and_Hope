@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { MessageSquare, Search, Filter, Reply, Archive, Trash2, Clock, CheckCircle } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
@@ -101,11 +101,39 @@ const INITIAL_INQUIRIES: Inquiry[] = [
 ];
 
 export function InquiriesPage({ highContrast }: InquiriesPageProps) {
-  const [inquiries, setInquiries] = useState<Inquiry[]>(INITIAL_INQUIRIES);
+  const [inquiries, setInquiries] = useState<Inquiry[]>([]);
   const [selectedInquiry, setSelectedInquiry] = useState<Inquiry | null>(null);
   const [filter, setFilter] = useState<'all' | 'pending' | 'replied' | 'archived'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [replyText, setReplyText] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+
+  const API_URL = ((import.meta as any).env?.VITE_API_URL as string) || 'http://localhost:5000';
+
+  useEffect(() => {
+    const fetchInquiries = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`${API_URL}/api/dashboard/inquiries`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const data = await res.json();
+
+        const mapped = (data || []).map((item: any) => ({
+          ...item,
+          timestamp: item.timestamp ? new Date(item.timestamp).toLocaleString() : 'Unknown'
+        }));
+
+        setInquiries(mapped);
+      } catch (error) {
+        console.error('Error fetching inquiries:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchInquiries();
+  }, [API_URL]);
 
   const filteredInquiries = inquiries.filter(inquiry => {
     const matchesFilter = filter === 'all' || inquiry.status === filter;
@@ -119,30 +147,67 @@ export function InquiriesPage({ highContrast }: InquiriesPageProps) {
   const pendingCount = inquiries.filter(i => i.status === 'pending').length;
   const repliedCount = inquiries.filter(i => i.status === 'replied').length;
 
-  const handleReply = () => {
+  const handleReply = async () => {
     if (!selectedInquiry || !replyText.trim()) return;
 
-    setInquiries(inquiries.map(i => 
-      i.id === selectedInquiry.id ? { ...i, status: 'replied' as const } : i
-    ));
-    setReplyText('');
-    alert('Reply sent successfully!');
-  };
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_URL}/api/dashboard/inquiries/${selectedInquiry.id}/reply`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ message: replyText })
+      });
+      if (!res.ok) return;
 
-  const handleArchive = (id: string) => {
-    setInquiries(inquiries.map(i => 
-      i.id === id ? { ...i, status: 'archived' as const } : i
-    ));
-    if (selectedInquiry?.id === id) {
-      setSelectedInquiry(null);
+      setInquiries(inquiries.map(i =>
+        i.id === selectedInquiry.id ? { ...i, status: 'replied' as const } : i
+      ));
+      setReplyText('');
+      alert('Reply sent successfully!');
+    } catch (error) {
+      console.error('Reply error:', error);
     }
   };
 
-  const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this inquiry?')) {
-      setInquiries(inquiries.filter(i => i.id !== id));
+  const handleArchive = async (id: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_URL}/api/dashboard/inquiries/${id}/archive`, {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!res.ok) return;
+
+      setInquiries(inquiries.map(i =>
+        i.id === id ? { ...i, status: 'archived' as const } : i
+      ));
       if (selectedInquiry?.id === id) {
         setSelectedInquiry(null);
+      }
+    } catch (error) {
+      console.error('Archive error:', error);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (confirm('Are you sure you want to delete this inquiry?')) {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`${API_URL}/api/dashboard/inquiries/${id}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (!res.ok) return;
+
+        setInquiries(inquiries.filter(i => i.id !== id));
+        if (selectedInquiry?.id === id) {
+          setSelectedInquiry(null);
+        }
+      } catch (error) {
+        console.error('Delete error:', error);
       }
     }
   };
@@ -172,6 +237,16 @@ export function InquiriesPage({ highContrast }: InquiriesPageProps) {
         return null;
     }
   };
+
+  if (isLoading) {
+    return (
+      <Card className={highContrast ? 'border-2 border-white bg-black' : 'shadow-lg'}>
+        <CardContent className="py-12 text-center">
+          <p className={highContrast ? 'text-gray-300' : 'text-gray-600'}>Loading inquiries...</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-6">
