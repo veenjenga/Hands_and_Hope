@@ -1,20 +1,24 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, Package, Grid3x3, List, Edit, Trash2, Eye } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
 import { AddProductModal } from './AddProductModal';
+import { useAuth } from '../contexts/AuthContext';
+import { api } from '../services/api';
 
 interface Product {
-  id: string;
+  _id?: string;
+  id?: string;
   name: string;
-  price: string;
+  price: string | number;
   description: string;
   category: string;
-  stock: string;
-  images: string[];  // Changed from image to images array
+  stock: string | number;
+  images: string[];
   status: 'active' | 'sold' | 'draft';
-  views: number;
+  viewCount?: number;
+  views?: number;
   createdAt: string;
   warranty?: string;
   refundDeadline?: string;
@@ -103,31 +107,96 @@ const INITIAL_PRODUCTS: Product[] = [
 ];
 
 export function ProductsPage({ highContrast, onAddProductClick, shouldOpenModal, userRole }: ProductsPageProps) {
-  const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
+  const { token } = useAuth();
+  const [products, setProducts] = useState<Product[]>([]);
   const [showAddModal, setShowAddModal] = useState(shouldOpenModal || false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleAddProduct = (newProduct: {
+  // Fetch products from backend
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const fetchProducts = async () => {
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await api.getProducts(token);
+      setProducts(data);
+    } catch (err) {
+      console.error('Error fetching products:', err);
+      setError('Failed to load products. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddProduct = async (newProduct: {
     name: string;
     price: string;
     description: string;
     category: string;
     stock: string;
     images: string[];
+    warranty?: string;
+    refundDeadline?: string;
   }) => {
-    const product: Product = {
-      id: Date.now().toString(),
-      ...newProduct,
-      status: 'active',
-      views: 0,
-      createdAt: new Date().toISOString().split('T')[0],
-    };
-    setProducts([product, ...products]);
+    if (!token) {
+      alert('You must be logged in to add products');
+      return;
+    }
+
+    try {
+      if (editingProduct) {
+        // Update existing product
+        const productId = editingProduct._id || editingProduct.id || '';
+        const updatedProduct = await api.updateProduct(productId, newProduct, token);
+        setProducts(products.map(p => 
+          (p._id || p.id) === productId ? updatedProduct : p
+        ));
+        setEditingProduct(null);
+      } else {
+        // Create new product
+        const productData = {
+          ...newProduct,
+          status: 'active',
+        };
+        
+        const savedProduct = await api.createProduct(productData, token);
+        setProducts([savedProduct, ...products]);
+      }
+      
+      setShowAddModal(false);
+    } catch (err) {
+      console.error('Error saving product:', err);
+      alert(`Failed to ${editingProduct ? 'update' : 'add'} product. Please try again.`);
+    }
   };
 
-  const handleDeleteProduct = (id: string) => {
-    if (confirm('Are you sure you want to delete this product?')) {
-      setProducts(products.filter(p => p.id !== id));
+  const handleDeleteProduct = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this product?')) {
+      return;
+    }
+
+    if (!token) {
+      alert('You must be logged in to delete products');
+      return;
+    }
+
+    try {
+      await api.deleteProduct(id, token);
+      setProducts(products.filter(p => (p._id || p.id) !== id));
+    } catch (err) {
+      console.error('Error deleting product:', err);
+      alert('Failed to delete product. Please try again.');
     }
   };
 
@@ -135,23 +204,54 @@ export function ProductsPage({ highContrast, onAddProductClick, shouldOpenModal,
     if (onAddProductClick) {
       onAddProductClick();
     }
+    setEditingProduct(null);
+    setShowAddModal(true);
+  };
+
+  const handleEditProduct = (product: Product) => {
+    setEditingProduct(product);
     setShowAddModal(true);
   };
 
   const activeProducts = products.filter(p => p.status === 'active').length;
   const soldProducts = products.filter(p => p.status === 'sold').length;
+  const totalProducts = products.length;
+
+  // Helper function to get product ID
+  const getProductId = (product: Product) => product._id || product.id || '';
+
+  // Helper function to get views count
+  const getViews = (product: Product) => product.viewCount || product.views || 0;
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className={highContrast ? 'text-white' : 'text-gray-900'}>
-            My Products
-          </h1>
-          <p className={`mt-1 ${highContrast ? 'text-gray-300' : 'text-gray-600'}`}>
-            {products.length} total products • {activeProducts} active • {soldProducts} sold
-          </p>
+      {loading && (
+        <div className="flex justify-center items-center py-12">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading products...</p>
+          </div>
         </div>
+      )}
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+          {error}
+          <button onClick={fetchProducts} className="ml-4 underline">Retry</button>
+        </div>
+      )}
+
+      {!loading && !error && (
+        <>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className={highContrast ? 'text-white' : 'text-gray-900'}>
+                My Products
+              </h1>
+              <p className={`mt-1 ${highContrast ? 'text-gray-300' : 'text-gray-600'}`}>
+                {totalProducts} total products • {activeProducts} active • {soldProducts} sold
+              </p>
+            </div>
         <div className="flex gap-3">
           <Button 
             variant={viewMode === 'grid' ? 'default' : 'outline'} 
@@ -198,9 +298,13 @@ export function ProductsPage({ highContrast, onAddProductClick, shouldOpenModal,
         </Card>
       ) : (
         <div className={viewMode === 'grid' ? 'grid gap-6 sm:grid-cols-2 lg:grid-cols-3' : 'space-y-4'}>
-          {products.map((product) => (
+          {products.map((product) => {
+            const productId = getProductId(product);
+            const views = getViews(product);
+            
+            return (
             <Card 
-              key={product.id} 
+              key={productId} 
               className={`overflow-hidden transition-all hover:shadow-xl ${
                 highContrast ? 'border-2 border-white bg-black' : 'shadow-lg'
               }`}
@@ -240,19 +344,24 @@ export function ProductsPage({ highContrast, onAddProductClick, shouldOpenModal,
                         <div className="flex items-center gap-1 text-sm">
                           <Eye className="h-4 w-4 text-gray-400" />
                           <span className={highContrast ? 'text-gray-400' : 'text-gray-500'}>
-                            {product.views}
+                            {views}
                           </span>
                         </div>
                       </div>
                       <div className="flex gap-2 border-t pt-3">
-                        <Button variant="outline" size="sm" className="flex-1">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="flex-1"
+                          onClick={() => handleEditProduct(product)}
+                        >
                           <Edit className="h-4 w-4" />
                         </Button>
                         <Button 
                           variant="outline" 
                           size="sm" 
                           className="flex-1"
-                          onClick={() => handleDeleteProduct(product.id)}
+                          onClick={() => handleDeleteProduct(productId)}
                         >
                           <Trash2 className="h-4 w-4 text-red-600" />
                         </Button>
@@ -289,18 +398,22 @@ export function ProductsPage({ highContrast, onAddProductClick, shouldOpenModal,
                         </span>
                         <span className={`flex items-center gap-1 ${highContrast ? 'text-gray-400' : 'text-gray-500'}`}>
                           <Eye className="h-4 w-4" />
-                          {product.views}
+                          {views}
                         </span>
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleEditProduct(product)}
+                      >
                         <Edit className="h-4 w-4" />
                       </Button>
                       <Button 
                         variant="outline" 
                         size="sm"
-                        onClick={() => handleDeleteProduct(product.id)}
+                        onClick={() => handleDeleteProduct(productId)}
                       >
                         <Trash2 className="h-4 w-4 text-red-600" />
                       </Button>
@@ -309,15 +422,22 @@ export function ProductsPage({ highContrast, onAddProductClick, shouldOpenModal,
                 </CardContent>
               )}
             </Card>
-          ))}
+          );
+          })}
         </div>
+      )}
+        </>
       )}
 
       {showAddModal && (
         <AddProductModal
-          onClose={() => setShowAddModal(false)}
+          onClose={() => {
+            setShowAddModal(false);
+            setEditingProduct(null);
+          }}
           onAddProduct={handleAddProduct}
           highContrast={highContrast}
+          editProduct={editingProduct}
         />
       )}
     </div>

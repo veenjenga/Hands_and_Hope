@@ -5,8 +5,8 @@ import path from 'path';
 export default defineConfig({
   plugins: [react()],
   server: {
-    port: 3001,
     host: '0.0.0.0', // Bind to all interfaces for Render deployment
+    port: 3001,
     strictPort: false,
     open: true,
     proxy: {

@@ -22,6 +22,18 @@ interface AddProductModalProps {
   }) => void;
   highContrast: boolean;
   userRole?: 'seller' | 'student';
+  editProduct?: {
+    _id?: string;
+    id?: string;
+    name: string;
+    price: string | number;
+    description: string;
+    category: string;
+    stock: string | number;
+    images: string[];
+    warranty?: string;
+    refundDeadline?: string;
+  } | null;
 }
 
 const DEFAULT_CATEGORIES = [
@@ -39,17 +51,19 @@ const DEFAULT_CATEGORIES = [
   'Toys & Games',
 ];
 
-export function AddProductModal({ onClose, onAddProduct, highContrast, userRole = 'seller' }: AddProductModalProps) {
-  const [productName, setProductName] = useState('');
-  const [price, setPrice] = useState('');
-  const [description, setDescription] = useState('');
-  const [category, setCategory] = useState('');
+export function AddProductModal({ onClose, onAddProduct, highContrast, userRole = 'seller', editProduct = null }: AddProductModalProps) {
+  const isEditing = !!editProduct;
+  
+  const [productName, setProductName] = useState(editProduct?.name || '');
+  const [price, setPrice] = useState(editProduct?.price?.toString() || '');
+  const [description, setDescription] = useState(editProduct?.description || '');
+  const [category, setCategory] = useState(editProduct?.category || '');
   const [customCategory, setCustomCategory] = useState('');
   const [showCustomCategory, setShowCustomCategory] = useState(false);
-  const [stock, setStock] = useState('');
-  const [images, setImages] = useState<string[]>([]);
-  const [warranty, setWarranty] = useState('');
-  const [refundDeadline, setRefundDeadline] = useState('7');
+  const [stock, setStock] = useState(editProduct?.stock?.toString() || '');
+  const [images, setImages] = useState<string[]>(editProduct?.images || []);
+  const [warranty, setWarranty] = useState(editProduct?.warranty || '');
+  const [refundDeadline, setRefundDeadline] = useState(editProduct?.refundDeadline || '7');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -122,10 +136,10 @@ export function AddProductModal({ onClose, onAddProduct, highContrast, userRole 
           <div>
             <CardTitle className={`flex items-center gap-2 ${highContrast ? 'text-white' : 'text-gray-900'}`}>
               <Package className="h-6 w-6" />
-              Add New Product
+              {isEditing ? 'Edit Product' : 'Add New Product'}
             </CardTitle>
             <p className={`mt-1 text-sm ${highContrast ? 'text-gray-300' : 'text-gray-600'}`}>
-              List a new product for sale on the marketplace
+              {isEditing ? 'Update product details' : 'List a new product for sale on the marketplace'}
             </p>
           </div>
           <Button
@@ -386,7 +400,7 @@ export function AddProductModal({ onClose, onAddProduct, highContrast, userRole 
                 disabled={images.length < 3 || images.length > 5}
               >
                 <Package className="mr-2 h-5 w-5" />
-                Add Product
+                {isEditing ? 'Update Product' : 'Add Product'}
               </Button>
               <Button
                 type="button"

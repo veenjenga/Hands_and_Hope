@@ -122,21 +122,44 @@ export function SellerDashboard({ onLogout, userRole = 'seller' }: SellerDashboa
   const [inquiries, setInquiries] = useState<any[]>([]);
   const [engagement, setEngagement] = useState<any>(null);
   const [products, setProducts] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   
   // Withdrawal states
-  const [withdrawalMethod, setWithdrawalMethod] = useState<'bank' | 'mobile' | null>(null);
-  const [paymentProvider, setPaymentProvider] = useState<'safaricom' | 'airtel' | null>(null);
+  const [withdrawalData, setWithdrawalData] = useState<any>(null);
+  const [pendingDeliveries, setPendingDeliveries] = useState<any[]>([]);
+  const [withdrawalRequests, setWithdrawalRequests] = useState<any[]>([]);
+  const [completedWithdrawals, setCompletedWithdrawals] = useState<any[]>([]);
   const [availableBalance, setAvailableBalance] = useState(0);
   const [onHoldBalance, setOnHoldBalance] = useState(0);
   
+  // Message states
+  const [buyerMessages, setBuyerMessages] = useState<any[]>([]);
+  const [selectedBuyerMessage, setSelectedBuyerMessage] = useState<string | null>(null);
+  
   // Analytics states
   const [analyticsFilter, setAnalyticsFilter] = useState<'daily' | 'weekly' | 'monthly' | 'yearly'>('monthly');
+  const [analyticsData, setAnalyticsData] = useState<any>(null);
   
-  // Message states
-  const [selectedBuyerMessage, setSelectedBuyerMessage] = useState<string | null>(null);
+  // Refund states
+  const [refundData, setRefundData] = useState<any>(null);
+  const [pendingRefunds, setPendingRefunds] = useState<any[]>([]);
+  const [approvedRefunds, setApprovedRefunds] = useState<any[]>([]);
+
+  // Withdrawal method state - FIX FOR withdrawalMethod error
+  const [withdrawalMethod, setWithdrawalMethod] = useState<'bank' | 'mobile'>('bank');
+  const [paymentProvider, setPaymentProvider] = useState<'safaricom' | 'airtel'>('safaricom');
+
+  // Assistance (student)
+  const [teacherSubject, setTeacherSubject] = useState('');
+  const [teacherMessage, setTeacherMessage] = useState('');
+  const [schoolSubject, setSchoolSubject] = useState('');
+  const [schoolMessage, setSchoolMessage] = useState('');
+  
+  const [isLoading, setIsLoading] = useState(true);
 
   const API_URL = ((import.meta as any).env?.VITE_API_URL as string) || 'http://localhost:5000';
+  const productViewsValue = typeof analyticsData?.productViews === 'number'
+    ? analyticsData.productViews
+    : (analyticsData?.productViews?.[analyticsFilter] ?? analyticsData?.productViews?.monthly ?? 0);
 
   // Fetch dashboard data on mount
   useEffect(() => {
@@ -145,59 +168,48 @@ export function SellerDashboard({ onLogout, userRole = 'seller' }: SellerDashboa
         setIsLoading(true);
         const token = localStorage.getItem('token');
         
-        // Fetch stats
+        // Fetch withdrawals
+        const withdrawalsRes = await fetch(`${API_URL}/api/dashboard/withdrawals`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const withdrawalsData = await withdrawalsRes.json();
+        setWithdrawalData(withdrawalsData);
+        setAvailableBalance(withdrawalsData.availableBalance);
+        setOnHoldBalance(withdrawalsData.onHoldBalance);
+        setPendingDeliveries(withdrawalsData.pendingDeliveries);
+        setWithdrawalRequests(withdrawalsData.withdrawalRequests);
+        setCompletedWithdrawals(withdrawalsData.completedWithdrawals);
+        
+        // Fetch messages
+        const messagesRes = await fetch(`${API_URL}/api/dashboard/messages`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const messagesData = await messagesRes.json();
+        setBuyerMessages(Array.isArray(messagesData) ? messagesData : messagesData?.messages || []);
+        
+        // Fetch analytics
+        const analyticsRes = await fetch(`${API_URL}/api/dashboard/analytics?period=${analyticsFilter}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const analyticsDataResult = await analyticsRes.json();
+        setAnalyticsData(analyticsDataResult && typeof analyticsDataResult === 'object' && !Array.isArray(analyticsDataResult) ? analyticsDataResult : { daily: { total: 0 }, weekly: { total: 0 }, monthly: { total: 0 }, yearly: { total: 0 } });
+        
+        // Fetch refunds
+        const refundsRes = await fetch(`${API_URL}/api/dashboard/refunds`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const refundsDataResult = await refundsRes.json();
+        setRefundData(refundsDataResult);
+        setPendingRefunds(Array.isArray(refundsDataResult?.pending) ? refundsDataResult.pending : []);
+        setApprovedRefunds(Array.isArray(refundsDataResult?.approved) ? refundsDataResult.approved : []);
+        
+        // Fetch dashboard stats
         const statsRes = await fetch(`${API_URL}/api/dashboard/stats`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
-        const stats = await statsRes.json();
-        setDashboardStats(stats);
+        const statsData = await statsRes.json();
+        setDashboardStats(statsData);
         
-        // Fetch analytics
-        const analyticsRes = await fetch(`${API_URL}/api/dashboard/analytics`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const analyticsData = await analyticsRes.json();
-        setAnalytics(analyticsData);
-        
-        // Fetch orders
-        const ordersRes = await fetch(`${API_URL}/api/dashboard/orders`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const ordersData = await ordersRes.json();
-        setOrders(ordersData);
-        
-        // Fetch inquiries
-        const inquiriesRes = await fetch(`${API_URL}/api/dashboard/inquiries`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const inquiriesData = await inquiriesRes.json();
-        setInquiries(inquiriesData);
-        
-        // Fetch engagement
-        const engagementRes = await fetch(`${API_URL}/api/dashboard/engagement`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const engagementData = await engagementRes.json();
-        setEngagement(engagementData);
-        
-        // Fetch products
-        const productsRes = await fetch(`${API_URL}/api/dashboard/products`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const productsData = await productsRes.json();
-        setProducts(productsData);
-        
-        // Set balance based on orders (pending vs completed)
-        const pendingOrdersTotal = ordersData
-          .filter((o: any) => o.status === 'pending')
-          .reduce((sum: number, o: any) => sum + (o.amount || 0), 0);
-        
-        const completedOrdersTotal = ordersData
-          .filter((o: any) => o.status === 'completed')
-          .reduce((sum: number, o: any) => sum + (o.amount || 0), 0);
-        
-        setAvailableBalance(completedOrdersTotal);
-        setOnHoldBalance(pendingOrdersTotal);
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
       } finally {
@@ -208,7 +220,7 @@ export function SellerDashboard({ onLogout, userRole = 'seller' }: SellerDashboa
     if (user && user.id) {
       fetchDashboardData();
     }
-  }, [user, API_URL]);
+  }, [user, API_URL, analyticsFilter]);
 
   const fontSizeClass = fontSize === 'large' ? 'text-lg' : fontSize === 'extra-large' ? 'text-xl' : '';
 
@@ -254,6 +266,52 @@ export function SellerDashboard({ onLogout, userRole = 'seller' }: SellerDashboa
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  const handleSendTeacherAssistance = async () => {
+    if (!teacherSubject.trim() || !teacherMessage.trim()) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_URL}/api/dashboard/assistance/teacher`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ subject: teacherSubject, message: teacherMessage })
+      });
+
+      if (!res.ok) return;
+      setTeacherSubject('');
+      setTeacherMessage('');
+      alert('Message sent to teacher');
+    } catch (error) {
+      console.error('Send teacher assistance error:', error);
+    }
+  };
+
+  const handleSendSchoolAssistance = async () => {
+    if (!schoolSubject.trim() || !schoolMessage.trim()) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_URL}/api/dashboard/assistance/school`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ subject: schoolSubject, message: schoolMessage })
+      });
+
+      if (!res.ok) return;
+      setSchoolSubject('');
+      setSchoolMessage('');
+      alert('Message sent to school administration');
+    } catch (error) {
+      console.error('Send school assistance error:', error);
+    }
   };
 
   // Show loading screen while fetching data
@@ -354,7 +412,7 @@ export function SellerDashboard({ onLogout, userRole = 'seller' }: SellerDashboa
                       <div>
                         <p className="text-sm text-orange-100">On Hold</p>
                         <h2 className="mt-2 text-white">${onHoldBalance.toFixed(2)}</h2>
-                        <p className="text-xs text-orange-100 mt-1">{MOCK_PENDING_ORDERS.length} orders pending delivery</p>
+                        <p className="text-xs text-orange-100 mt-1">{pendingDeliveries.length} orders pending delivery</p>
                       </div>
                       <Clock className="h-12 w-12 text-white opacity-80" />
                     </div>
@@ -372,35 +430,39 @@ export function SellerDashboard({ onLogout, userRole = 'seller' }: SellerDashboa
                         Money will be released when buyers confirm receipt
                       </p>
                     </div>
-                    <Badge variant="secondary">{MOCK_PENDING_ORDERS.length} Pending</Badge>
+                    <Badge variant="secondary">{pendingDeliveries.length} Pending</Badge>
                   </div>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {MOCK_PENDING_ORDERS.map((order) => (
-                      <div
-                        key={order.id}
-                        className={`flex items-center justify-between rounded-lg border p-4 ${highContrast ? 'border-white' : 'border-gray-200'}`}
-                      >
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3">
-                            <Package className="h-5 w-5 text-blue-600" />
-                            <div>
-                              <h4 className={`font-semibold ${highContrast ? 'text-white' : 'text-gray-900'}`}>{order.productName}</h4>
-                              <p className={`text-sm ${highContrast ? 'text-gray-300' : 'text-gray-600'}`}>
-                                Buyer: {order.buyer} • Ordered: {order.orderDate}
-                              </p>
+                    {pendingDeliveries.length === 0 ? (
+                      <p className={highContrast ? 'text-gray-300' : 'text-gray-500'}>No pending deliveries</p>
+                    ) : (
+                      pendingDeliveries.map((order) => (
+                        <div
+                          key={order.id}
+                          className={`flex items-center justify-between rounded-lg border p-4 ${highContrast ? 'border-white' : 'border-gray-200'}`}
+                        >
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3">
+                              <Package className="h-5 w-5 text-blue-600" />
+                              <div>
+                                <h4 className={`font-semibold ${highContrast ? 'text-white' : 'text-gray-900'}`}>{order.productName}</h4>
+                                <p className={`text-sm ${highContrast ? 'text-gray-300' : 'text-gray-600'}`}>
+                                  Buyer: {order.buyerName} • Ordered: {order.orderDate}
+                                </p>
+                              </div>
                             </div>
                           </div>
+                          <div className="text-right">
+                            <p className="text-xl font-bold text-green-600">${order.amount.toFixed(2)}</p>
+                            <Badge variant={order.status === 'in_transit' ? 'default' : 'secondary'}>
+                              {order.status === 'in_transit' ? 'In Transit' : 'Awaiting Delivery'}
+                            </Badge>
+                          </div>
                         </div>
-                        <div className="text-right">
-                          <p className="text-xl font-bold text-green-600">${order.amount.toFixed(2)}</p>
-                          <Badge variant={order.status === 'in_transit' ? 'default' : 'secondary'}>
-                            {order.status === 'in_transit' ? 'In Transit' : 'Awaiting Delivery'}
-                          </Badge>
-                        </div>
-                      </div>
-                    ))}
+                      ))
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -574,39 +636,43 @@ export function SellerDashboard({ onLogout, userRole = 'seller' }: SellerDashboa
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {MOCK_WITHDRAWAL_HISTORY.map((withdrawal) => (
-                      <div
-                        key={withdrawal.id}
-                        className={`flex items-center justify-between rounded-lg border p-4 ${highContrast ? 'border-white' : 'border-gray-200'}`}
-                      >
-                        <div className="flex items-center gap-4">
-                          <div className={`flex h-10 w-10 items-center justify-center rounded-full ${
-                            withdrawal.method === 'Bank Transfer' ? 'bg-blue-100' : 'bg-green-100'
-                          }`}>
-                            {withdrawal.method === 'Bank Transfer' ? (
-                              <Building2 className="h-5 w-5 text-blue-600" />
-                            ) : (
-                              <Smartphone className="h-5 w-5 text-green-600" />
-                            )}
+                    {completedWithdrawals.length === 0 ? (
+                      <p className={highContrast ? 'text-gray-300' : 'text-gray-500'}>No completed withdrawals yet</p>
+                    ) : (
+                      completedWithdrawals.map((withdrawal) => (
+                        <div
+                          key={withdrawal.id}
+                          className={`flex items-center justify-between rounded-lg border p-4 ${highContrast ? 'border-white' : 'border-gray-200'}`}
+                        >
+                          <div className="flex items-center gap-4">
+                            <div className={`flex h-10 w-10 items-center justify-center rounded-full ${
+                              withdrawal.method === 'bank' ? 'bg-blue-100' : 'bg-green-100'
+                            }`}>
+                              {withdrawal.method === 'bank' ? (
+                                <Building2 className="h-5 w-5 text-blue-600" />
+                              ) : (
+                                <Smartphone className="h-5 w-5 text-green-600" />
+                              )}
+                            </div>
+                            <div>
+                              <h4 className={`font-semibold ${highContrast ? 'text-white' : 'text-gray-900'}`}>
+                                ${withdrawal.amount.toFixed(2)}
+                              </h4>
+                              <p className={`text-sm ${highContrast ? 'text-gray-300' : 'text-gray-600'}`}>
+                                {withdrawal.method === 'bank' ? withdrawal.bankName : withdrawal.provider}
+                              </p>
+                              <p className={`text-xs ${highContrast ? 'text-gray-400' : 'text-gray-500'}`}>
+                                {new Date(withdrawal.date).toLocaleDateString()}
+                              </p>
+                            </div>
                           </div>
-                          <div>
-                            <h4 className={`font-semibold ${highContrast ? 'text-white' : 'text-gray-900'}`}>
-                              ${withdrawal.amount.toFixed(2)}
-                            </h4>
-                            <p className={`text-sm ${highContrast ? 'text-gray-300' : 'text-gray-600'}`}>
-                              {withdrawal.method} • {withdrawal.method === 'Bank Transfer' ? withdrawal.bank : withdrawal.provider}
-                            </p>
-                            <p className={`text-xs ${highContrast ? 'text-gray-400' : 'text-gray-500'}`}>
-                              Account: {withdrawal.account} • {withdrawal.date}
-                            </p>
-                          </div>
+                          <Badge variant="default">
+                            <CheckCircle className="h-3 w-3 mr-1" />
+                            Completed
+                          </Badge>
                         </div>
-                        <Badge variant="default">
-                          <CheckCircle className="h-3 w-3 mr-1" />
-                          Completed
-                        </Badge>
-                      </div>
-                    ))}
+                      ))
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -663,10 +729,10 @@ export function SellerDashboard({ onLogout, userRole = 'seller' }: SellerDashboa
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm text-green-100">Total Sales</p>
-                        <h2 className="mt-2 text-white">${MOCK_SALES_DATA[analyticsFilter].total.toFixed(2)}</h2>
+                        <h2 className="mt-2 text-white">${analyticsData?.sales?.total || '0.00'}</h2>
                         <div className="flex items-center gap-1 mt-1">
                           <ArrowUpRight className="h-4 w-4 text-green-100" />
-                          <span className="text-xs text-green-100">+12.5%</span>
+                          <span className="text-xs text-green-100">Period: {analyticsFilter}</span>
                         </div>
                       </div>
                       <DollarSign className="h-12 w-12 text-white opacity-80" />
@@ -679,10 +745,10 @@ export function SellerDashboard({ onLogout, userRole = 'seller' }: SellerDashboa
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm text-blue-100">Orders</p>
-                        <h2 className="mt-2 text-white">{MOCK_SALES_DATA[analyticsFilter].count}</h2>
+                        <h2 className="mt-2 text-white">{analyticsData?.orders?.total || 0}</h2>
                         <div className="flex items-center gap-1 mt-1">
                           <ArrowUpRight className="h-4 w-4 text-blue-100" />
-                          <span className="text-xs text-blue-100">+8.2%</span>
+                          <span className="text-xs text-blue-100">Completed: {analyticsData?.orders?.completed || 0}</span>
                         </div>
                       </div>
                       <Package className="h-12 w-12 text-white opacity-80" />
@@ -695,10 +761,10 @@ export function SellerDashboard({ onLogout, userRole = 'seller' }: SellerDashboa
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm text-purple-100">Product Views</p>
-                        <h2 className="mt-2 text-white">{MOCK_PRODUCT_VIEWS[analyticsFilter]}</h2>
+                        <h2 className="mt-2 text-white">{productViewsValue}</h2>
                         <div className="flex items-center gap-1 mt-1">
                           <ArrowUpRight className="h-4 w-4 text-purple-100" />
-                          <span className="text-xs text-purple-100">+15.3%</span>
+                          <span className="text-xs text-purple-100">Total: {productViewsValue}</span>
                         </div>
                       </div>
                       <Eye className="h-12 w-12 text-white opacity-80" />
@@ -711,10 +777,10 @@ export function SellerDashboard({ onLogout, userRole = 'seller' }: SellerDashboa
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm text-orange-100">Refunds</p>
-                        <h2 className="mt-2 text-white">{MOCK_SALES_DATA[analyticsFilter].refunds}</h2>
+                        <h2 className="mt-2 text-white">{analyticsData?.refunds?.count || 0}</h2>
                         <div className="flex items-center gap-1 mt-1">
                           <ArrowDownRight className="h-4 w-4 text-orange-100" />
-                          <span className="text-xs text-orange-100">-3.2%</span>
+                          <span className="text-xs text-orange-100">Amount: ${analyticsData?.refunds?.totalAmount || '0.00'}</span>
                         </div>
                       </div>
                       <RefreshCcw className="h-12 w-12 text-white opacity-80" />
@@ -735,26 +801,29 @@ export function SellerDashboard({ onLogout, userRole = 'seller' }: SellerDashboa
                   </p>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {MOCK_SOLD_OUT_PRODUCTS.map((product) => (
-                      <div
-                        key={product.id}
-                        className={`flex items-center justify-between rounded-lg border p-4 ${highContrast ? 'border-white' : 'border-gray-200'}`}
-                      >
-                        <div className="flex-1">
-                          <h4 className={`font-semibold ${highContrast ? 'text-white' : 'text-gray-900'}`}>
-                            {product.productName}
-                          </h4>
-                          <p className={`text-sm ${highContrast ? 'text-gray-300' : 'text-gray-600'}`}>
-                            Last sold: {product.lastSoldDate} • Total sold: {product.totalSold} units
-                          </p>
+                  <div className="space-y-8">
+                    {analyticsData?.soldOutProducts?.length === 0 ? (
+                      <p className={highContrast ? 'text-gray-300' : 'text-gray-500'}>No sold out products yet</p>
+                    ) : (
+                      analyticsData?.soldOutProducts?.map((product: any) => (
+                        <div
+                          key={product.id}
+                          className={`flex items-center justify-between rounded-lg border p-4 ${highContrast ? 'border-white' : 'border-gray-200'}`}
+                        >
+                          <div className="flex-1">
+                            <h4 className={`font-semibold ${highContrast ? 'text-white' : 'text-gray-900'}`}>
+                              {product.productName}
+                            </h4>
+                            <p className={`text-sm ${highContrast ? 'text-gray-300' : 'text-gray-600'}`}>
+                              Last sold: {new Date(product.lastSoldDate).toLocaleDateString()} • Total sold: {product.totalSold} units
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <Badge variant="secondary">Demand: High</Badge>
+                            <p className="text-xs text-gray-500 mt-1">Popular Product</p>
+                          </div>
                         </div>
-                        <div className="text-right">
-                          <Badge variant="secondary">Avg: {product.avgTimeToSellOut}</Badge>
-                          <p className="text-xs text-gray-500 mt-1">to sell out</p>
-                        </div>
-                      </div>
-                    ))}
+                    )))}
                   </div>
                 </CardContent>
               </Card>
@@ -775,38 +844,45 @@ export function SellerDashboard({ onLogout, userRole = 'seller' }: SellerDashboa
                 {/* Messages List */}
                 <Card className={`lg:col-span-1 ${highContrast ? 'border-2 border-white bg-black' : 'shadow-lg'}`}>
                   <CardHeader>
-                    <CardTitle>Messages ({MOCK_BUYER_MESSAGES.filter(m => m.unread).length} unread)</CardTitle>
+                    <CardTitle>Messages ({buyerMessages.filter(m => m.unread).length} unread)</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-3">
-                      {MOCK_BUYER_MESSAGES.map((msg) => (
-                        <button
-                          key={msg.id}
-                          onClick={() => setSelectedBuyerMessage(msg.id)}
-                          className={`w-full text-left rounded-lg border p-4 transition-colors ${
-                            selectedBuyerMessage === msg.id
-                              ? 'border-blue-600 bg-blue-50'
-                              : msg.unread
-                              ? 'border-gray-300 bg-yellow-50'
-                              : 'border-gray-200 hover:border-gray-400'
-                          }`}
-                        >
-                          <div className="flex items-start gap-3">
-                            <Avatar className="h-10 w-10">
-                              <AvatarFallback>{msg.buyerAvatar}</AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between">
-                                <h4 className="font-semibold text-gray-900 truncate">{msg.buyer}</h4>
-                                {msg.unread && <Badge variant="default" className="text-xs">New</Badge>}
+                    {buyerMessages.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center py-8 text-center">
+                        <MessageSquare className="h-12 w-12 text-gray-400 mb-2" />
+                        <p className={`text-sm ${highContrast ? 'text-gray-300' : 'text-gray-600'}`}>No messages yet</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {buyerMessages.map((msg) => (
+                          <button
+                            key={msg.id}
+                            onClick={() => setSelectedBuyerMessage(msg.id)}
+                            className={`w-full text-left rounded-lg border p-4 transition-colors ${
+                              selectedBuyerMessage === msg.id
+                                ? 'border-blue-600 bg-blue-50'
+                                : msg.unread
+                                ? 'border-gray-300 bg-yellow-50'
+                                : 'border-gray-200 hover:border-gray-400'
+                            }`}
+                          >
+                            <div className="flex items-start gap-3">
+                              <Avatar className="h-10 w-10">
+                                <AvatarFallback>{msg.fromAvatar}</AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between">
+                                  <h4 className="font-semibold text-gray-900 truncate">{msg.from}</h4>
+                                  {msg.unread && <Badge variant="default" className="text-xs">New</Badge>}
+                                </div>
+                                <p className="text-sm text-gray-600 truncate">{msg.message}</p>
+                                <p className="text-xs text-gray-500 mt-1">{new Date(msg.timestamp).toLocaleDateString()}</p>
                               </div>
-                              <p className="text-sm text-gray-600 truncate">{msg.message}</p>
-                              <p className="text-xs text-gray-500 mt-1">{msg.timestamp}</p>
                             </div>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
 
@@ -815,7 +891,7 @@ export function SellerDashboard({ onLogout, userRole = 'seller' }: SellerDashboa
                   <CardHeader>
                     <CardTitle>
                       {selectedBuyerMessage
-                        ? MOCK_BUYER_MESSAGES.find(m => m.id === selectedBuyerMessage)?.buyer
+                        ? buyerMessages.find(m => m.id === selectedBuyerMessage)?.from
                         : 'Select a message'}
                     </CardTitle>
                   </CardHeader>
@@ -826,23 +902,28 @@ export function SellerDashboard({ onLogout, userRole = 'seller' }: SellerDashboa
                           <div className="flex items-start gap-3">
                             <Avatar className="h-10 w-10">
                               <AvatarFallback>
-                                {MOCK_BUYER_MESSAGES.find(m => m.id === selectedBuyerMessage)?.buyerAvatar}
+                                {buyerMessages.find(m => m.id === selectedBuyerMessage)?.fromAvatar}
                               </AvatarFallback>
                             </Avatar>
                             <div className="flex-1">
                               <div className="flex items-center justify-between">
-                                <h4 className="font-semibold">
-                                  {MOCK_BUYER_MESSAGES.find(m => m.id === selectedBuyerMessage)?.buyer}
-                                </h4>
+                                <div>
+                                  <h4 className="font-semibold">
+                                    {buyerMessages.find(m => m.id === selectedBuyerMessage)?.from}
+                                  </h4>
+                                  <p className={`text-xs ${highContrast ? 'text-gray-400' : 'text-gray-600'}`}>
+                                    {buyerMessages.find(m => m.id === selectedBuyerMessage)?.fromEmail}
+                                  </p>
+                                </div>
                                 <span className="text-sm text-gray-500">
-                                  {MOCK_BUYER_MESSAGES.find(m => m.id === selectedBuyerMessage)?.timestamp}
+                                  {new Date(buyerMessages.find(m => m.id === selectedBuyerMessage)?.timestamp).toLocaleDateString()}
                                 </span>
                               </div>
-                              <p className="text-sm text-gray-600 mt-1">
-                                Re: {MOCK_BUYER_MESSAGES.find(m => m.id === selectedBuyerMessage)?.productName}
+                              <p className="text-sm text-gray-600 mt-2">
+                                Re: {buyerMessages.find(m => m.id === selectedBuyerMessage)?.productName}
                               </p>
                               <p className="mt-3">
-                                {MOCK_BUYER_MESSAGES.find(m => m.id === selectedBuyerMessage)?.message}
+                                {buyerMessages.find(m => m.id === selectedBuyerMessage)?.message}
                               </p>
                             </div>
                           </div>
@@ -892,72 +973,85 @@ export function SellerDashboard({ onLogout, userRole = 'seller' }: SellerDashboa
 
               <Tabs defaultValue="pending" className="space-y-6">
                 <TabsList>
-                  <TabsTrigger value="pending">Pending Refunds ({MOCK_REFUNDS.filter(r => r.status === 'pending').length})</TabsTrigger>
-                  <TabsTrigger value="approved">Approved Refunds ({MOCK_REFUNDS.filter(r => r.status === 'approved').length})</TabsTrigger>
+                  <TabsTrigger value="pending">Pending Refunds ({pendingRefunds.length})</TabsTrigger>
+                  <TabsTrigger value="approved">Approved Refunds ({approvedRefunds.length})</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="pending" className="space-y-4">
-                  {MOCK_REFUNDS.filter(r => r.status === 'pending').map((refund) => (
-                    <Card key={refund.id} className={highContrast ? 'border-2 border-white bg-black' : 'shadow-md'}>
-                      <CardHeader>
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h3 className={highContrast ? 'text-white' : 'text-gray-900'}>{refund.productName}</h3>
-                            <p className={`text-sm ${highContrast ? 'text-gray-300' : 'text-gray-600'}`}>
-                              Buyer: {refund.buyer} • Amount: ${refund.amount.toFixed(2)}
-                            </p>
-                          </div>
-                          <Badge variant="secondary">Pending Review</Badge>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="space-y-4 border-t pt-4">
-                        <div className={`rounded-lg border p-4 ${highContrast ? 'border-white' : 'border-gray-200'}`}>
-                          <p className="text-sm font-semibold mb-2">Refund Reason:</p>
-                          <p className={`text-sm ${highContrast ? 'text-gray-300' : 'text-gray-700'}`}>{refund.reason}</p>
-                          <p className={`text-xs ${highContrast ? 'text-gray-400' : 'text-gray-500'} mt-2`}>
-                            Requested: {refund.date} • Deadline: {refund.refundDeadline}
-                          </p>
-                        </div>
-                        <div className="flex gap-3">
-                          <Button size="lg" className="flex-1">
-                            <CheckCircle className="h-5 w-5 mr-2" />
-                            Approve Refund
-                          </Button>
-                          <Button variant="destructive" size="lg" className="flex-1">
-                            <XCircle className="h-5 w-5 mr-2" />
-                            Reject Refund
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                  {MOCK_REFUNDS.filter(r => r.status === 'pending').length === 0 && (
+                  {pendingRefunds.length === 0 ? (
                     <Card className="p-12 text-center">
                       <CheckCircle className="h-16 w-16 text-gray-400 mx-auto mb-4" />
                       <h3 className="text-gray-600">No Pending Refunds</h3>
                     </Card>
+                  ) : (
+                    pendingRefunds.map((refund) => (
+                      <Card key={refund.id} className={highContrast ? 'border-2 border-white bg-black' : 'shadow-md'}>
+                        <CardHeader>
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h3 className={highContrast ? 'text-white' : 'text-gray-900'}>{refund.productName}</h3>
+                              <p className={`text-sm ${highContrast ? 'text-gray-300' : 'text-gray-600'}`}>
+                                Buyer: {refund.buyerName} • Amount: ${refund.amount.toFixed(2)}
+                              </p>
+                            </div>
+                            <Badge variant="secondary">Pending Review</Badge>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="space-y-4 border-t pt-4">
+                          <div className={`rounded-lg border p-4 ${highContrast ? 'border-white' : 'border-gray-200'}`}>
+                            <p className="text-sm font-semibold mb-2">Refund Reason:</p>
+                            <p className={`text-sm ${highContrast ? 'text-gray-300' : 'text-gray-700'}`}>{refund.reason}</p>
+                            <p className={`text-xs ${highContrast ? 'text-gray-400' : 'text-gray-500'} mt-2`}>
+                              Requested: {new Date(refund.requestDate).toLocaleDateString()}
+                            </p>
+                          </div>
+                          <div className="flex gap-3">
+                            <Button size="lg" className="flex-1">
+                              <CheckCircle className="h-5 w-5 mr-2" />
+                              Approve Refund
+                            </Button>
+                            <Button variant="destructive" size="lg" className="flex-1">
+                              <XCircle className="h-5 w-5 mr-2" />
+                              Reject Refund
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))
                   )}
                 </TabsContent>
 
                 <TabsContent value="approved" className="space-y-4">
-                  {MOCK_REFUNDS.filter(r => r.status === 'approved').map((refund) => (
-                    <Card key={refund.id} className={`${highContrast ? 'border-2 border-green-500 bg-black' : 'border-green-200 bg-green-50 shadow-md'}`}>
-                      <CardHeader>
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h3 className={highContrast ? 'text-white' : 'text-gray-900'}>{refund.productName}</h3>
-                            <p className={`text-sm ${highContrast ? 'text-gray-300' : 'text-gray-600'}`}>
-                              Buyer: {refund.buyer} • Refunded: ${refund.amount.toFixed(2)}
-                            </p>
-                          </div>
-                          <Badge variant="default">
-                            <CheckCircle className="h-3 w-3 mr-1" />
-                            Approved
-                          </Badge>
-                        </div>
-                      </CardHeader>
+                  {approvedRefunds.length === 0 ? (
+                    <Card className="p-12 text-center">
+                      <CheckCircle className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-gray-600">No Approved Refunds</h3>
                     </Card>
-                  ))}
+                  ) : (
+                    approvedRefunds.map((refund) => (
+                      <Card key={refund.id} className={`${highContrast ? 'border-2 border-green-500 bg-black' : 'border-green-200 bg-green-50 shadow-md'}`}>
+                        <CardHeader>
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h3 className={highContrast ? 'text-white' : 'text-gray-900'}>{refund.productName}</h3>
+                              <p className={`text-sm ${highContrast ? 'text-gray-300' : 'text-gray-600'}`}>
+                                Buyer: {refund.buyerName} • Refunded: ${refund.amount.toFixed(2)}
+                              </p>
+                            </div>
+                            <Badge variant="default">
+                              <CheckCircle className="h-3 w-3 mr-1" />
+                              Approved
+                            </Badge>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="space-y-2 border-t pt-4">
+                          <p className={`text-xs ${highContrast ? 'text-gray-400' : 'text-gray-600'}`}>
+                            Approved: {new Date(refund.approvalDate).toLocaleDateString()}
+                          </p>
+                        </CardContent>
+                      </Card>
+                    ))
+                  )}
                 </TabsContent>
               </Tabs>
 
@@ -968,7 +1062,7 @@ export function SellerDashboard({ onLogout, userRole = 'seller' }: SellerDashboa
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm text-gray-600">Total Refunds (Monthly)</p>
-                        <h3 className="mt-2">{MOCK_REFUNDS.length}</h3>
+                        <h3 className="mt-2">{(refundData?.stats?.pendingCount || 0) + (refundData?.stats?.approvedCount || 0)}</h3>
                       </div>
                       <RefreshCcw className="h-8 w-8 text-orange-600" />
                     </div>
@@ -979,7 +1073,7 @@ export function SellerDashboard({ onLogout, userRole = 'seller' }: SellerDashboa
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm text-gray-600">Refund Rate</p>
-                        <h3 className="mt-2">2.3%</h3>
+                        <h3 className="mt-2">{refundData?.stats?.refundRate || '0'}%</h3>
                       </div>
                       <TrendingUp className="h-8 w-8 text-blue-600" />
                     </div>
@@ -990,7 +1084,7 @@ export function SellerDashboard({ onLogout, userRole = 'seller' }: SellerDashboa
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm text-gray-600">Refunded Amount</p>
-                        <h3 className="mt-2">$140.00</h3>
+                        <h3 className="mt-2">${(parseFloat(refundData?.stats?.totalApproved || 0) + parseFloat(refundData?.stats?.totalPending || 0)).toFixed(2)}</h3>
                       </div>
                       <DollarSign className="h-8 w-8 text-red-600" />
                     </div>
@@ -1141,17 +1235,25 @@ export function SellerDashboard({ onLogout, userRole = 'seller' }: SellerDashboa
                   <CardContent className="space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="teacherSubject">Subject</Label>
-                      <Input id="teacherSubject" placeholder="What do you need help with?" className="h-12" />
+                      <Input
+                        id="teacherSubject"
+                        value={teacherSubject}
+                        onChange={(e) => setTeacherSubject(e.target.value)}
+                        placeholder="What do you need help with?"
+                        className="h-12"
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="teacherMessage">Message</Label>
                       <Textarea
                         id="teacherMessage"
+                        value={teacherMessage}
+                        onChange={(e) => setTeacherMessage(e.target.value)}
                         placeholder="Describe your issue or question..."
                         className="min-h-[150px]"
                       />
                     </div>
-                    <Button size="lg" className="w-full">
+                    <Button size="lg" className="w-full" onClick={handleSendTeacherAssistance}>
                       <Send className="h-4 w-4 mr-2" />
                       Send to Teacher
                     </Button>
@@ -1168,17 +1270,25 @@ export function SellerDashboard({ onLogout, userRole = 'seller' }: SellerDashboa
                   <CardContent className="space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="schoolSubject">Subject</Label>
-                      <Input id="schoolSubject" placeholder="What do you need help with?" className="h-12" />
+                      <Input
+                        id="schoolSubject"
+                        value={schoolSubject}
+                        onChange={(e) => setSchoolSubject(e.target.value)}
+                        placeholder="What do you need help with?"
+                        className="h-12"
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="schoolMessage">Message</Label>
                       <Textarea
                         id="schoolMessage"
+                        value={schoolMessage}
+                        onChange={(e) => setSchoolMessage(e.target.value)}
                         placeholder="Describe your issue or question..."
                         className="min-h-[150px]"
                       />
                     </div>
-                    <Button size="lg" className="w-full">
+                    <Button size="lg" className="w-full" onClick={handleSendSchoolAssistance}>
                       <Send className="h-4 w-4 mr-2" />
                       Send to School Admin
                     </Button>

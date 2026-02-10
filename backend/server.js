@@ -54,7 +54,9 @@ const corsOptions = {
   allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization']
 };
 app.use(cors(corsOptions));
-app.use(express.json());
+// Increase payload size limit for base64 images (50MB)
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // serve uploaded files
 import path from 'path';

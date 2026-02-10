@@ -8,7 +8,7 @@ const InquirySchema = new mongoose.Schema({
   buyerName: String,
   buyerEmail: String,
   message: String,
-  status: { type: String, enum: ['new', 'read', 'replied'], default: 'new' },
+  status: { type: String, enum: ['new', 'read', 'replied', 'archived'], default: 'new' },
   replies: [
     {
       message: String,

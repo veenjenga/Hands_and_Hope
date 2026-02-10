@@ -9,6 +9,7 @@ import { CaregiverDashboard } from './components/CaregiverDashboard';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { Toaster } from 'sonner';
 
 type Page = 'login' | 'register' | 'dashboard' | 'admin-dashboard';
 type UserRole = 'seller' | 'teacher' | 'student' | 'school' | 'super-admin' | 'admin' | 'caregiver' | null;
@@ -117,10 +118,9 @@ function AppContent() {
 
 export default function App() {
   return (
-    <NotificationProvider>
-      <AuthProvider>
-        <AppContent />
-      </AuthProvider>
-    </NotificationProvider>
+    <AuthProvider>
+       <Toaster position="top-right" richColors />
+      <AppContent />
+    </AuthProvider>
   );
 }

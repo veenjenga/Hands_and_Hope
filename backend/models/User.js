@@ -8,6 +8,20 @@ const userSchema = new mongoose.Schema(
     password: { type: String, required: true },
     businessName: String,
     phone: String,
+    address: String,
+    profilePhoto: String,
+    bio: String,
+    skills: [{ type: String }],
+    notificationPreferences: {
+      email: { type: Boolean, default: true },
+      push: { type: Boolean, default: true },
+      inquiryAlerts: { type: Boolean, default: true },
+      productApprovals: { type: Boolean, default: true },
+    },
+    regionalSettings: {
+      language: { type: String, default: 'en' },
+      timezone: { type: String, default: 'UTC' },
+    },
     role: { type: String, enum: ["seller", "teacher", "student", "school", "buyer", "admin", "super-admin", "caregiver"], default: "seller" },
     school: { type: mongoose.Schema.Types.ObjectId, ref: 'School' },
     documents: [
